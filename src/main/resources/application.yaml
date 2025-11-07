@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: SeaBattleServer
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/battleship_db
+    username: battleship_user
+    password: battleship_pass
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    properties:
+      hibernate:
+        connection:
+          charSet: UTF-8
+    hibernate:
+      ddl-auto: update
+      show-sql: true
+
+logging:
+  level:
+    org.springframework: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+
+server:
+  cors:
+    origins: http://localhost:4200

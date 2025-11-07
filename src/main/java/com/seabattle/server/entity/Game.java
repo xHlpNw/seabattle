@@ -1,0 +1,58 @@
+package com.seabattle.server.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+
+@Entity
+@Table(name = "games")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Game {
+
+    public enum GameType { BOT, ONLINE }
+    public enum GameStatus { WAITING, IN_PROGRESS, FINISHED }
+    public enum GameResult { HOST_WIN, GUEST_WIN, DRAW, SURRENDER }
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private GameType type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private GameStatus status = GameStatus.WAITING;
+
+    @Enumerated(EnumType.STRING)
+    private GameResult result;
+
+    @ManyToOne
+    @JoinColumn(name = "host_id", nullable = false)
+    private User host;
+
+    @ManyToOne
+    @JoinColumn(name = "guest_id")
+    private User guest;
+
+    @Column(name = "is_bot")
+    private boolean isBot = false;
+
+    @Column(name = "room_token")
+    private UUID roomToken;
+
+    @Column(name = "started_at")
+    private OffsetDateTime startedAt;
+
+    @Column(name = "finished_at")
+    private OffsetDateTime finishedAt;
+
+    @Column(name = "created_at")
+    private OffsetDateTime createdAt = OffsetDateTime.now();
+}
