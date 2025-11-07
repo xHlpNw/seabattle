@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -24,7 +26,7 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserDto userDto) {
         if (userRepository.existsByUsername(userDto.getUsername())) {
-            return ResponseEntity.badRequest().body("Username already exists");
+            return ResponseEntity.badRequest().body(Map.of("message", "Username already exists"));
         }
         User user = User.builder()
                 .username(userDto.getUsername())
@@ -33,7 +35,7 @@ public class UserController {
                 .rating(1000)
                 .build();
         userRepository.save(user);
-        return ResponseEntity.ok("User registered successfully");
+        return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
 
     @PostMapping("/login")
@@ -41,8 +43,13 @@ public class UserController {
         User user = userRepository.findByUsername(userDto.getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
         if (user == null || !passwordEncoder.matches(userDto.getPassword(), user.getPasswordHash())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid credentials"));
         }
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(Map.of(
+                "username", user.getUsername(),
+                "avatar", user.getAvatar(),
+                "rating", user.getRating()
+        ));
+
     }
 }

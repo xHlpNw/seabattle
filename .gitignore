@@ -1,8 +1,7 @@
 HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+
+node_modules/
+
 
 ### STS ###
 .apt_generated
@@ -13,11 +12,6 @@ target/
 .springBeans
 .sts4-cache
 
-# Node / Angular
-node_modules/
-dist/
-.angular/
-package-lock.json
 npm-debug.log
 yarn-error.log
 
@@ -43,3 +37,8 @@ target/
 .DS_Store
 Thumbs.db
 
+# Не игнорировать исходники фронтенда
+!frontend/src/
+!frontend/angular.json
+!frontend/package.json
+!frontend/tsconfig.json

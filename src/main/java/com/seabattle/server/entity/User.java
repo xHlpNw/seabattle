@@ -33,8 +33,8 @@ public class User {
     private Integer wins = 0;
     private Integer losses = 0;
 
-    @Column(name = "avatar", length = 255)
-    private String avatar = "/default_avatar.png";
+    @Column(name = "avatar", length = 255, columnDefinition = "varchar(255) default '/default_avatar.png'")
+    private String avatar;
 
     @Column(name = "created_at")
     private OffsetDateTime createdAt = OffsetDateTime.now();
