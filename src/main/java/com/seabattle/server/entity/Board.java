@@ -26,9 +26,12 @@ public class Board {
     @JoinColumn(name = "player_id")
     private User player;
 
-    @Column(columnDefinition = "jsonb", nullable = false)
-    private String cells; // храним JSON как строку
+    @Column(columnDefinition = "text", nullable = false)
+    private String cells;
 
     @Column(name = "created_at")
-    private OffsetDateTime createdAt = OffsetDateTime.now();
+    private OffsetDateTime createdAt;
+
+    @PrePersist
+    void prePersist() { if (createdAt == null) createdAt = OffsetDateTime.now(); }
 }

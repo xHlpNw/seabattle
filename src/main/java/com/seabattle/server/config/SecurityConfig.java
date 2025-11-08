@@ -16,20 +16,35 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
+    /*@Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authorize -> authorize
-                        // разрешаем доступ к API для регистрации и логина
                         .requestMatchers("/api/users/register", "/api/users/login").permitAll()
-                        // разрешаем доступ к статическим ресурсам (аватары, js, css)
                         .requestMatchers("/default_avatar.png", "/images/**", "/css/**", "/js/**").permitAll()
-                        // все остальные запросы требуют аутентификации
+                        .requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());
+        return http.build();
+    }*/
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(csrf -> csrf.disable()) // временно отключаем CSRF для разработки
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll() // разрешаем все запросы
+                );
+
         return http.build();
     }
 }

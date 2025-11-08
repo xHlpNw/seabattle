@@ -13,7 +13,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class Game {
-
     public enum GameType { BOT, ONLINE }
     public enum GameStatus { WAITING, IN_PROGRESS, FINISHED }
     public enum GameResult { HOST_WIN, GUEST_WIN, DRAW, SURRENDER }
@@ -28,6 +27,7 @@ public class Game {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private GameStatus status = GameStatus.WAITING;
 
     @Enumerated(EnumType.STRING)
@@ -42,6 +42,7 @@ public class Game {
     private User guest;
 
     @Column(name = "is_bot")
+    @Builder.Default
     private boolean isBot = false;
 
     @Column(name = "room_token")
@@ -54,5 +55,8 @@ public class Game {
     private OffsetDateTime finishedAt;
 
     @Column(name = "created_at")
-    private OffsetDateTime createdAt = OffsetDateTime.now();
+    private OffsetDateTime createdAt;
+
+    @PrePersist
+    void prePersist() { if (createdAt == null) createdAt = OffsetDateTime.now(); }
 }

@@ -10,5 +10,7 @@ import java.util.UUID;
 
 @Repository
 public interface BoardRepository extends JpaRepository<Board, UUID> {
-    Optional<Board> findByGame(Game game);
+    Optional<Board> findByGameIdAndPlayerId(UUID gameId, UUID playerId);
+
+    Optional<Board> findByGameIdAndPlayerIsNull(UUID gameId);
 }

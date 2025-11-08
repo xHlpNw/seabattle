@@ -13,7 +13,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class Room {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
@@ -26,11 +25,19 @@ public class Room {
     private UUID token;
 
     @Column(nullable = false, length = 20)
-    private String status = "WAITING"; // WAITING / STARTED / EXPIRED
+    @Builder.Default
+    private String status = "WAITING";
 
     @Column(name = "created_at")
-    private OffsetDateTime createdAt = OffsetDateTime.now();
+    private OffsetDateTime createdAt;
 
     @Column(name = "expires_at")
-    private OffsetDateTime expiresAt = OffsetDateTime.now().plusMinutes(30);
+    private OffsetDateTime expiresAt;
+
+    @PrePersist
+    void prePersist() {
+        OffsetDateTime now = OffsetDateTime.now();
+        if (createdAt == null) createdAt = now;
+        if (expiresAt == null) expiresAt = now.plusMinutes(30);
+    }
 }

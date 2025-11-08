@@ -13,7 +13,6 @@ import java.util.*;
 @AllArgsConstructor
 @Builder
 public class User {
-
     public enum Role { PLAYER, ADMIN }
 
     @Id
@@ -29,25 +28,35 @@ public class User {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
+    @Builder.Default
     private Integer rating = 1000;
+
+    @Builder.Default
     private Integer wins = 0;
+
+    @Builder.Default
     private Integer losses = 0;
 
+    @Builder.Default
     @Column(name = "avatar", length = 255, columnDefinition = "varchar(255) default '/default_avatar.png'")
-    private String avatar;
+    private String avatar = "/default_avatar.png";
 
     @Column(name = "created_at")
-    private OffsetDateTime createdAt = OffsetDateTime.now();
+    private OffsetDateTime createdAt;
 
     @Column(name = "updated_at")
-    private OffsetDateTime updatedAt = OffsetDateTime.now();
-
-    @OneToMany(mappedBy = "host", cascade = CascadeType.ALL)
-    private List<Game> hostedGames = new ArrayList<>();
-
-    @OneToMany(mappedBy = "guest", cascade = CascadeType.ALL)
-    private List<Game> guestGames = new ArrayList<>();
+    private OffsetDateTime updatedAt;
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @PrePersist
+    void prePersist() {
+        OffsetDateTime now = OffsetDateTime.now();
+        if (createdAt == null) createdAt = now;
+        if (updatedAt == null) updatedAt = now;
+    }
+
+    @PreUpdate
+    void preUpdate() { updatedAt = OffsetDateTime.now(); }
 }

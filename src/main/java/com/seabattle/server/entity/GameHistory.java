@@ -12,7 +12,6 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 public class GameHistory {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,11 +29,15 @@ public class GameHistory {
     private User opponent;
 
     @Column(nullable = false, length = 10)
-    private String result; // WIN / LOSS / DRAW
+    private String result;
 
     @Column(name = "delta_rating")
+    @Builder.Default
     private Integer deltaRating = 0;
 
     @Column(name = "created_at")
-    private OffsetDateTime createdAt = OffsetDateTime.now();
+    private OffsetDateTime createdAt;
+
+    @PrePersist
+    void prePersist() { if (createdAt == null) createdAt = OffsetDateTime.now(); }
 }

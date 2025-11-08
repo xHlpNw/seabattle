@@ -12,7 +12,6 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 @Builder
 public class Move {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -35,5 +34,8 @@ public class Move {
     private boolean hit;
 
     @Column(name = "created_at")
-    private OffsetDateTime createdAt = OffsetDateTime.now();
+    private OffsetDateTime createdAt;
+
+    @PrePersist
+    void prePersist() { if (createdAt == null) createdAt = OffsetDateTime.now(); }
 }

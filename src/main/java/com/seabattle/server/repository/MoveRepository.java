@@ -9,6 +9,4 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface MoveRepository extends JpaRepository<Move, UUID> {
-    List<Move> findByGame(Game game);
-}
+public interface MoveRepository extends JpaRepository<Move, Long> { }

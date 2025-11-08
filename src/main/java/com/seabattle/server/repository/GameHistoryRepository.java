@@ -11,11 +11,4 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface GameHistoryRepository extends JpaRepository<GameHistory, UUID> {
-    @Query("SELECT g FROM GameHistory g WHERE g.player = :user OR g.opponent = :user")
-    List<GameHistory> findAllByUser(@Param("user") User user);
-
-    List<GameHistory> findByPlayer(User player);
-
-    List<GameHistory> findByOpponent(User opponent);
-}
+public interface GameHistoryRepository extends JpaRepository<GameHistory, Long> { }
