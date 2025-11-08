@@ -22,7 +22,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authorize -> authorize
+                        // разрешаем доступ к API для регистрации и логина
                         .requestMatchers("/api/users/register", "/api/users/login").permitAll()
+                        // разрешаем доступ к статическим ресурсам (аватары, js, css)
+                        .requestMatchers("/default_avatar.png", "/images/**", "/css/**", "/js/**").permitAll()
+                        // все остальные запросы требуют аутентификации
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());

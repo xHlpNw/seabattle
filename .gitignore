@@ -1,7 +1,7 @@
 HELP.md
 
 node_modules/
-
+frontend/.angular/cache/
 
 ### STS ###
 .apt_generated

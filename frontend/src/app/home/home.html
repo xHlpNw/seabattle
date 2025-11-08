@@ -1,1 +1,9 @@
-<h2>Пользователь {{ username }} успешно авторизован</h2>
+<div *ngIf="user; else guest">
+  <img [src]="user.avatar ? 'http://localhost:8080' + user.avatar : 'http://localhost:8080/default_avatar.png'"
+       alt="Аватар" width="50" height="50" style="border-radius: 50%;">
+  <span>{{ user.username }}</span>
+</div>
+
+<ng-template #guest>
+  <p>Пользователь не авторизован</p>
+</ng-template>
