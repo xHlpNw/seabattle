@@ -133,21 +133,45 @@ public class BoardModel {
         }
     }
 
-    // simple auto-placement
     public static BoardModel autoPlaceRandom() {
         BoardModel bm = new BoardModel();
         Random rnd = new Random();
+        int[] shipLengths = {4,3,3,2,2,2,1,1,1,1}; // 1x4, 2x3, 3x2, 4x1
         int id = 1;
-        for (int len : STANDARD_SHIPS) {
+
+        for (int len : shipLengths) {
             boolean placed = false;
             int tries = 0;
-            while (!placed && tries++ < 2000) {
+            while (!placed && tries++ < 1000) {
                 boolean horiz = rnd.nextBoolean();
                 int x = rnd.nextInt(SIZE);
                 int y = rnd.nextInt(SIZE);
-                placed = bm.placeShip(id++, x, y, horiz, len);
+                if (canPlaceShip(bm, x, y, horiz, len)) {
+                    bm.placeShip(id++, x, y, horiz, len);
+                    placed = true;
+                }
             }
+            if (!placed) throw new IllegalStateException("Cannot place ship of length " + len);
         }
         return bm;
+    }
+
+    private static boolean canPlaceShip(BoardModel bm, int x, int y, boolean horiz, int length) {
+        int startX = Math.max(0, x - 1);
+        int startY = Math.max(0, y - 1);
+        int endX = horiz ? Math.min(SIZE - 1, x + 1) : Math.min(SIZE - 1, x + length);
+        int endY = horiz ? Math.min(SIZE - 1, y + length) : Math.min(SIZE - 1, y + 1);
+
+        for (int i = startX; i <= endX; i++) {
+            for (int j = startY; j <= endY; j++) {
+                if (bm.getCells()[i][j].getState() == CellState.SHIP) return false;
+            }
+        }
+
+        // Проверка выхода за границы
+        if (horiz && y + length > SIZE) return false;
+        if (!horiz && x + length > SIZE) return false;
+
+        return true;
     }
 }
