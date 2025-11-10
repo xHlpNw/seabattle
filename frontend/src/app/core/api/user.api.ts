@@ -36,4 +36,18 @@ export class UserApi {
       this.http.post<void>(`${this.base}/register`, data)
     );
   }
+
+  async getProfile(username: string): Promise<{
+    username: string;
+    avatar: string;
+    email?: string;
+    rating: number;
+    gamesPlayed?: number;
+    wins?: number;
+  }> {
+    return firstValueFrom(
+      this.http.get<any>(`${this.base}/${username}`)
+    );
+  }
+
 }

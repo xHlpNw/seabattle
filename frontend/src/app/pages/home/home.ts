@@ -23,7 +23,7 @@ export class HomeComponent {
   }
 
   goLogin() {
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/login']);
   }
 
   goProfile() {

@@ -1,0 +1,27 @@
+<div class="profile-container" *ngIf="!loading && user">
+
+  <div class="profile-card">
+    <img [src]="user.avatar ? 'http://localhost:8080' + user.avatar : 'http://localhost:8080/default_avatar.png'"
+         alt="avatar" class="avatar" />
+
+    <h2>{{ user.username }}</h2>
+    <p class="email">email: {{ user.email || 'Email не указан' }}</p>
+
+    <div class="stats">
+      <div>Рейтинг: {{ user.rating }}</div>
+      <div>Игр сыграно: {{ user.gamesPlayed || 0 }}</div>
+      <div>Побед: {{ user.wins || 0 }}</div>
+    </div>
+
+    <button (click)="logout()">Выйти</button>
+  </div>
+
+</div>
+
+<div *ngIf="loading" class="loading">
+  Загрузка профиля...
+</div>
+
+<div *ngIf="error" class="error">
+  {{ error }}
+</div>

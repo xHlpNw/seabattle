@@ -8,11 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -45,11 +43,32 @@ public class UserController {
         if (user == null || !passwordEncoder.matches(userDto.getPassword(), user.getPasswordHash())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid credentials"));
         }
-        return ResponseEntity.ok(Map.of(
-                "username", user.getUsername(),
-                "avatar", user.getAvatar(),
-                "rating", user.getRating()
-        ));
+        Map<String, Object> response = new HashMap<>();
+        response.put("username", user.getUsername());
+        response.put("avatar", user.getAvatar()); // null допустим
+        response.put("rating", user.getRating());
 
+        return ResponseEntity.ok(response);
+
+    }
+
+    @GetMapping("/{username}")
+    public ResponseEntity<?> getUserProfile(@PathVariable String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
+
+        int gamesPlayed = (user.getWins() != null ? user.getWins() : 0)
+                + (user.getLosses() != null ? user.getLosses() : 0);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("username", user.getUsername());
+        response.put("email", user.getEmail() != null ? user.getEmail() : "—");
+        response.put("avatar", user.getAvatar() != null ? user.getAvatar() : "/default_avatar.png");
+        response.put("rating", user.getRating());
+        response.put("wins", user.getWins());
+        response.put("losses", user.getLosses());
+        response.put("gamesPlayed", gamesPlayed);
+
+        return ResponseEntity.ok(response);
     }
 }
