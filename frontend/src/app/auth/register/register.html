@@ -1,8 +1,0 @@
-<h2>Регистрация</h2>
-<form (submit)="register(); $event.preventDefault()">
-  <input type="text" placeholder="Логин" [(ngModel)]="username" name="username" required>
-  <input type="email" placeholder="Email" [(ngModel)]="email" name="email" required>
-  <input type="password" placeholder="Пароль" [(ngModel)]="password" name="password" required>
-  <button type="submit">Зарегистрироваться</button>
-</form>
-<a routerLink="/login">Уже есть аккаунт? Войти</a>

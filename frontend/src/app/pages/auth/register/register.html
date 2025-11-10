@@ -1,0 +1,21 @@
+<div class="register-container">
+
+  <h1>Регистрация</h1>
+
+  <div class="form-field">
+    <label>Логин</label>
+    <input type="text" [(ngModel)]="username" placeholder="username">
+  </div>
+
+  <div class="form-field">
+    <label>Пароль</label>
+    <input type="password" [(ngModel)]="password" placeholder="password">
+  </div>
+
+  <div class="error" *ngIf="errorMsg">
+    {{ errorMsg }}
+  </div>
+
+  <button (click)="doRegister()">Зарегистрироваться</button>
+
+</div>

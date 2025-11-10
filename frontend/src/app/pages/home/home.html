@@ -1,0 +1,23 @@
+<div class="home-container">
+
+  <div class="auth-zone">
+    <button *ngIf="!isLoggedIn" (click)="goLogin()">
+      Войти
+    </button>
+
+    <button *ngIf="isLoggedIn" (click)="goProfile()">
+      Профиль
+    </button>
+  </div>
+
+  <div class="modes">
+    <button (click)="playBot()">
+      Бой с ботом
+    </button>
+
+    <button (click)="playOnline()">
+      Бой онлайн
+    </button>
+  </div>
+
+</div>

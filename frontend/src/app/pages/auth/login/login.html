@@ -1,0 +1,29 @@
+<div class="login-container">
+
+  <h1>Вход</h1>
+
+  <div class="form-field">
+    <label>Логин</label>
+    <input
+      type="text"
+      [(ngModel)]="username"
+      placeholder="username"
+    >
+  </div>
+
+  <div class="form-field">
+    <label>Пароль</label>
+    <input
+      type="password"
+      [(ngModel)]="password"
+      placeholder="password"
+    >
+  </div>
+
+  <div class="error" *ngIf="errorMsg">
+    {{ errorMsg }}
+  </div>
+
+  <button (click)="doLogin()">Войти</button>
+
+</div>
