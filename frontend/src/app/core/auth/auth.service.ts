@@ -17,8 +17,8 @@ export class AuthService {
     this._isLoggedIn$.next(!!username);
   }
 
-  login(username: string) {
-    this.tokenStorage.setToken(username);
+  login(token: string) {
+    this.tokenStorage.setToken(token);
     this._isLoggedIn$.next(true);
   }
 
@@ -28,7 +28,7 @@ export class AuthService {
     this.router.navigate(['/']);
   }
 
-  getUsername(): string | null {
+  getToken(): string | null {
     return this.tokenStorage.getToken();
   }
 }

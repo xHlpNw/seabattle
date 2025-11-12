@@ -11,6 +11,7 @@ interface LoginResponse {
   username: string;
   avatar: string;
   rating: number;
+  token: string;
 }
 
 interface RegisterRequest {
@@ -37,7 +38,7 @@ export class UserApi {
     );
   }
 
-  async getProfile(username: string): Promise<{
+  async getProfile(username: string, token?: string): Promise<{
     username: string;
     avatar: string;
     email?: string;
@@ -45,8 +46,10 @@ export class UserApi {
     gamesPlayed?: number;
     wins?: number;
   }> {
+    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
+
     return firstValueFrom(
-      this.http.get<any>(`${this.base}/${username}`)
+      this.http.get<any>(`${this.base}/${username}`, { headers })
     );
   }
 

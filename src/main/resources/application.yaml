@@ -17,6 +17,10 @@ spring:
       ddl-auto: validate
       show-sql: true
 
+jwt:
+  secret: very-strong-secret-change-me
+  expiration-ms: 3600000
+
 logging:
   level:
     org.springframework: DEBUG

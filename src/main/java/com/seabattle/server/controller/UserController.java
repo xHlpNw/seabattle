@@ -3,6 +3,7 @@ package com.seabattle.server.controller;
 import com.seabattle.server.dto.UserDto;
 import com.seabattle.server.entity.User;
 import com.seabattle.server.repository.UserRepository;
+import com.seabattle.server.util.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody UserDto userDto) {
@@ -43,7 +45,11 @@ public class UserController {
         if (user == null || !passwordEncoder.matches(userDto.getPassword(), user.getPasswordHash())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid credentials"));
         }
+
+        String token = jwtUtil.generateToken(user.getUsername());
+
         Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
         response.put("username", user.getUsername());
         response.put("avatar", user.getAvatar()); // null допустим
         response.put("rating", user.getRating());

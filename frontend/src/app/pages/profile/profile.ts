@@ -23,22 +23,40 @@ export class ProfileComponent {
   error = '';
 
   async ngOnInit() {
-    const username = this.auth.getUsername();
-    if (!username) {
-      this.router.navigate(['/auth/login']);
-      return;
-    }
+      const token = this.auth.getToken() || undefined;
 
-    try {
-      this.user = await this.userApi.getProfile(username);
-    } catch (err) {
-      this.error = 'Не удалось загрузить профиль';
-    } finally {
-      this.loading = false;
+          if (!token) {
+            this.router.navigate(['login']);
+            return;
+          }
+
+      const username = this.getUsernameFromToken(token); // извлекаем username
+      if (!username) {
+        this.router.navigate(['login']);
+        return;
+      }
+
+      try {
+        this.user = await this.userApi.getProfile(username, token);
+      } catch (err) {
+        this.error = 'Не удалось загрузить профиль';
+      } finally {
+        this.loading = false;
+      }
+
     }
-  }
 
   logout() {
     this.auth.logout();
+  }
+
+  private getUsernameFromToken(token: string): string | null {
+    try {
+      const payloadBase64 = token.split('.')[1];
+      const payload = JSON.parse(atob(payloadBase64));
+      return payload.sub || null; // <-- здесь sub
+    } catch (e) {
+      return null;
+    }
   }
 }

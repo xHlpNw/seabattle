@@ -32,7 +32,7 @@ export class LoginComponent {
       });
 
       console.log('Before login', res);
-      this.auth.login(res.username);
+      this.auth.login(res.token);
       console.log('After login');
       this.router.navigate(['/']);
 

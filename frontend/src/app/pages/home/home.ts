@@ -3,6 +3,7 @@ import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth/auth.service';
+import { GameApi } from '../../core/api/game.api'
 
 @Component({
   selector: 'page-home',
@@ -15,6 +16,7 @@ export class HomeComponent {
 
   private auth = inject(AuthService);
   private router = inject(Router);
+  private gameApi = inject(GameApi);
 
   isLoggedIn = false;
 
@@ -31,7 +33,20 @@ export class HomeComponent {
   }
 
   playBot() {
-    this.router.navigate(['/setup']);
+    if (!this.isLoggedIn) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    this.gameApi.createBotGame().subscribe({
+      next: (res) => {
+        console.log('✅ Игра с ботом создана:', res);
+        this.router.navigate(['/setup'], { queryParams: { gameId: res.gameId } });
+      },
+      error: (err) => {
+        console.error('❌ Ошибка при создании игры с ботом:', err);
+      }
+    });
   }
 
   playOnline() {
