@@ -11,6 +11,7 @@ import com.seabattle.server.service.GameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -25,8 +26,8 @@ public class BotGameController {
     private final UserRepository userRepo;
 
     @PostMapping("/create")
-    public ResponseEntity<CreateBotGameResponse> create(@AuthenticationPrincipal Principal principal) throws Exception {
-        User user = userRepo.findByUsername(principal.getName()).orElseThrow();
+    public ResponseEntity<CreateBotGameResponse> create(@AuthenticationPrincipal UserDetails userDetails) throws Exception {
+        User user = userRepo.findByUsername(userDetails.getUsername()).orElseThrow();
         Game g = gameService.createBotGame(user);
         return ResponseEntity.ok(new CreateBotGameResponse(g.getId(), "Created bot game. Place ships with /place/auto or /place"));
     }

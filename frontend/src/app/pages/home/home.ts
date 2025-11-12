@@ -33,6 +33,7 @@ export class HomeComponent {
   }
 
   playBot() {
+    console.log('Токен:', this.auth.getToken());
     if (!this.isLoggedIn) {
       this.router.navigate(['/login']);
       return;

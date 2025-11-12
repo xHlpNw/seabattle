@@ -30,6 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
+
         final String authHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
@@ -40,14 +41,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 username = jwtUtil.extractUsername(token);
             }
         }
+        System.out.println("Auth header: " + authHeader);
+        System.out.println("Username from token: " + username);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            // можно дополнительно проверить совпадение userDetails и токена
+
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+            // Важно: пометить как authenticated
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
+
+            System.out.println("Authentication set in context: " + SecurityContextHolder.getContext().getAuthentication());
         }
 
         filterChain.doFilter(request, response);
