@@ -51,9 +51,10 @@ public class GameService {
     }
 
     @Transactional
-    public void placeShipsAuto(UUID gameId, UUID playerId) throws Exception {
+    public int[][] placeShipsAuto(UUID gameId, UUID playerId) throws Exception {
         Game g = gameRepo.findById(gameId).orElseThrow();
         Board board = boardRepo.findByGameIdAndPlayerId(gameId, playerId).orElseThrow();
+
         BoardModel bm = BoardModel.autoPlaceRandom();
         board.setCells(bm.toJson());
         boardRepo.save(board);
@@ -63,6 +64,8 @@ public class GameService {
             g.setStartedAt(OffsetDateTime.now());
             gameRepo.save(g);
         }
+
+        return bm.toIntArray();
     }
 
     @Transactional

@@ -3,6 +3,7 @@ import { LoginComponent } from './pages/auth/login/login';
 import { RegisterComponent } from './pages/auth/register/register';
 import { HomeComponent } from './pages/home/home';
 import { ProfileComponent } from './pages/profile/profile';
+import { SetupComponent } from './pages/setup/setup';
 import { AuthGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
@@ -21,5 +22,9 @@ export const routes: Routes = [
   {
     path: 'profile',
     component: ProfileComponent
+  },
+  {
+    path: 'setup',
+    component: SetupComponent
   }
 ];

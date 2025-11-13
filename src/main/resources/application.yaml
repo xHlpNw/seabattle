@@ -18,7 +18,7 @@ spring:
       show-sql: true
 
 jwt:
-  secret: very-strong-secret-change-me
+  secret: MY_SUPER_SECRET_KEY_1234567890_ABCDEF
   expiration-ms: 3600000
 
 logging:

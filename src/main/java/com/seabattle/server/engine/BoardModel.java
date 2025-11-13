@@ -174,4 +174,17 @@ public class BoardModel {
 
         return true;
     }
+
+    public int[][] toIntArray() {
+        int[][] grid = new int[10][10];
+
+        for(int i = 0; i < cells.length; i++) {
+            for(int j = 0; j < cells[0].length; j++) {
+                if (cells[i][j].state == CellState.SHIP) grid[i][j] = 1;
+                else grid[i][j] = 0;
+            }
+        }
+        return grid; // где cells — int[rows][cols]
+    }
+
 }

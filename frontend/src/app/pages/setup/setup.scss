@@ -1,0 +1,49 @@
+.setup-container {
+  text-align: center;
+}
+
+.ships {
+  margin-bottom: 1rem;
+  span {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    margin: 0.2rem;
+    border: 1px solid #333;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .placed {
+    background-color: #4caf50;
+    color: #fff;
+    cursor: not-allowed;
+  }
+}
+
+.grid {
+  display: inline-block;
+  margin-bottom: 1rem;
+
+  .row {
+    display: flex;
+    .cell {
+      width: 30px;
+      height: 30px;
+      border: 1px solid #333;
+      margin: 1px;
+      cursor: pointer;
+    }
+    .cell.ship {
+      background-color: #1976d2;
+    }
+  }
+}
+
+.buttons button {
+  margin: 0 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background-color: #1976d2;
+  color: white;
+}

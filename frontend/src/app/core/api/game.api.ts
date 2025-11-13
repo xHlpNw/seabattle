@@ -10,4 +10,9 @@ export class GameApi {
   createBotGame(): Observable<{ gameId: string; message: string }> {
     return this.http.post<{ gameId: string; message: string }>('/api/bot/create', {});
   }
+
+
+  placeShipsAuto(gameId: string): Observable<{ message: string; grid: number[][] }> {
+    return this.http.post<{ message: string; grid: number[][] }>(`/api/bot/${gameId}/place/auto`, {});
+  }
 }

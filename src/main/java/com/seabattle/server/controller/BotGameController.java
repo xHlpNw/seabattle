@@ -15,6 +15,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -33,17 +35,22 @@ public class BotGameController {
     }
 
     @PostMapping("/{gameId}/place/auto")
-    public ResponseEntity<String> autoPlace(@PathVariable UUID gameId, @AuthenticationPrincipal Principal principal) throws Exception {
-        User user = userRepo.findByUsername(principal.getName()).orElseThrow();
-        gameService.placeShipsAuto(gameId, user.getId());
-        return ResponseEntity.ok("Ships auto-placed and game started.");
+    public ResponseEntity<Map<String, Object>> autoPlace(@PathVariable UUID gameId, @AuthenticationPrincipal UserDetails userDetails) throws Exception {
+        User user = userRepo.findByUsername(userDetails.getUsername()).orElseThrow();
+        int[][] grid = gameService.placeShipsAuto(gameId, user.getId());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Ships auto-placed and game started.");
+        response.put("grid", grid);
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{gameId}/place")
     public ResponseEntity<String> manualPlace(@PathVariable UUID gameId,
                                               @RequestBody ObjectNode body,
-                                              @AuthenticationPrincipal Principal principal) throws Exception {
-        User user = userRepo.findByUsername(principal.getName()).orElseThrow();
+                                              @AuthenticationPrincipal UserDetails userDetails) throws Exception {
+        User user = userRepo.findByUsername(userDetails.getUsername()).orElseThrow();
         if (!body.has("cellsJson")) return ResponseEntity.badRequest().body("cellsJson required");
         String cellsJson = body.get("cellsJson").asText();
         gameService.placeShipsManual(gameId, user.getId(), cellsJson);
@@ -53,22 +60,22 @@ public class BotGameController {
     @PostMapping("/{gameId}/shot")
     public ResponseEntity<ShotResultDto> shot(@PathVariable UUID gameId,
                                               @RequestBody ShotRequest req,
-                                              @AuthenticationPrincipal Principal principal) throws Exception {
-        User user = userRepo.findByUsername(principal.getName()).orElseThrow();
+                                              @AuthenticationPrincipal UserDetails userDetails) throws Exception {
+        User user = userRepo.findByUsername(userDetails.getUsername()).orElseThrow();
         ShotResultDto res = gameService.playerShot(gameId, user.getId(), req.getX(), req.getY());
         return ResponseEntity.ok(res);
     }
 
     @PostMapping("/{gameId}/surrender")
-    public ResponseEntity<String> surrender(@PathVariable UUID gameId, @AuthenticationPrincipal Principal principal) {
-        User user = userRepo.findByUsername(principal.getName()).orElseThrow();
+    public ResponseEntity<String> surrender(@PathVariable UUID gameId, @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepo.findByUsername(userDetails.getUsername()).orElseThrow();
         gameService.surrender(gameId, user.getId());
         return ResponseEntity.ok("You surrendered.");
     }
 
     @PostMapping("/{gameId}/rematch")
-    public ResponseEntity<CreateBotGameResponse> rematch(@PathVariable UUID gameId, @AuthenticationPrincipal Principal principal) throws Exception {
-        User user = userRepo.findByUsername(principal.getName()).orElseThrow();
+    public ResponseEntity<CreateBotGameResponse> rematch(@PathVariable UUID gameId, @AuthenticationPrincipal UserDetails userDetails) throws Exception {
+        User user = userRepo.findByUsername(userDetails.getUsername()).orElseThrow();
         Game g = gameService.rematch(gameId, user.getId());
         return ResponseEntity.ok(new CreateBotGameResponse(g.getId(), "Rematch created."));
     }

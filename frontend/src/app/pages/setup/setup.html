@@ -1,0 +1,26 @@
+<div class="setup-container">
+  <h2>Расставьте корабли</h2>
+
+  <div class="ships">
+    <span *ngFor="let ship of ships"
+          [class.placed]="ship.placed"
+          (click)="selectShip(ship)">
+      {{ ship.size }}‑палубный
+    </span>
+  </div>
+
+  <div class="grid">
+    <div *ngFor="let row of grid; let i = index" class="row">
+      <div *ngFor="let cell of row; let j = index"
+           class="cell"
+           [class.ship]="cell === 1"
+           (click)="placeShip(i,j)">
+      </div>
+    </div>
+  </div>
+
+  <div class="buttons">
+    <button (click)="autoPlaceShips()">Случайная расстановка</button>
+    <button (click)="ready()">Готов</button>
+  </div>
+</div>
