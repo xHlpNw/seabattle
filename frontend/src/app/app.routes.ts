@@ -4,6 +4,7 @@ import { RegisterComponent } from './pages/auth/register/register';
 import { HomeComponent } from './pages/home/home';
 import { ProfileComponent } from './pages/profile/profile';
 import { SetupComponent } from './pages/setup/setup';
+import { GameComponent } from './pages/game/game';
 import { AuthGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
@@ -26,5 +27,17 @@ export const routes: Routes = [
   {
     path: 'setup',
     component: SetupComponent
+  },
+  {
+    path: 'game',
+    component: GameComponent
+  },
+  {
+    path: 'game/:gameId',
+    component: GameComponent
+  },
+  {
+    path: 'game/:gameId/play',
+    component: GameComponent
   }
 ];

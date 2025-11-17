@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs'; // <-- импортируем
 import { GameApi } from '../../core/api/game.api';
 
 interface Ship {
@@ -24,7 +25,7 @@ export class SetupComponent implements OnInit {
 
   gameId: string | null = null;
 
-  grid: number[][] = []; // 0 = пусто, 1 = корабль
+  grid: number[][] = [];
   ships: Ship[] = [
     { size: 4, placed: false },
     { size: 3, placed: false },
@@ -45,8 +46,11 @@ export class SetupComponent implements OnInit {
       this.gameId = params['gameId'] || null;
     });
 
-    // создаём пустую сетку 10x10
-    this.grid = Array.from({ length: 10 }, () => Array(10).fill(0));
+    this.grid = this.createEmptyGrid();
+  }
+
+  createEmptyGrid(): number[][] {
+    return Array.from({ length: 10 }, () => Array(10).fill(0));
   }
 
   selectShip(ship: Ship) {
@@ -57,8 +61,6 @@ export class SetupComponent implements OnInit {
     if (!this.selectedShip) return;
 
     const size = this.selectedShip.size;
-
-    // простая проверка — помещаем вправо, если хватает места
     if (y + size > 10) return;
 
     for (let i = 0; i < size; i++) {
@@ -73,38 +75,37 @@ export class SetupComponent implements OnInit {
     if (!this.gameId) return;
 
     try {
-      // Получаем ответ с сервера
-      const response = await this.gameApi.placeShipsAuto(this.gameId).toPromise();
-
-      // Проверяем, что response существует и имеет поле grid
-      if (response && 'grid' in response && Array.isArray(response.grid)) {
-        this.grid = response.grid as number[][];
+      const response = await firstValueFrom(this.gameApi.placeShipsAuto(this.gameId));
+      if (response && Array.isArray(response.grid)) {
+        this.grid = response.grid;
       } else {
         console.error('Неверный формат ответа сервера:', response);
         return;
       }
 
-      // Помечаем все корабли как размещённые
       this.ships.forEach(ship => ship.placed = true);
 
-      // Можно вывести сообщение, если есть
-      if (response && 'message' in response) {
+      if (response.message) {
         console.log(response.message);
       }
-
     } catch (err) {
       console.error('Ошибка автоматической расстановки:', err);
     }
   }
 
-
   async ready() {
     if (!this.gameId) return;
+
     try {
-      await this.gameApi.placeShipsAuto(this.gameId).toPromise();
-      this.router.navigate(['/game'], { queryParams: { gameId: this.gameId } });
+      await firstValueFrom(this.gameApi.placeShips(this.gameId, this.grid));
+      console.log('Доска успешно сохранена');
+
+      const board = await firstValueFrom(this.gameApi.getBoard(this.gameId));
+      this.grid = board?.grid || this.createEmptyGrid();
+
+      this.router.navigate(['/game', this.gameId, 'play']); // Переход только после сохранения
     } catch (err) {
-      console.error('Ошибка размещения кораблей:', err);
+      console.error('Ошибка сохранения доски:', err);
     }
   }
 

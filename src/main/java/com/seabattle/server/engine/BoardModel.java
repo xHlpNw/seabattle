@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,13 +54,18 @@ public class BoardModel {
         }
     }
 
-    public static BoardModel fromJson(String json) throws Exception {
+    @SneakyThrows
+    public static BoardModel fromJson(String json) {
         if (json == null || json.trim().isEmpty()) return new BoardModel();
         return MAPPER.readValue(json, BoardModel.class);
     }
 
-    public String toJson() throws Exception {
-        return MAPPER.writeValueAsString(this);
+    public String toJson() {
+        try {
+            return MAPPER.writeValueAsString(this);
+        } catch (Exception e) {
+            throw new RuntimeException("Ошибка сериализации BoardModel", e);
+        }
     }
 
     // simple ship placer (no adjacency checks). Returns true if placed

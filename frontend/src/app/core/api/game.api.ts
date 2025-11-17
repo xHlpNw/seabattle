@@ -15,4 +15,13 @@ export class GameApi {
   placeShipsAuto(gameId: string): Observable<{ message: string; grid: number[][] }> {
     return this.http.post<{ message: string; grid: number[][] }>(`/api/bot/${gameId}/place/auto`, {});
   }
+
+  placeShips(gameId: string, grid: number[][]) {
+    return this.http.post(`/api/games/${gameId}/place-ships`, { grid });
+  }
+
+  getBoard(gameId: string) {
+    return this.http.get<{grid: number[][]}>(`/api/games/${gameId}/board`);
+  }
+
 }

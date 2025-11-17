@@ -32,12 +32,22 @@ export class LoginComponent {
       });
 
       console.log('Before login', res);
+
+      // Сохраняем token и username в localStorage
+      localStorage.setItem('token', res.token);
+      localStorage.setItem('username', res.username);
+
+      // Также уведомляем AuthService о логине
       this.auth.login(res.token);
-      console.log('After login');
+
+      console.log('After login', res);
+
+      // Переход на главную или нужную страницу
       this.router.navigate(['/']);
 
     } catch (e: any) {
       this.errorMsg = 'Неверный логин или пароль';
+      console.error('Ошибка входа:', e);
     }
   }
 }

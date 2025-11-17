@@ -33,27 +33,21 @@ public class GameService {
                 .build();
         gameRepo.save(g);
 
-        Board hostBoard = Board.builder()
-                .game(g)
-                .player(host)
-                .cells(new BoardModel().toJson())
-                .build();
-        boardRepo.save(hostBoard);
-
-        Board botBoard = Board.builder()
-                .game(g)
-                .player(null)
-                .cells(BoardModel.autoPlaceRandom().toJson())
-                .build();
-        boardRepo.save(botBoard);
-
         return g;
     }
 
     @Transactional
     public int[][] placeShipsAuto(UUID gameId, UUID playerId) throws Exception {
         Game g = gameRepo.findById(gameId).orElseThrow();
-        Board board = boardRepo.findByGameIdAndPlayerId(gameId, playerId).orElseThrow();
+        Board board = boardRepo.findByGameIdAndPlayerId(gameId, playerId)
+                .orElseGet(() -> {
+                    Board newBoard = Board.builder()
+                            .game(gameRepo.findById(gameId).orElseThrow(() -> new RuntimeException("Game not found")))
+                            .player(userRepo.findById(playerId).orElseThrow(() -> new RuntimeException("User not found")))
+                            .cells("empty") // или ваш формат пустого поля
+                            .build();
+                    return boardRepo.save(newBoard);
+                });
 
         BoardModel bm = BoardModel.autoPlaceRandom();
         board.setCells(bm.toJson());

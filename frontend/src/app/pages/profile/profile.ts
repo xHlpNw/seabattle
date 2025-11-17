@@ -1,5 +1,4 @@
 import { Component, inject } from '@angular/core';
-import { AuthService } from '../../core/auth/auth.service';
 import { UserApi } from '../../core/api/user.api';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -14,7 +13,6 @@ import { Router } from '@angular/router';
 })
 export class ProfileComponent {
 
-  private auth = inject(AuthService);
   private userApi = inject(UserApi);
   private router = inject(Router);
 
@@ -23,40 +21,23 @@ export class ProfileComponent {
   error = '';
 
   async ngOnInit() {
-      const token = this.auth.getToken() || undefined;
-
-          if (!token) {
-            this.router.navigate(['login']);
-            return;
-          }
-
-      const username = this.getUsernameFromToken(token); // извлекаем username
-      if (!username) {
-        this.router.navigate(['login']);
-        return;
-      }
-
-      try {
-        this.user = await this.userApi.getProfile(username, token);
-      } catch (err) {
-        this.error = 'Не удалось загрузить профиль';
-      } finally {
-        this.loading = false;
-      }
-
+    try {
+      // Получаем профиль пользователя напрямую из UserApi
+      this.user = await this.userApi.getProfile();
+    } catch (err) {
+      console.error('Не удалось загрузить профиль:', err);
+      this.error = 'Не удалось загрузить профиль';
+      // Редирект на страницу логина, если нет токена или username
+      this.router.navigate(['login']);
+    } finally {
+      this.loading = false;
     }
+  }
 
   logout() {
-    this.auth.logout();
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    this.router.navigate(['/login']);
   }
 
-  private getUsernameFromToken(token: string): string | null {
-    try {
-      const payloadBase64 = token.split('.')[1];
-      const payload = JSON.parse(atob(payloadBase64));
-      return payload.sub || null; // <-- здесь sub
-    } catch (e) {
-      return null;
-    }
-  }
 }
