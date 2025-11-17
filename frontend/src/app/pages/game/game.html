@@ -1,9 +1,12 @@
-<h2>Ваша доска</h2>
-<div class="grid">
-  <div *ngFor="let row of grid; let i = index" class="row">
-    <div *ngFor="let cell of row; let j = index"
-         class="cell"
-         [class.ship]="cell === 1">
+<div class="game-container">
+  <h2>Игра</h2>
+
+  <div class="grid">
+    <div *ngFor="let row of grid; let i = index" class="row">
+      <div *ngFor="let cell of row; let j = index"
+           class="cell"
+           [ngClass]="cellClass(cell)">
+      </div>
     </div>
   </div>
 </div>

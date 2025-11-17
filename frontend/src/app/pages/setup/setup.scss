@@ -1,58 +1,40 @@
 .setup-container {
-  width: 400px;
+  max-width: 400px;
   margin: 0 auto;
-  text-align: center;
+}
 
-  .ships {
-    margin-bottom: 20px;
-
-    span {
-      display: inline-block;
-      padding: 5px 10px;
-      margin: 2px;
-      border: 1px solid #333;
-      cursor: pointer;
-      user-select: none;
-
-      &.placed {
-        background-color: #aaa;
-        cursor: default;
-      }
-    }
-  }
-
-  .grid {
+.ships {
+  margin-bottom: 10px;
+  span {
     display: inline-block;
+    padding: 5px 10px;
+    margin: 2px;
+    border: 1px solid #333;
+    cursor: pointer;
+    &.placed { background-color: #888; cursor: default; }
+  }
+}
 
-    .row {
-      display: flex;
-    }
-
+.grid {
+  display: inline-block;
+  .row {
+    display: flex;
     .cell {
       width: 30px;
       height: 30px;
       border: 1px solid #333;
       display: inline-block;
-      position: relative;
-      transition: background-color 0.2s;
-
-      &.ship {
-        background-color: #555;
-      }
-
-      &.hover {
-        background-color: rgba(0, 255, 0, 0.5);
-      }
+      &.ship { background-color: #555; }
+      &.hover { background-color: rgba(0,255,0,0.5); }
+      &.invalid { background-color: rgba(255,0,0,0.5); }
     }
   }
+}
 
-  .buttons {
-    margin-top: 20px;
-
-    button {
-      margin: 0 5px;
-      padding: 5px 10px;
-      cursor: pointer;
-    }
+.buttons {
+  margin-top: 10px;
+  button {
+    margin-right: 5px;
+    padding: 5px 10px;
   }
 }

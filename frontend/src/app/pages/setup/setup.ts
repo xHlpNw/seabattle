@@ -9,7 +9,7 @@ interface Ship {
   size: number;
   placed: boolean;
   cells?: { x: number, y: number }[];
-  autoPlaced?: boolean; // флаг для авторасстановки
+  autoPlaced?: boolean;
 }
 
 interface ShipDTO {
@@ -53,15 +53,14 @@ export class SetupComponent implements OnInit {
   ];
 
   selectedShip: Ship | null = null;
-  hoverCells: { x: number, y: number }[] = [];
+  hoverCells: { x: number, y: number; valid: boolean }[] = [];
   orientation: 'horizontal' | 'vertical' = 'horizontal';
-  autoPlacedDone: boolean = false; // флаг: авторасстановка завершена
+  autoPlacedDone: boolean = false;
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
       this.gameId = params['gameId'] || null;
     });
-
     this.grid = this.createEmptyGrid();
   }
 
@@ -70,7 +69,7 @@ export class SetupComponent implements OnInit {
   }
 
   selectShip(ship: Ship) {
-    if (this.autoPlacedDone) return; // блокируем выбор любых кораблей после авто
+    if (this.autoPlacedDone) return;
     if (ship.placed) return;
     this.selectedShip = ship;
     this.hoverCells = [];
@@ -95,15 +94,15 @@ export class SetupComponent implements OnInit {
     }
 
     const size = this.selectedShip.size;
-    const temp: { x: number, y: number }[] = [];
+    const temp: { x: number, y: number; valid: boolean }[] = [];
 
-    if (this.orientation === 'horizontal') {
-      if (colIndex + size <= 10) {
-        for (let i = 0; i < size; i++) temp.push({ x: rowIndex, y: colIndex + i });
-      }
-    } else {
-      if (rowIndex + size <= 10) {
-        for (let i = 0; i < size; i++) temp.push({ x: rowIndex + i, y: colIndex });
+    for (let i = 0; i < size; i++) {
+      const x = this.orientation === 'horizontal' ? rowIndex : rowIndex + i;
+      const y = this.orientation === 'horizontal' ? colIndex + i : colIndex;
+      if (x >= 10 || y >= 10) {
+        temp.push({ x, y, valid: false });
+      } else {
+        temp.push({ x, y, valid: this.canPlaceCell(x, y) });
       }
     }
 
@@ -111,29 +110,25 @@ export class SetupComponent implements OnInit {
   }
 
   isHoverCell(i: number, j: number): boolean {
-    return this.hoverCells?.some(c => c.x === i && c.y === j) ?? false;
+    return this.hoverCells.some(c => c.x === i && c.y === j);
+  }
+
+  isHoverValid(i: number, j: number): boolean {
+    const cell = this.hoverCells.find(c => c.x === i && c.y === j);
+    return cell ? cell.valid : true;
   }
 
   placeShip(x: number, y: number) {
-    if (!this.selectedShip) return;
-    if (this.autoPlacedDone) return; // блокируем установку своих кораблей после авто
+    if (!this.selectedShip || this.autoPlacedDone) return;
 
-    const size = this.selectedShip.size;
-
-    if (this.orientation === 'horizontal' && y + size > 10) return;
-    if (this.orientation === 'vertical' && x + size > 10) return;
+    // проверяем все клетки
+    if (this.hoverCells.some(c => !c.valid)) return;
 
     const cells: { x: number, y: number }[] = [];
-
-    for (let i = 0; i < size; i++) {
-      if (this.orientation === 'horizontal') {
-        this.grid[x][y + i] = 1;
-        cells.push({ x, y: y + i });
-      } else {
-        this.grid[x + i][y] = 1;
-        cells.push({ x: x + i, y });
-      }
-    }
+    this.hoverCells.forEach(c => {
+      this.grid[c.x][c.y] = 1;
+      cells.push({ x: c.x, y: c.y });
+    });
 
     this.selectedShip.placed = true;
     this.selectedShip.cells = cells;
@@ -149,7 +144,18 @@ export class SetupComponent implements OnInit {
     ship.placed = false;
     ship.cells = [];
     ship.autoPlaced = false;
-    this.autoPlacedDone = false; // после удаления авто можно ставить свои корабли
+    this.autoPlacedDone = false;
+  }
+
+  canPlaceCell(x: number, y: number): boolean {
+    for (let i = x - 1; i <= x + 1; i++) {
+      for (let j = y - 1; j <= y + 1; j++) {
+        if (i >= 0 && i < 10 && j >= 0 && j < 10) {
+          if (this.grid[i][j] === 1) return false;
+        }
+      }
+    }
+    return true;
   }
 
   onRightClick(event: MouseEvent) {
@@ -176,14 +182,12 @@ export class SetupComponent implements OnInit {
           ship.placed = true;
           ship.autoPlaced = true;
         });
-        this.autoPlacedDone = true; // блокируем ручное размещение
-      } else {
-        console.warn('Сервер не вернул координаты кораблей, удаление после авторасстановки может не работать');
+        this.autoPlacedDone = true;
       }
 
       if (response.message) console.log(response.message);
     } catch (err) {
-      console.error('Ошибка автоматической расстановки:', err);
+      console.error('Ошибка авторасстановки:', err);
     }
   }
 

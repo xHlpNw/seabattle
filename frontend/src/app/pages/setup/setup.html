@@ -14,9 +14,10 @@
       <div *ngFor="let cell of row; let j = index"
            class="cell"
            [class.ship]="cell === 1"
-           [class.hover]="isHoverCell(i, j)"
-           (mousemove)="onMouseMove($event, i, j)"
-           (click)="onCellClick(i, j, $event)"
+           [class.hover]="isHoverCell(i,j) && isHoverValid(i,j)"
+           [class.invalid]="isHoverCell(i,j) && !isHoverValid(i,j)"
+           (click)="onCellClick(i,j,$event)"
+           (mousemove)="onMouseMove($event,i,j)"
            (contextmenu)="onRightClick($event)">
       </div>
     </div>
@@ -25,6 +26,5 @@
   <div class="buttons">
     <button (click)="autoPlaceShips()">Случайная расстановка</button>
     <button [disabled]="!allShipsPlaced" (click)="ready()">Готов</button>
-    <p><small>Shift + клик = убрать корабль, ПКМ = повернуть</small></p>
   </div>
 </div>

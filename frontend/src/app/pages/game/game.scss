@@ -1,18 +1,22 @@
+.game-container {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
 .grid {
   display: inline-block;
-}
 
-.row {
-  display: flex;
-}
+  .row {
+    display: flex;
 
-.cell {
-  width: 30px;
-  height: 30px;
-  border: 1px solid gray;
-  background-color: lightblue; /* временно для проверки */
-}
+    .cell {
+      width: 30px;
+      height: 30px;
+      border: 1px solid #333;
+      display: inline-block;
 
-.cell.ship {
-  background-color: darkblue;
+      &.empty { background-color: #e0e0e0; }
+      &.ship { background-color: #555; }
+    }
+  }
 }

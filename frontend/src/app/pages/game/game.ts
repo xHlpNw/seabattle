@@ -23,7 +23,7 @@ export class GameComponent implements OnInit {
   grid: number[][] = [];
   profile: any = null;
 
-  async ngOnInit() {  // <-- делаем ngOnInit async
+  async ngOnInit() {
     const token = localStorage.getItem('token') ?? undefined;
     const username = localStorage.getItem('username');
 
@@ -48,13 +48,11 @@ export class GameComponent implements OnInit {
         try {
           const board = await firstValueFrom(this.gameApi.getBoard(this.gameId));
           console.log('Board from API:', board);
+
+          // Проверяем, есть ли grid, иначе создаём пустое поле
           this.grid = board?.grid || this.createEmptyGrid();
         } catch (err: any) {
-          if (err.status === 404) {
-            console.log('Доска ещё не создана, создаём пустую');
-          } else {
-            console.error('Ошибка получения доски:', err);
-          }
+          console.error('Ошибка получения доски:', err);
           this.grid = this.createEmptyGrid();
         }
       }
@@ -63,5 +61,14 @@ export class GameComponent implements OnInit {
 
   createEmptyGrid(): number[][] {
     return Array.from({ length: 10 }, () => Array(10).fill(0));
+  }
+
+  // Дополнительно: для отображения классов клеток
+  cellClass(value: number): string {
+    switch (value) {
+      case 0: return 'empty';
+      case 1: return 'ship';
+      default: return '';
+    }
   }
 }
