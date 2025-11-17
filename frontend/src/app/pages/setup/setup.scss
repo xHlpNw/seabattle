@@ -1,49 +1,58 @@
 .setup-container {
+  width: 400px;
+  margin: 0 auto;
   text-align: center;
-}
 
-.ships {
-  margin-bottom: 1rem;
-  span {
+  .ships {
+    margin-bottom: 20px;
+
+    span {
+      display: inline-block;
+      padding: 5px 10px;
+      margin: 2px;
+      border: 1px solid #333;
+      cursor: pointer;
+      user-select: none;
+
+      &.placed {
+        background-color: #aaa;
+        cursor: default;
+      }
+    }
+  }
+
+  .grid {
     display: inline-block;
-    padding: 0.5rem 1rem;
-    margin: 0.2rem;
-    border: 1px solid #333;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  .placed {
-    background-color: #4caf50;
-    color: #fff;
-    cursor: not-allowed;
-  }
-}
 
-.grid {
-  display: inline-block;
-  margin-bottom: 1rem;
+    .row {
+      display: flex;
+    }
 
-  .row {
-    display: flex;
     .cell {
       width: 30px;
       height: 30px;
       border: 1px solid #333;
-      margin: 1px;
-      cursor: pointer;
-    }
-    .cell.ship {
-      background-color: #1976d2;
+      display: inline-block;
+      position: relative;
+      transition: background-color 0.2s;
+
+      &.ship {
+        background-color: #555;
+      }
+
+      &.hover {
+        background-color: rgba(0, 255, 0, 0.5);
+      }
     }
   }
-}
 
-.buttons button {
-  margin: 0 1rem;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  background-color: #1976d2;
-  color: white;
+  .buttons {
+    margin-top: 20px;
+
+    button {
+      margin: 0 5px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+  }
 }

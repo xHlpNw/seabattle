@@ -14,13 +14,17 @@
       <div *ngFor="let cell of row; let j = index"
            class="cell"
            [class.ship]="cell === 1"
-           (click)="placeShip(i,j)">
+           [class.hover]="isHoverCell(i, j)"
+           (mousemove)="onMouseMove($event, i, j)"
+           (click)="onCellClick(i, j, $event)"
+           (contextmenu)="onRightClick($event)">
       </div>
     </div>
   </div>
 
   <div class="buttons">
     <button (click)="autoPlaceShips()">Случайная расстановка</button>
-    <button (click)="ready()">Готов</button>
+    <button [disabled]="!allShipsPlaced" (click)="ready()">Готов</button>
+    <p><small>Shift + клик = убрать корабль, ПКМ = повернуть</small></p>
   </div>
 </div>
