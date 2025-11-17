@@ -1,8 +1,14 @@
-package com.seabattle.server.repository;
+package com.seabattle.server.dto;
+
+import com.seabattle.server.engine.BoardModel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 import java.util.List;
 
-class ShipDTO {
-    int size;
-    List<int[]> cells; // [[x1,y1], [x2,y2], ...]
+@Data
+@AllArgsConstructor
+public class ShipDTO {
+    private int size;
+    private List<BoardModel.Coord> cells;
 }

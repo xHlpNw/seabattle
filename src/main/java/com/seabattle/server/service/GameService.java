@@ -1,5 +1,7 @@
 package com.seabattle.server.service;
 
+import com.seabattle.server.dto.AutoPlaceResponse;
+import com.seabattle.server.dto.ShipDTO;
 import com.seabattle.server.dto.ShotResultDto;
 import com.seabattle.server.engine.BoardModel;
 import com.seabattle.server.engine.BotAiService;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -37,14 +40,14 @@ public class GameService {
     }
 
     @Transactional
-    public int[][] placeShipsAuto(UUID gameId, UUID playerId) throws Exception {
+    public AutoPlaceResponse placeShipsAuto(UUID gameId, UUID playerId) throws Exception {
         Game g = gameRepo.findById(gameId).orElseThrow();
         Board board = boardRepo.findByGameIdAndPlayerId(gameId, playerId)
                 .orElseGet(() -> {
                     Board newBoard = Board.builder()
-                            .game(gameRepo.findById(gameId).orElseThrow(() -> new RuntimeException("Game not found")))
-                            .player(userRepo.findById(playerId).orElseThrow(() -> new RuntimeException("User not found")))
-                            .cells("empty") // или ваш формат пустого поля
+                            .game(g)
+                            .player(userRepo.findById(playerId).orElseThrow())
+                            .cells("empty")
                             .build();
                     return boardRepo.save(newBoard);
                 });
@@ -59,7 +62,11 @@ public class GameService {
             gameRepo.save(g);
         }
 
-        return bm.toIntArray();
+        List<ShipDTO> ships = bm.getShips().stream()
+                .map(s -> new ShipDTO(s.getLength(), s.getCells()))
+                .toList();
+
+        return new AutoPlaceResponse(bm.toIntArray(), ships);
     }
 
     @Transactional

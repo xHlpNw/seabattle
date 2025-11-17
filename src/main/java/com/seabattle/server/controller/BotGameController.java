@@ -1,6 +1,7 @@
 package com.seabattle.server.controller;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.seabattle.server.dto.AutoPlaceResponse;
 import com.seabattle.server.dto.CreateBotGameResponse;
 import com.seabattle.server.dto.ShotRequest;
 import com.seabattle.server.dto.ShotResultDto;
@@ -35,14 +36,12 @@ public class BotGameController {
     }
 
     @PostMapping("/{gameId}/place/auto")
-    public ResponseEntity<Map<String, Object>> autoPlace(@PathVariable UUID gameId, @AuthenticationPrincipal UserDetails userDetails) throws Exception {
+    public ResponseEntity<AutoPlaceResponse> autoPlace(
+            @PathVariable UUID gameId,
+            @AuthenticationPrincipal UserDetails userDetails) throws Exception {
+
         User user = userRepo.findByUsername(userDetails.getUsername()).orElseThrow();
-        int[][] grid = gameService.placeShipsAuto(gameId, user.getId());
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Ships auto-placed and game started.");
-        response.put("grid", grid);
-
+        AutoPlaceResponse response = gameService.placeShipsAuto(gameId, user.getId());
         return ResponseEntity.ok(response);
     }
 

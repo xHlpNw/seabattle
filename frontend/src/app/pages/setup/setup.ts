@@ -8,7 +8,19 @@ import { GameApi } from '../../core/api/game.api';
 interface Ship {
   size: number;
   placed: boolean;
-  cells?: { x: number, y: number }[]; // добавим клетки для каждого корабля
+  cells?: { x: number, y: number }[];
+  autoPlaced?: boolean; // флаг для авторасстановки
+}
+
+interface ShipDTO {
+  size: number;
+  cells: { x: number, y: number }[];
+}
+
+interface AutoPlaceResponse {
+  grid: number[][];
+  ships?: ShipDTO[];
+  message?: string;
 }
 
 @Component({
@@ -25,8 +37,8 @@ export class SetupComponent implements OnInit {
   private gameApi = inject(GameApi);
 
   gameId: string | null = null;
-
   grid: number[][] = [];
+
   ships: Ship[] = [
     { size: 4, placed: false },
     { size: 3, placed: false },
@@ -43,6 +55,7 @@ export class SetupComponent implements OnInit {
   selectedShip: Ship | null = null;
   hoverCells: { x: number, y: number }[] = [];
   orientation: 'horizontal' | 'vertical' = 'horizontal';
+  autoPlacedDone: boolean = false; // флаг: авторасстановка завершена
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
@@ -57,6 +70,7 @@ export class SetupComponent implements OnInit {
   }
 
   selectShip(ship: Ship) {
+    if (this.autoPlacedDone) return; // блокируем выбор любых кораблей после авто
     if (ship.placed) return;
     this.selectedShip = ship;
     this.hoverCells = [];
@@ -102,6 +116,8 @@ export class SetupComponent implements OnInit {
 
   placeShip(x: number, y: number) {
     if (!this.selectedShip) return;
+    if (this.autoPlacedDone) return; // блокируем установку своих кораблей после авто
+
     const size = this.selectedShip.size;
 
     if (this.orientation === 'horizontal' && y + size > 10) return;
@@ -120,48 +136,51 @@ export class SetupComponent implements OnInit {
     }
 
     this.selectedShip.placed = true;
-    this.selectedShip.cells = cells; // сохраняем клетки
+    this.selectedShip.cells = cells;
     this.selectedShip = null;
     this.hoverCells = [];
   }
 
   removeShip(x: number, y: number) {
-    // находим корабль, которому принадлежит эта клетка
-    const ship = this.ships.find(s => s.cells?.some(c => c.x === x && c.y === y));
+    const ship = this.ships.find(s => s.cells?.some(c => c.x === x && c.y === y) && s.autoPlaced);
     if (!ship) return;
 
-    // очищаем клетки с доски
-    ship.cells?.forEach(c => {
-      this.grid[c.x][c.y] = 0;
-    });
-
+    ship.cells?.forEach(c => this.grid[c.x][c.y] = 0);
     ship.placed = false;
     ship.cells = [];
+    ship.autoPlaced = false;
+    this.autoPlacedDone = false; // после удаления авто можно ставить свои корабли
   }
 
   onRightClick(event: MouseEvent) {
     event.preventDefault();
-    if (this.selectedShip) {
-      this.toggleOrientation();
-    }
+    if (this.selectedShip) this.toggleOrientation();
   }
 
   onCellClick(x: number, y: number, event: MouseEvent) {
-    if (event.shiftKey) {
-      // Shift + клик = удалить корабль
-      this.removeShip(x, y);
-    } else {
-      this.placeShip(x, y);
-    }
+    if (event.shiftKey) this.removeShip(x, y);
+    else this.placeShip(x, y);
   }
 
   async autoPlaceShips() {
     if (!this.gameId) return;
 
     try {
-      const response = await firstValueFrom(this.gameApi.placeShipsAuto(this.gameId));
+      const response: AutoPlaceResponse = await firstValueFrom(this.gameApi.placeShipsAuto(this.gameId));
+
       if (response && Array.isArray(response.grid)) this.grid = response.grid;
-      this.ships.forEach(ship => ship.placed = true);
+
+      if (response.ships && response.ships.length === this.ships.length) {
+        this.ships.forEach((ship, i) => {
+          ship.cells = response.ships![i].cells;
+          ship.placed = true;
+          ship.autoPlaced = true;
+        });
+        this.autoPlacedDone = true; // блокируем ручное размещение
+      } else {
+        console.warn('Сервер не вернул координаты кораблей, удаление после авторасстановки может не работать');
+      }
+
       if (response.message) console.log(response.message);
     } catch (err) {
       console.error('Ошибка автоматической расстановки:', err);
@@ -169,7 +188,7 @@ export class SetupComponent implements OnInit {
   }
 
   async ready() {
-    if (!this.gameId) return;
+    if (!this.gameId || !this.allShipsPlaced) return;
 
     try {
       await firstValueFrom(this.gameApi.placeShips(this.gameId, this.grid));
