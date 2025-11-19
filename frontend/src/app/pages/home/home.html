@@ -1,23 +1,72 @@
-<div class="home-container">
+<div class="home">
 
-  <div class="auth-zone">
-    <button *ngIf="!isLoggedIn" (click)="goLogin()">
-      Войти
-    </button>
+  <header class="topbar">
+    <div class="logo">⚓ BATTLESHIP</div>
 
-    <button *ngIf="isLoggedIn" (click)="goProfile()">
-      Профиль
-    </button>
-  </div>
+    <div class="auth-zone">
+      <button *ngIf="!isLoggedIn" (click)="goLogin()">
+        LOGIN
+      </button>
 
-  <div class="modes">
-    <button (click)="playBot()">
-      Бой с ботом
-    </button>
+      <button *ngIf="isLoggedIn" (click)="goProfile()">
+        PROFILE
+      </button>
+    </div>
+  </header>
 
-    <button (click)="playOnline()">
-      Бой онлайн
-    </button>
-  </div>
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- LEFT CARD -->
+    <section class="mission">
+      <h3>MISSION BRIEFING</h3>
+      <hr>
+      <p>
+        Deploy your fleet strategically across the tactical grid. Hunt enemy vessels through calculated strikes. First to eliminate the opposing fleet claims victory.
+      </p>
+    </section>
+
+    <!-- CENTER ZONE -->
+    <section class="center">
+      <h1>BATTLESHIP</h1>
+      <p>Command your fleet. Dominate the seas.</p>
+
+      <div class="modes">
+        <button (click)="playBot()">PLAY WITH BOT</button>
+        <button (click)="playOnline()">PLAY ONLINE</button>
+      </div>
+    </section>
+
+    <!-- RIGHT CARD -->
+    <section class="ratings">
+      <h3> TOP 5 PLAYERS</h3>
+      <ul>
+        <li><span>Admiral_Frost</span><span class="ELO">2450</span></li>
+        <li><span>DeepSeaHunter</span><span class="ELO">2380</span></li>
+        <li><span>NavalStrike</span><span class="ELO">2320</span></li>
+        <li><span>TorpedoAce</span><span class="ELO">2290</span></li>
+        <li><span>FleetCommander</span><span class="ELO">2245</span></li>
+      </ul>
+    </section>
+
+  </main>
+
+  <!-- FEATURES (BOTTOM) -->
+  <footer class="features">
+    <div class="feature">
+      <h4>RATING SYSTEM</h4>
+      <p>Competitive ELO-based rankings</p>
+    </div>
+
+    <div class="feature">
+      <h4>ONLINE BATTLES</h4>
+      <p>Real-time multiplayer</p>
+    </div>
+
+    <div class="feature">
+      <h4>NAVAL THEME</h4>
+      <p>Authentic maritime warfare</p>
+    </div>
+  </footer>
 
 </div>
