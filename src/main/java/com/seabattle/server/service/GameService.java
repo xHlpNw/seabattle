@@ -1,5 +1,6 @@
 package com.seabattle.server.service;
 
+import com.seabattle.server.dto.AttackResult;
 import com.seabattle.server.dto.AutoPlaceResponse;
 import com.seabattle.server.dto.ShipDTO;
 import com.seabattle.server.dto.ShotResultDto;
@@ -7,12 +8,16 @@ import com.seabattle.server.engine.BoardModel;
 import com.seabattle.server.engine.BotAiService;
 import com.seabattle.server.entity.*;
 import com.seabattle.server.repository.*;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -260,4 +265,219 @@ public class GameService {
         return gameRepo.getReferenceById(id);
     }
 
+
+    @Transactional
+    public AttackResult attack(UUID gameId, String username, int x, int y) {
+        User player = getPlayer(username);
+        Game game = getGame(gameId);
+        validateTurn(game, player);
+
+        // Получаем доску противника
+        Board enemyBoard = getEnemyBoard(game, player);
+        BoardModel enemyModel = BoardModel.fromJson(enemyBoard.getCells());
+
+        // Ход игрока
+        BoardModel.ShotOutcome playerOutcome = enemyModel.shoot(x, y);
+        enemyBoard.setCells(enemyModel.toJson());
+        boardRepo.save(enemyBoard);
+
+        if (playerOutcome.already) {
+            return buildAttackResult(
+                    BoardModel.fromJson(boardRepo.findByGameIdAndPlayerId(gameId, player.getId()).get().getCells()),
+                    enemyModel,
+                    playerOutcome,
+                    null
+            );
+        }
+
+        // Проверяем победу игрока
+        if (enemyModel.allShipsSunk()) {
+            game.setStatus(Game.GameStatus.FINISHED);
+            game.setResult(Game.GameResult.HOST_WIN);
+            game.setFinishedAt(OffsetDateTime.now());
+            gameRepo.save(game);
+
+            persistHistoryAndStats(game, player, null, "WIN", +10);
+
+            return buildAttackResult(
+                    BoardModel.fromJson(boardRepo.findByGameIdAndPlayerId(gameId, player.getId()).get().getCells()),
+                    enemyModel,
+                    playerOutcome,
+                    null
+            );
+        }
+
+        BotMove lastBotMove = null;
+
+        // Передача хода боту, если игра с ботом и игрок промахнулся или потопил корабль
+        if (game.isBot() && (!playerOutcome.hit || playerOutcome.sunk)) {
+            Board playerBoard = boardRepo.findByGameIdAndPlayerId(game.getId(), player.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Доска игрока не найдена"));
+            BoardModel playerModel = BoardModel.fromJson(playerBoard.getCells());
+
+            boolean botContinues = true;
+            while (botContinues) {
+                lastBotMove = makeBotMove(playerModel, playerBoard);
+
+                // Если бот промахнулся → передаём ход игроку
+                if (!lastBotMove.isHit()) {
+                    game.setCurrentTurn(Game.Turn.HOST);
+                    botContinues = false;
+                }
+
+                // Проверка победы бота
+                if (playerModel.allShipsSunk()) {
+                    game.setStatus(Game.GameStatus.FINISHED);
+                    game.setResult(Game.GameResult.GUEST_WIN);
+                    game.setFinishedAt(OffsetDateTime.now());
+                    persistHistoryAndStats(game, player, null, "LOSS", -10);
+                    botContinues = false;
+                }
+
+                // если бот попал и игра не окончена, он стреляет снова
+            }
+
+            boardRepo.save(playerBoard);
+        } else if (!playerOutcome.hit) {
+            // Игра с человеком — переключаем ход
+            switchTurn(game);
+        }
+
+        gameRepo.save(game);
+
+        // Возвращаем доску игрока
+        Board playerBoardEntity = boardRepo.findByGameIdAndPlayerId(gameId, player.getId())
+                .orElseThrow(() -> new EntityNotFoundException("Доска игрока не найдена"));
+        BoardModel playerModel = BoardModel.fromJson(playerBoardEntity.getCells());
+
+        return buildAttackResult(playerModel, enemyModel, playerOutcome, lastBotMove);
+    }
+
+    private User getPlayer(String username) {
+        return userRepo.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+    }
+
+    private Game getGame(UUID gameId) {
+        return gameRepo.findById(gameId)
+                .orElseThrow(() -> new EntityNotFoundException("Game not found"));
+    }
+
+    private void validateTurn(Game game, User player) {
+        Game.Turn playerTurn = game.getHost().getId().equals(player.getId()) ? Game.Turn.HOST : Game.Turn.GUEST;
+        if (!playerTurn.equals(game.getCurrentTurn())) {
+            throw new IllegalStateException("Сейчас не ваш ход");
+        }
+    }
+
+    private Board getEnemyBoard(Game game, User player) {
+        if (game.isBot()) {
+            return boardRepo.findByGameIdAndPlayerIsNull(game.getId())
+                    .orElseGet(() -> {
+                        BoardModel botModel = BoardModel.autoPlaceRandom();
+                        Board botBoard = Board.builder()
+                                .game(game)
+                                .player(null)
+                                .cells(botModel.toJson())
+                                .build();
+                        return boardRepo.save(botBoard);
+                    });
+        } else {
+            return boardRepo.findByGameIdAndPlayerIdNot(game.getId(), player.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Противник ещё не подключился"));
+        }
+    }
+
+    private void switchTurn(Game game) {
+        game.setCurrentTurn(game.getCurrentTurn() == Game.Turn.HOST ? Game.Turn.GUEST : Game.Turn.HOST);
+    }
+
+    // Переписанный метод makeBotMove для поддержки повторных ходов
+    private BotMove makeBotMove(BoardModel playerModel, Board playerBoard) {
+        Random rnd = new Random();
+        BoardModel.ShotOutcome botOutcome;
+        int botX, botY;
+
+        do {
+            botX = rnd.nextInt(BoardModel.SIZE);
+            botY = rnd.nextInt(BoardModel.SIZE);
+            botOutcome = playerModel.shoot(botX, botY);
+        } while (botOutcome.already);
+
+        playerBoard.setCells(playerModel.toJson());
+        return new BotMove(botX, botY, botOutcome.hit, botOutcome.sunk);
+    }
+
+    public AttackResult botMove(UUID gameId) {
+        Game game = getGame(gameId);
+        if (!game.isBot() || game.getCurrentTurn() != Game.Turn.GUEST) {
+            throw new IllegalStateException("Not bot's turn");
+        }
+
+        Board playerBoard = boardRepo.findByGameIdAndPlayerIdIsNotNull(gameId)
+                .orElseThrow(() -> new RuntimeException("Несколько досок с одинаковым id игры и без игрока"));
+        BoardModel playerModel = BoardModel.fromJson(playerBoard.getCells());
+
+        BotMove botMove = makeBotMove(playerModel, playerBoard);
+
+        // Проверка победы
+        if (playerModel.allShipsSunk()) {
+            game.setStatus(Game.GameStatus.FINISHED);
+            game.setResult(Game.GameResult.GUEST_WIN);
+        } else if (!botMove.isHit() || botMove.isSunk()) {
+            // ход возвращается игроку
+            game.setCurrentTurn(Game.Turn.HOST);
+        } else {
+            // бот попал — остаётся его ход для следующего запроса
+            game.setCurrentTurn(Game.Turn.GUEST);
+        }
+
+        boardRepo.save(playerBoard);
+        gameRepo.save(game);
+
+        Board enemyBoard = boardRepo.findByGameIdAndPlayerIsNull(gameId).orElseThrow();
+        BoardModel enemyModel = BoardModel.fromJson(enemyBoard.getCells());
+
+        return buildAttackResult(playerModel, enemyModel, null, botMove);
+    }
+
+
+    private AttackResult buildAttackResult(BoardModel playerModel, BoardModel enemyModel,
+                                           BoardModel.ShotOutcome outcome, BotMove botMove) {
+        AttackResult result = new AttackResult();
+
+        result.setPlayerBoard(playerModel.toIntArray(true)); // кастомный метод для List<List<Integer>>
+        result.setEnemyBoard(enemyModel.toIntArray(true)); // enemy — скрываем корабли
+        result.setHit(outcome.hit);
+        result.setSunk(outcome.sunk);
+        result.setAlready(outcome.already);
+
+        if (botMove != null) {
+            result.setBotX(botMove.getX());
+            result.setBotY(botMove.getY());
+            result.setBotHit(botMove.isHit());
+            result.setBotSunk(botMove.isSunk());
+        }
+
+        return result;
+    }
+
+    @Getter
+    @Setter
+    public static class BotMove {
+        private final int x, y;
+        private final boolean hit, sunk;
+
+        public BotMove(int x, int y, boolean hit, boolean sunk) {
+            this.x = x;
+            this.y = y;
+            this.hit = hit;
+            this.sunk = sunk;
+        }
+
+        public int getX() { return x; }
+        public int getY() { return y; }
+        public boolean isHit() { return hit; }
+        public boolean isSunk() { return sunk; }
+    }
 }

@@ -19,4 +19,6 @@ public interface BoardRepository extends JpaRepository<Board, UUID> {
     Optional<Board> findByGameIdAndPlayerIdNot(UUID gameId, UUID playerId);
 
     Optional<Board> findByGameIdAndPlayerIdIsNull(UUID gameId);
+
+    Optional<Board> findByGameIdAndPlayerIdIsNotNull(UUID gameId);
 }
