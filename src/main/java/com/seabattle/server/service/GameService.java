@@ -33,6 +33,7 @@ public class GameService {
                 .host(host)
                 .isBot(true)
                 .status(Game.GameStatus.WAITING)
+                .currentTurn(Game.Turn.HOST)
                 .build();
         gameRepo.save(g);
 
@@ -52,22 +53,31 @@ public class GameService {
                     return boardRepo.save(newBoard);
                 });
 
+        // Генерируем новую доску с кораблями
         BoardModel bm = BoardModel.autoPlaceRandom();
+
+        // Сохраняем в БД
         board.setCells(bm.toJson());
         boardRepo.save(board);
 
+        // Если игра только ждёт — запускаем
         if (g.getStatus() == Game.GameStatus.WAITING) {
             g.setStatus(Game.GameStatus.IN_PROGRESS);
             g.setStartedAt(OffsetDateTime.now());
             gameRepo.save(g);
         }
 
+        // Возвращаем список кораблей с их shipId
         List<ShipDTO> ships = bm.getShips().stream()
-                .map(s -> new ShipDTO(s.getLength(), s.getCells()))
+                .map(s -> ShipDTO.builder()
+                        .length(s.getLength())
+                        .cells(s.getCells())
+                        .build())
                 .toList();
 
-        return new AutoPlaceResponse(bm.toIntArray(), ships);
+        return new AutoPlaceResponse(bm.toIntArray(true), ships);
     }
+
 
     @Transactional
     public void placeShipsManual(UUID gameId, UUID playerId, String cellsJson) throws Exception {

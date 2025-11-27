@@ -16,10 +16,17 @@ public class Game {
     public enum GameType { BOT, ONLINE }
     public enum GameStatus { WAITING, IN_PROGRESS, FINISHED }
     public enum GameResult { HOST_WIN, GUEST_WIN, DRAW, SURRENDER }
+    public enum Turn { HOST, GUEST }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(generator = "UUID")
+    @org.hibernate.annotations.GenericGenerator(
+            name = "UUID",
+            strategy = "org.hibernate.id.UUIDGenerator"
+    )
+    @Column(updatable = false, nullable = false)
     private UUID id;
+
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -56,6 +63,9 @@ public class Game {
 
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
+
+    @Enumerated(EnumType.STRING)
+    private Turn currentTurn;
 
     @PrePersist
     void prePersist() { if (createdAt == null) createdAt = OffsetDateTime.now(); }

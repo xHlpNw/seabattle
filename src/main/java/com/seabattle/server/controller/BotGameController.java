@@ -5,8 +5,11 @@ import com.seabattle.server.dto.AutoPlaceResponse;
 import com.seabattle.server.dto.CreateBotGameResponse;
 import com.seabattle.server.dto.ShotRequest;
 import com.seabattle.server.dto.ShotResultDto;
+import com.seabattle.server.engine.BoardModel;
+import com.seabattle.server.entity.Board;
 import com.seabattle.server.entity.Game;
 import com.seabattle.server.entity.User;
+import com.seabattle.server.repository.BoardRepository;
 import com.seabattle.server.repository.UserRepository;
 import com.seabattle.server.service.GameService;
 import lombok.RequiredArgsConstructor;
@@ -27,13 +30,35 @@ public class BotGameController {
 
     private final GameService gameService;
     private final UserRepository userRepo;
+    private final BoardRepository boardRepository;
 
     @PostMapping("/create")
     public ResponseEntity<CreateBotGameResponse> create(@AuthenticationPrincipal UserDetails userDetails) throws Exception {
         User user = userRepo.findByUsername(userDetails.getUsername()).orElseThrow();
+
+        // Создаём игру
         Game g = gameService.createBotGame(user);
-        return ResponseEntity.ok(new CreateBotGameResponse(g.getId(), "Created bot game. Place ships with /place/auto or /place"));
+
+        // Создаём доску игрока (пока пустую)
+        Board playerBoard = Board.builder()
+                .game(g)
+                .player(user)
+                .cells(new BoardModel().toJson())
+                .build();
+        boardRepository.save(playerBoard);
+
+        // Создаём доску бота с расставленными кораблями
+        Board botBoard = Board.builder()
+                .game(g)
+                .player(null) // бот
+                .cells(BoardModel.autoPlaceRandom().toJson()) // <-- рандомная доска
+                .build();
+        boardRepository.save(botBoard);
+
+        return ResponseEntity.ok(new CreateBotGameResponse(g.getId(),
+                "Created bot game. Place ships with /place/auto or /place"));
     }
+
 
     @PostMapping("/{gameId}/place/auto")
     public ResponseEntity<AutoPlaceResponse> autoPlace(

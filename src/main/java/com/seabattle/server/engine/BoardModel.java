@@ -181,16 +181,40 @@ public class BoardModel {
         return true;
     }
 
-    public int[][] toIntArray() {
-        int[][] grid = new int[10][10];
+    public int[][] toIntArray(boolean revealShips) {
+        int[][] grid = new int[SIZE][SIZE];
 
-        for(int i = 0; i < cells.length; i++) {
-            for(int j = 0; j < cells[0].length; j++) {
-                if (cells[i][j].state == CellState.SHIP) grid[i][j] = 1;
-                else grid[i][j] = 0;
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                switch (cells[i][j].state) {
+                    case EMPTY:
+                        grid[i][j] = 0;
+                        break;
+                    case SHIP:
+                        grid[i][j] = revealShips ? 1 : 0; // для своей доски показываем корабли, для вражеской нет
+                        break;
+                    case MISS:
+                        grid[i][j] = 2;
+                        break;
+                    case HIT:
+                        grid[i][j] = 3;
+                        break;
+                }
             }
         }
-        return grid; // где cells — int[rows][cols]
+        return grid;
     }
+
+    public static void fixShipIds(BoardModel bm) {
+        for (Ship s : bm.getShips()) {
+            for (Coord c : s.getCells()) {
+                Cell cell = bm.getCells()[c.getX()][c.getY()];
+                if (cell.getShipId() == null) {
+                    cell.setShipId(s.getId());
+                }
+            }
+        }
+    }
+
 
 }

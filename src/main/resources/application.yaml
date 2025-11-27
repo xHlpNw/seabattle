@@ -14,7 +14,7 @@ spring:
         connection:
           charSet: UTF-8
     hibernate:
-      ddl-auto: validate
+      ddl-auto: create
       show-sql: true
 
 jwt:
