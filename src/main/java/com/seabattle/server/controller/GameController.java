@@ -161,13 +161,15 @@ public class GameController {
         BoardModel playerModel = BoardModel.fromJson(playerBoard.getCells());
         BoardModel enemyModel = BoardModel.fromJson(enemyBoard.getCells());
 
-        Map<String, List<List<Integer>>> response = Map.of(
-                "playerBoard", Arrays.stream(playerModel.toIntArray(true))
+        Map<String, Object> response = Map.ofEntries(
+                Map.entry("playerBoard", Arrays.stream(playerModel.toIntArray(true))
                         .map(row -> Arrays.stream(row).boxed().toList())
-                        .toList(),
-                "enemyBoard", Arrays.stream(enemyModel.toIntArray(true))
+                        .toList()),
+                Map.entry("enemyBoard", Arrays.stream(enemyModel.toIntArray(true))
                         .map(row -> Arrays.stream(row).boxed().toList())
-                        .toList()
+                        .toList()),
+                Map.entry("gameFinished", game.getStatus() == Game.GameStatus.FINISHED),
+                Map.entry("winner", game.getResult() != null ? game.getResult().name() : "NONE")
         );
 
         return ResponseEntity.ok(response);

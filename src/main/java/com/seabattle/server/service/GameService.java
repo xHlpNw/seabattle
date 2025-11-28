@@ -286,7 +286,7 @@ public class GameService {
                     BoardModel.fromJson(boardRepo.findByGameIdAndPlayerId(gameId, player.getId()).get().getCells()),
                     enemyModel,
                     playerOutcome,
-                    null
+                    null, game
             );
         }
 
@@ -303,14 +303,14 @@ public class GameService {
                     BoardModel.fromJson(boardRepo.findByGameIdAndPlayerId(gameId, player.getId()).get().getCells()),
                     enemyModel,
                     playerOutcome,
-                    null
+                    null, game
             );
         }
 
         BotMove lastBotMove = null;
 
         // Передача хода боту, если игра с ботом и игрок промахнулся или потопил корабль
-        if (game.isBot() && (!playerOutcome.hit || playerOutcome.sunk)) {
+        if (game.isBot() && (!playerOutcome.hit)) {
             Board playerBoard = boardRepo.findByGameIdAndPlayerId(game.getId(), player.getId())
                     .orElseThrow(() -> new EntityNotFoundException("Доска игрока не найдена"));
             BoardModel playerModel = BoardModel.fromJson(playerBoard.getCells());
@@ -350,7 +350,7 @@ public class GameService {
                 .orElseThrow(() -> new EntityNotFoundException("Доска игрока не найдена"));
         BoardModel playerModel = BoardModel.fromJson(playerBoardEntity.getCells());
 
-        return buildAttackResult(playerModel, enemyModel, playerOutcome, lastBotMove);
+        return buildAttackResult(playerModel, enemyModel, playerOutcome, lastBotMove, game);
     }
 
     private User getPlayer(String username) {
@@ -438,12 +438,13 @@ public class GameService {
         Board enemyBoard = boardRepo.findByGameIdAndPlayerIsNull(gameId).orElseThrow();
         BoardModel enemyModel = BoardModel.fromJson(enemyBoard.getCells());
 
-        return buildAttackResult(playerModel, enemyModel, null, botMove);
+        return buildAttackResult(playerModel, enemyModel, null, botMove, game);
     }
 
 
     private AttackResult buildAttackResult(BoardModel playerModel, BoardModel enemyModel,
-                                           BoardModel.ShotOutcome outcome, BotMove botMove) {
+                                           BoardModel.ShotOutcome outcome, BotMove botMove,
+                                           Game game) {
         AttackResult result = new AttackResult();
 
         result.setPlayerBoard(playerModel.toIntArray(true)); // кастомный метод для List<List<Integer>>
@@ -458,6 +459,13 @@ public class GameService {
             result.setBotHit(botMove.isHit());
             result.setBotSunk(botMove.isSunk());
         }
+
+        result.setGameFinished(game.getStatus() == Game.GameStatus.FINISHED);
+        result.setWinner(
+                game.getResult() == null
+                        ? null
+                        : game.getResult().name()
+        );
 
         return result;
     }

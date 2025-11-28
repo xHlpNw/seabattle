@@ -18,5 +18,8 @@ public class AttackResult {
     private Integer botY;
     private Boolean botHit;
     private Boolean botSunk;
+
+    private boolean gameFinished;
+    private String winner;
 }
 
