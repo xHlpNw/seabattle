@@ -1,17 +1,21 @@
 package com.seabattle.server.controller;
 
 import com.seabattle.server.dto.UserDto;
+import com.seabattle.server.dto.UserRatingDto;
 import com.seabattle.server.entity.User;
 import com.seabattle.server.repository.UserRepository;
 import com.seabattle.server.util.JwtUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -76,5 +80,14 @@ public class UserController {
         response.put("gamesPlayed", gamesPlayed);
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/top")
+    public List<UserRatingDto> getTopPlayers(@RequestParam(defaultValue = "5") int limit) {
+        return userRepository.findAll(PageRequest.of(0, limit, Sort.by("rating").descending()))
+                .getContent()
+                .stream()
+                .map(u -> new UserRatingDto(u.getUsername(), u.getRating()))
+                .toList();
     }
 }
