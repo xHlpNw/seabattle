@@ -3,7 +3,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { GameApi } from '../../core/api/game.api';
+import { GameApi, BoardPayload } from '../../core/api/game.api';
 
 interface Ship {
   size: number;
@@ -194,16 +194,27 @@ export class SetupComponent implements OnInit {
   async ready() {
     if (!this.gameId || !this.allShipsPlaced) return;
 
-    try {
-      await firstValueFrom(this.gameApi.placeShips(this.gameId, this.grid));
-      console.log('Доска успешно сохранена');
+    const payload: BoardPayload = {
+      size: 10,
+      cells: this.grid,
+      ships: this.ships.map((ship, index) => ({
+        id: index + 1,
+        length: ship.size,
+        cells: ship.cells || [],
+        sunk: false
+      }))
+    };
+
+  try {
+      await firstValueFrom(this.gameApi.placeShips(this.gameId, payload));
+      console.log('Доска с кораблями отправлена');
 
       const board = await firstValueFrom(this.gameApi.getBoard(this.gameId));
       this.grid = board?.grid || this.createEmptyGrid();
 
       this.router.navigate(['/game', this.gameId, 'play']);
     } catch (err) {
-      console.error('Ошибка сохранения доски:', err);
+      console.error('Ошибка сохранения:', err);
     }
   }
 }

@@ -1,29 +1,48 @@
-<div class="login-container">
-
-  <h1>Вход</h1>
-
-  <div class="form-field">
-    <label>Логин</label>
-    <input
-      type="text"
-      [(ngModel)]="username"
-      placeholder="username"
-    >
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Battleship Login</title>
+  <link rel="stylesheet" href="login.scss" />
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+    <div class="icon">⚓</div>
+    <h1>BATTLESHIP</h1>
   </div>
 
-  <div class="form-field">
-    <label>Пароль</label>
-    <input
-      type="password"
-      [(ngModel)]="password"
-      placeholder="password"
-    >
+
+  <div class="login-box">
+    <h2>LOGIN</h2>
+    <form>
+      <label>USERNAME / EMAIL</label>
+      <div class="input-group">
+        <input type="text" [(ngModel)]="username" name="username" placeholder="username" >
+      </div>
+
+
+      <label>PASSWORD</label>
+      <div class="input-group">
+        <input type="password" [(ngModel)]="password" name="password" placeholder="password" >
+      </div>
+
+      <div class="error" [class.visible]="errorMsg">
+        {{ errorMsg || ' ' }}
+      </div>
+
+      <button type="button" class="btn" (click)="doLogin()">SIGN IN</button>
+
+      <div class="links">
+        <a href="/register">Register</a>
+        <a href="#">← Back to Home</a>
+      </div>
+    </form>
   </div>
 
-  <div class="error" *ngIf="errorMsg">
-    {{ errorMsg }}
-  </div>
 
-  <button (click)="doLogin()">Войти</button>
 
 </div>
+</body>
+</html>

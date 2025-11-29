@@ -39,13 +39,12 @@
 
     <!-- RIGHT CARD -->
     <section class="ratings">
-      <h3> TOP 5 PLAYERS</h3>
+      <h3>TOP 5 PLAYERS</h3>
       <ul>
-        <li><span>Admiral_Frost</span><span class="ELO">2450</span></li>
-        <li><span>DeepSeaHunter</span><span class="ELO">2380</span></li>
-        <li><span>NavalStrike</span><span class="ELO">2320</span></li>
-        <li><span>TorpedoAce</span><span class="ELO">2290</span></li>
-        <li><span>FleetCommander</span><span class="ELO">2245</span></li>
+        <li *ngFor="let player of topPlayers">
+          <span>{{ player.username }}</span>
+          <span class="ELO">{{ player.rating }}</span>
+        </li>
       </ul>
     </section>
 

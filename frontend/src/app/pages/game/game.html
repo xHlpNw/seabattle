@@ -1,12 +1,54 @@
-<div class="game-container">
-  <h2>Игра</h2>
+<div *ngIf="isLoading" class="loading">
+  Загрузка досок...
+</div>
 
-  <div class="grid">
-    <div *ngFor="let row of grid; let i = index" class="row">
-      <div *ngFor="let cell of row; let j = index"
-           class="cell"
-           [ngClass]="cellClass(cell)">
+<div class="boards" *ngIf="!isLoading">
+
+  <!-- ДОСКА ИГРОКА -->
+  <div class="board player-board">
+    <h3>YOUR BOARD</h3>
+    <div class="grid">
+      <div *ngFor="let row of playerBoard; let i = index" class="row">
+        <div *ngFor="let cell of row; let j = index"
+             class="cell"
+             [ngClass]="{
+               'empty': cell === 0,
+               'ship': cell === 1,
+               'hit': cell === 2,
+               'miss': cell === 3
+             }">
+        </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ДОСКА ПРОТИВНИКА -->
+  <div class="board enemy-board">
+    <h3>ENEMY BOARD</h3>
+    <div class="grid">
+      <div *ngFor="let row of enemyBoard; let i = index" class="row">
+        <div *ngFor="let cell of row; let j = index"
+             class="cell"
+             [ngClass]="{
+               'empty': cell === 0,
+               'ship': cell === 1,
+               'hit': cell === 2,
+               'miss': cell === 3
+             }"
+             (click)="attackEnemy(i,j)">
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="modal-backdrop" *ngIf="showResultModal">
+  <div class="modal-window">
+    <h2>{{ resultText }}</h2>
+    <div class="modal-actions">
+      <button (click)="goToHome()">Новая игра</button>
+      <button (click)="goToHome()">В меню</button>
     </div>
   </div>
 </div>

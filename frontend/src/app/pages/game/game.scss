@@ -1,22 +1,110 @@
 .game-container {
   max-width: 400px;
   margin: 0 auto;
+  font-family: Arial, sans-serif;
 }
 
-.grid {
-  display: inline-block;
+.boards {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
 
-  .row {
+  .board {
     display: flex;
+    flex-direction: column;
+    align-items: center;
 
-    .cell {
-      width: 30px;
-      height: 30px;
-      border: 1px solid #333;
+    h3 {
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .grid {
       display: inline-block;
 
-      &.empty { background-color: #e0e0e0; }
-      &.ship { background-color: #555; }
+      .row {
+        display: flex;
+
+        .cell {
+          width: 30px;
+          height: 30px;
+          border: 1px solid #333;
+          display: inline-block;
+          cursor: pointer;
+          transition: background-color 0.2s;
+
+          &.empty { background-color: #e0e0e0; }
+          &.ship { background-color: #555; }
+          &.hit { background-color: red; }
+          &.miss { background-color: lightblue; }
+
+          // Для доски противника скрываем корабли
+          .enemy-board &.ship {
+            background-color: #e0e0e0;
+          }
+        }
+      }
     }
   }
 }
+
+// Дополнительно: курсор и подсветка при наведении для доски противника
+.enemy-board .cell:hover {
+  filter: brightness(1.2);
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.6); // затемнение
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; // поверх всего
+}
+
+.modal-window {
+  background: #fff;
+  padding: 25px 30px;
+  border-radius: 10px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-window h2 {
+  margin-bottom: 20px;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-around;
+}
+
+.modal-actions button {
+  padding: 8px 16px;
+  border: none;
+  background: #1976d2;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.modal-actions button:hover {
+  background: #0e5aa7;
+}
+
+/* Простая анимация появления */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+

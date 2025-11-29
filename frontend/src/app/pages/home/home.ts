@@ -5,6 +5,11 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/auth/auth.service';
 import { GameApi } from '../../core/api/game.api'
 
+export interface Player {
+  username: string;
+  rating: number;
+}
+
 @Component({
   selector: 'page-home',
   templateUrl: './home.html',
@@ -19,9 +24,19 @@ export class HomeComponent {
   private gameApi = inject(GameApi);
 
   isLoggedIn = false;
+  topPlayers: Player[] = [];
 
   ngOnInit() {
     this.auth.isLoggedIn$.subscribe(v => this.isLoggedIn = v);
+
+    this.gameApi.getTopPlayers(5).subscribe({
+      next: (players) => {
+        this.topPlayers = players;
+      },
+      error: (err) => {
+        console.error('Ошибка при получении топ игроков:', err);
+      }
+    });
   }
 
   goLogin() {
