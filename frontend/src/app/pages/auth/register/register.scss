@@ -1,0 +1,190 @@
+$bg-color: #061621;
+$border-glow: #53c7f5;
+$text-light: #c8f6ff;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  background: $bg-color;
+  font-family: "Segoe UI", sans-serif;
+  color: $text-light;
+  box-sizing: border-box;
+  background:
+      linear-gradient(rgba(6, 22, 33, 0.93), rgba(6, 22, 33, 0.93)),
+      url("../../../../assets/background1.jpg");
+  background-size: cover;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  text-align: center;
+}
+
+.logo {
+  margin-bottom: 40px;
+  .icon {
+    font-size: clamp(40px, 8vw, 70px);
+    color: $border-glow;
+  }
+  h1 {
+    margin-top: 10px;
+    font-size: clamp(18px, 4vw, 28px);
+    letter-spacing: 3px;
+  }
+}
+
+.register-box {
+  padding: 30px;
+  border: 1px solid $border-glow;
+  border-radius: 2px;
+  width: min(400px, 90%);
+  box-shadow: 0 0 15px rgba(0, 234, 255, 0.4);
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(6px);
+  box-sizing: border-box;
+  margin-bottom: 40px;
+
+  h2 {
+    margin-bottom: 25px;
+    letter-spacing: 2px;
+    font-size: clamp(18px, 4vw, 24px);
+  }
+}
+
+label {
+  display: block;
+  text-align: left;
+  font-size: 12px;
+  margin: 25px 0 5px;
+  color: $text-light;
+}
+
+.input-group {
+  input {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid $border-glow;
+    border-radius: 2px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+
+    &:-webkit-autofill,
+      &:-webkit-autofill:hover,
+      &:-webkit-autofill:focus,
+      &:-webkit-autofill:active {
+        -webkit-box-shadow: 0 0 0px 1000px $bg-color inset;
+        -webkit-text-fill-color: white;
+        background: transparent !important;
+      }
+  }
+}
+
+.btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 1px solid $border-glow;
+  color: $border-glow;
+  cursor: pointer;
+  transition: 0.2s;
+  font-size: clamp(14px, 1.3vw, 18px);
+  font-weight: 500;
+
+  box-shadow: 0 0 10px rgba(83,199,245,0.3), 0 0 20px rgba(83,199,245,0.2),
+          inset -5px -5px 20px rgba(83,199,245,0.25), inset 5px 5px 45px rgba(83,199,245,0.2), inset 0px 0px 55px rgba(83,199,245,0.15);
+  text-shadow: 0 0 10px rgba(83,199,245,0.4), 0 0 15px rgba(83,199,245,0.3), 0 0 20px rgba(83,199,245,0.2);
+
+
+  &:hover {
+    background: $border-glow;
+    color: #00141d;
+  }
+}
+
+.links {
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-between;
+
+  a {
+    color: $border-glow;
+    font-size: 12px;
+    text-decoration: none;
+    transition: 0.2s;
+
+    &:hover {
+      opacity: 0.6;
+    }
+  }
+}
+
+.back-home {
+  margin-top: 25px;
+  font-size: 13px;
+  color: $border-glow;
+  text-decoration: none;
+  transition: 0.2s;
+
+  &:hover {
+    opacity: 0.6;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-box {
+    padding: 25px;
+    box-shadow: 0 0 10px rgba(0, 234, 255, 0.3);
+  }
+
+  label {
+    font-size: 11px;
+  }
+
+  .input-group input {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .btn {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .links a {
+    font-size: 11px;
+  }
+
+  .back-home {
+    font-size: 12px;
+  }
+}
+
+.error {
+  min-height: 1.5em; /* высота блока под сообщение */
+  color: red;
+  font-size: 0.9rem;
+  visibility: hidden; /* по умолчанию скрыто */
+  transition: visibility 0.2s;
+  margin-top: 10px;
+}
+
+.error.visible {
+  visibility: visible; /* показываем при ошибке */
+}

@@ -16,6 +16,7 @@ export class RegisterComponent {
 
   username = '';
   password = '';
+  confirmPassword = '';
   errorMsg = '';
 
   private userApi = inject(UserApi);
@@ -24,6 +25,11 @@ export class RegisterComponent {
 
   async doRegister() {
     this.errorMsg = '';
+
+    if (this.password !== this.confirmPassword) {
+      this.errorMsg = 'Пароли не совпадают';
+      return; // останавливаем регистрацию
+    }
 
     try {
       await this.userApi.register({

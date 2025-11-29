@@ -18,42 +18,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 public class SecurityConfig {
-    /*@Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    *//*@Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/users/register", "/api/users/login").permitAll()
-                        .requestMatchers("/default_avatar.png", "/images/**", "/css/**", "/js/**").permitAll()
-                        .requestMatchers(
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**"
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
-                .httpBasic(Customizer.withDefaults());
-        return http.build();
-    }*//*
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable()) // временно отключаем CSRF для разработки
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll() // разрешаем все запросы
-                );
-
-        return http.build();
-    }*/
 
     private final MyUserDetailsService userDetailsService;
     private final JwtUtil jwtUtil;
@@ -77,7 +41,8 @@ public class SecurityConfig {
                                 "/default_avatar.png",
                                 "/images/**",
                                 "/css/**",
-                                "/js/**"
+                                "/js/**",
+                                "api/users/top"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

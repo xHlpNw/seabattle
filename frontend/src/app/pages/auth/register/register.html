@@ -1,21 +1,50 @@
-<div class="register-container">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="register.scss" />
+    <title>Create Account</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">
+      <div class="icon">⚓</div>
+      <h1>BATTLESHIP</h1>
+    </div>
 
-  <h1>Регистрация</h1>
+    <div class="register-box">
+      <h2>CREATE ACCOUNT</h2>
+      <form>
+        <label>USERNAME</label>
+        <div class="input-group">
+          <input type="text" [(ngModel)]="username" name="username" placeholder="username" >
+        </div>
 
-  <div class="form-field">
-    <label>Логин</label>
-    <input type="text" [(ngModel)]="username" placeholder="username">
+
+        <label>PASSWORD</label>
+        <div class="input-group">
+          <input type="password" [(ngModel)]="password" name="password" placeholder="Enter password" >
+        </div>
+
+
+        <label>Confirm Password</label>
+        <div class="input-group">
+          <input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Confirm password" >
+        </div>
+
+        <div class="error" [class.visible]="errorMsg">
+          {{ errorMsg || ' ' }}
+        </div>
+
+        <button type="button" class="btn" (click)="doRegister()">REGISTER</button>
+
+        <div class="links">
+          <a href="/login">Login</a>
+          <a href="#">← Back to Home</a>
+        </div>
+      </form>
+    </div>
   </div>
-
-  <div class="form-field">
-    <label>Пароль</label>
-    <input type="password" [(ngModel)]="password" placeholder="password">
-  </div>
-
-  <div class="error" *ngIf="errorMsg">
-    {{ errorMsg }}
-  </div>
-
-  <button (click)="doRegister()">Зарегистрироваться</button>
-
-</div>
+  </body>
+</html>
