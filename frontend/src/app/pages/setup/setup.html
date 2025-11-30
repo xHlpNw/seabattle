@@ -1,30 +1,73 @@
-<div class="setup-container">
-  <h2>Расставьте корабли</h2>
+<div class="setup-page">
 
-  <div class="ships">
-    <span *ngFor="let ship of ships"
-          [class.placed]="ship.placed"
-          (click)="selectShip(ship)">
-      {{ ship.size }}‑палубный
-    </span>
-  </div>
 
-  <div class="grid">
-    <div *ngFor="let row of grid; let i = index" class="row">
-      <div *ngFor="let cell of row; let j = index"
-           class="cell"
-           [class.ship]="cell === 1"
-           [class.hover]="isHoverCell(i,j) && isHoverValid(i,j)"
-           [class.invalid]="isHoverCell(i,j) && !isHoverValid(i,j)"
-           (click)="onCellClick(i,j,$event)"
-           (mousemove)="onMouseMove($event,i,j)"
-           (contextmenu)="onRightClick($event)">
+  <!-- MAIN SECTION -->
+  <main class="setup-main">
+
+    <div class="setup-content">
+      <div class="main-left">
+        <h1 class="title">SETUP FLEET</h1>
+
+        <!-- SHIP LIST -->
+        <section class="ships-panel">
+          <h3>SHIPS:</h3>
+
+          <div class="ship-buttons">
+            <button *ngFor="let ship of ships"
+                    (click)="selectShip(ship)"
+                    [class.selected]="ship === selectedShip"
+                    [class.placed]="ship.placed">
+              {{ getShipName(ship.size) }}
+              <span class="squares">
+                <span class="sq" *ngFor="let s of [].constructor(ship.size)"></span>
+              </span>
+            </button>
+          </div>
+        </section>
+
+        <!-- GRID -->
+        <section class="grid-zone">
+
+          <div class="letters">
+            <span *ngFor="let c of cols">{{ c }}</span>
+          </div>
+
+          <div class="grid">
+            <div *ngFor="let row of grid; let i = index" class="row">
+              <div class="row-number">{{ i+1 }}</div>
+
+              <div *ngFor="let cell of row; let j = index"
+                   class="cell"
+                   [class.ship]="cell === 1"
+                   [class.hover]="isHoverCell(i,j) && isHoverValid(i,j)"
+                   [class.invalid]="isHoverCell(i,j) && !isHoverValid(i,j)"
+                   [style.cursor]="getCursor()"
+                   (click)="onCellClick(i,j,$event)"
+                   (mousemove)="onMouseMove($event,i,j)"
+                   (contextmenu)="onRightClick($event)">
+              </div>
+            </div>
+          </div>
+
+          <div class="buttons-area">
+            <button class="auto-place" (click)="autoPlaceShips()">AUTO-PLACE FLEET</button>
+            <button class="start-game"
+                    [disabled]="!allShipsPlaced"
+                    (click)="ready()">
+              CONFIRM AND START GAME
+            </button>
+          </div>
+
+        </section>
       </div>
-    </div>
-  </div>
 
-  <div class="buttons">
-    <button (click)="autoPlaceShips()">Случайная расстановка</button>
-    <button [disabled]="!allShipsPlaced" (click)="ready()">Готов</button>
-  </div>
+      <section class="controls">
+        <h3>CONTROLS:</h3>
+
+        <p><span class="kbd">ПКМ</span> сменить ориентацию корабля</p>
+        <p><span class="kbd">Ctrl</span> + <span class="kbd">ЛКМ</span> удалить корабль</p>
+      </section>
+    </div>
+  </main>
+
 </div>

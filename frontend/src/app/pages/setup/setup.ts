@@ -38,6 +38,10 @@ export class SetupComponent implements OnInit {
 
   gameId: string | null = null;
   grid: number[][] = [];
+  hoverCursor: string = 'default';
+
+  cols = ['A','B','C','D','E','F','G','H','I','J'];
+
 
   ships: Ship[] = [
     { size: 4, placed: false },
@@ -66,6 +70,16 @@ export class SetupComponent implements OnInit {
 
   createEmptyGrid(): number[][] {
     return Array.from({ length: 10 }, () => Array(10).fill(0));
+  }
+
+  getShipName(size: number): string {
+    switch (size) {
+      case 4: return 'Battleship';
+      case 3: return 'Cruiser';
+      case 2: return 'Destroyer';
+      case 1: return 'Submarine';
+      default: return 'Unknown';
+    }
   }
 
   selectShip(ship: Ship) {
@@ -137,7 +151,7 @@ export class SetupComponent implements OnInit {
   }
 
   removeShip(x: number, y: number) {
-    const ship = this.ships.find(s => s.cells?.some(c => c.x === x && c.y === y) && s.autoPlaced);
+    const ship = this.ships.find(s => s.cells?.some(c => c.x === x && c.y === y));
     if (!ship) return;
 
     ship.cells?.forEach(c => this.grid[c.x][c.y] = 0);
@@ -164,8 +178,13 @@ export class SetupComponent implements OnInit {
   }
 
   onCellClick(x: number, y: number, event: MouseEvent) {
-    if (event.shiftKey) this.removeShip(x, y);
+    if (event.ctrlKey) this.removeShip(x, y);
     else this.placeShip(x, y);
+  }
+
+  getCursor(): string {
+    if (!this.selectedShip) return 'default';
+    return this.hoverCells.some(c => !c.valid) ? 'not-allowed' : 'pointer';
   }
 
   async autoPlaceShips() {
