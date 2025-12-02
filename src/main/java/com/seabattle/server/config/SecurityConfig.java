@@ -32,6 +32,7 @@ public class SecurityConfig {
         JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtUtil, userDetailsService);
 
         http
+                .cors(Customizer.withDefaults())
                 .csrf(cs -> cs.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
@@ -42,7 +43,9 @@ public class SecurityConfig {
                                 "/images/**",
                                 "/css/**",
                                 "/js/**",
-                                "api/users/top"
+                                "api/users/top",
+                                "api/users/top",
+                                "/api/users/profile"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

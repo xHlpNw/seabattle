@@ -17,21 +17,29 @@ export class ProfileComponent {
   private router = inject(Router);
 
   user: any = null;
+  topPlayers: any[] = [];
+  rank: number | null = null;
   loading = true;
   error = '';
 
   async ngOnInit() {
     try {
-      // Получаем профиль пользователя напрямую из UserApi
-      this.user = await this.userApi.getProfile();
+      // username можно взять из localStorage или из токена
+          const username = localStorage.getItem('username')!;
+          this.user = await this.userApi.getProfile(username);
+
+          // Получаем топ 10 игроков для leaderboard
+          this.topPlayers = await this.userApi.getTopPlayers(10);
     } catch (err) {
-      console.error('Не удалось загрузить профиль:', err);
-      this.error = 'Не удалось загрузить профиль';
-      // Редирект на страницу логина, если нет токена или username
-      this.router.navigate(['login']);
+      console.error(err);
+          this.router.navigate(['login']);
     } finally {
       this.loading = false;
     }
+  }
+
+  goHome() {
+    this.router.navigate(['/']); // путь к твоей homepage
   }
 
   logout() {

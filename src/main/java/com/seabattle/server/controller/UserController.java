@@ -1,6 +1,8 @@
 package com.seabattle.server.controller;
 
 import com.seabattle.server.dto.UserDto;
+import com.seabattle.server.dto.UserProfileDTO;
+import com.seabattle.server.dto.UserRankDTO;
 import com.seabattle.server.dto.UserRatingDto;
 import com.seabattle.server.entity.User;
 import com.seabattle.server.repository.UserRepository;
@@ -62,25 +64,32 @@ public class UserController {
 
     }
 
-    @GetMapping("/{username}")
-    public ResponseEntity<?> getUserProfile(@PathVariable String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
+    @GetMapping("/profile")
+    public UserProfileDTO getProfile(@RequestParam String username) {
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new EntityNotFoundException("Cannot find user by username"));
 
-        int gamesPlayed = (user.getWins() != null ? user.getWins() : 0)
-                + (user.getLosses() != null ? user.getLosses() : 0);
+        // Вычисляем позицию
+        List<User> sorted = userRepository.findAll(Sort.by("rating").descending());
+        int position = 1;
+        for (User u : sorted) {
+            if (u.getUsername().equals(username)) break;
+            position++;
+        }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("username", user.getUsername());
-        response.put("email", user.getEmail() != null ? user.getEmail() : "—");
-        response.put("avatar", user.getAvatar() != null ? user.getAvatar() : "/default_avatar.png");
-        response.put("rating", user.getRating());
-        response.put("wins", user.getWins());
-        response.put("losses", user.getLosses());
-        response.put("gamesPlayed", gamesPlayed);
+        int totalGames = user.getWins() + user.getLosses();
+        double winrate = totalGames > 0 ? (double) user.getWins() / totalGames * 100 : 0;
 
-        return ResponseEntity.ok(response);
+        return new UserProfileDTO(
+                user.getUsername(),
+                totalGames,
+                user.getWins(),
+                user.getLosses(),
+                winrate,
+                user.getRating(),
+                position
+        );
     }
+
 
     @GetMapping("/top")
     public List<UserRatingDto> getTopPlayers(@RequestParam(defaultValue = "5") int limit) {
@@ -89,5 +98,19 @@ public class UserController {
                 .stream()
                 .map(u -> new UserRatingDto(u.getUsername(), u.getRating()))
                 .toList();
+    }
+
+    @GetMapping("/rating/position")
+    public UserRankDTO getUserRank(@RequestParam String username) {
+        List<User> sorted = userRepository.findAll(Sort.by("rating").descending());
+
+        int position = 1;
+        for (User u : sorted) {
+            if (u.getUsername().equals(username)) break;
+            position++;
+        }
+
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new EntityNotFoundException("Cannot find user by nickname"));
+        return new UserRankDTO(user.getRating(), position);
     }
 }

@@ -34,27 +34,24 @@ export class UserApi {
     return firstValueFrom(this.http.post<void>(`${this.base}/register`, data));
   }
 
-  async getProfile(): Promise<{
-    username: string;
-    avatar: string;
-    email?: string;
-    rating: number;
-    gamesPlayed?: number;
-    wins?: number;
-  }> {
-    // Получаем username и token из localStorage
-    const username = localStorage.getItem('username');
-    const token = localStorage.getItem('token');
+  async getProfile(username: string): Promise<any> {
+    const res = await fetch(`http://localhost:8080/api/users/profile?username=${username}`);
+    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+    return res.json();
+  }
 
-    if (!username || !token) {
-      throw new Error('Пользователь не авторизован');
-    }
+  async getTopPlayers(limit: number = 10): Promise<any[]> {
+    return fetch(`http://localhost:8080/api/users/top?limit=${limit}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }).then(r => r.json());
+  }
 
-    const headers = { Authorization: `Bearer ${token}` };
-
-    return firstValueFrom(
-      this.http.get<any>(`${this.base}/${username}`, { headers })
-    );
+  async getUserRank(username: string): Promise<any> {
+    return fetch(`http://localhost:8080/api/users/rating/position?username=${username}`)
+      .then(r => r.json());
   }
 
 }

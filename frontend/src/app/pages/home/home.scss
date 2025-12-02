@@ -43,6 +43,11 @@ html, body {
   cursor: pointer;
 }
 
+.auth-zone button:hover {
+  background: #53c7f5;
+  color: black;
+}
+
 /* MAIN CONTENT FITS 100vh */
 .main {
   flex: 1;

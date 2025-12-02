@@ -45,7 +45,7 @@ export class GameComponent implements OnInit {
     }
 
     try {
-      this.profile = await this.userApi.getProfile();
+      this.profile = await this.userApi.getProfile(username);
       console.log('Профиль текущего пользователя:', this.profile);
     } catch (err) {
       console.error('Ошибка получения профиля', err);

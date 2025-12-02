@@ -4,116 +4,72 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Profile — Admiral_Frost</title>
-  <link rel="stylesheet" href="profile.scss">
+  <link rel="stylesheet" href="profile.scss" />
 </head>
+
 <body>
-  <header class="site-header">
-    <div class="site-header__brand">
-      <span class="brand__icon">⚓</span>
-      <span class="brand__text">BATTLESHIP</span>
-    </div>
-    <div class="site-header__title">PROFILE</div>
-    <button class="site-header__home">← HOME</button>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="logo">⚓ BATTLESHIP</div>
+    <div class="page-title">PROFILE</div>
+    <button (click)="goHome()" class="home-btn">← HOME</button>
   </header>
 
-  <main class="container">
+  <!-- MAIN GRID -->
+  <main class="main">
+
     <!-- PROFILE CARD -->
-    <section class="profile-card">
-      <div class="profile-card__left">
-        <div class="avatar">
-          <div class="avatar__inner"> </div>
-        </div>
-        <div class="profile-info">
-          <h1 class="profile-name">Admiral_Frost</h1>
-          <div class="badges">
-            <span class="badge badge--tier">GOLD TIER</span>
-            <span class="badge badge--elo">ELO: <strong>2450</strong></span>
-          </div>
-        </div>
+    <section class="profile-card glow-box">
+      <div class="profile-left">
+        <img [src]="user.avatar ? 'http://localhost:8080' + user.avatar : 'http://localhost:8080/default_avatar.png'"
+             alt="avatar" class="avatar" />
+        <h1 class="username">Admiral_Frost</h1>
       </div>
+
+      <button (click)="logout()" class="logout-btn">ВЫЙТИ</button>
     </section>
 
-    <h2>YOUR STATS</h2>
-    <hr>
-    <!-- STATS ROW -->
-    <section class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-card__label">Total Games</div>
-        <div class="stat-card__value">342</div>
+    <!-- STATS -->
+
+    <section class="statistics">
+      <h3>YOUR STATS</h3>
+      <hr>
+      <div class="stats">
+          <div class="stat glow-box"><label>Total Games</label><span>{{ user?.totalGames }}</span></div>
+          <div class="stat glow-box"><label>Wins</label><span>{{ user?.wins }}</span></div>
+          <div class="stat glow-box"><label>Losses</label><span>{{ user?.losses }}</span></div>
+          <div class="stat glow-box"><label>Winrate</label><span>{{ user?.winrate | number:'1.0-1' }}%</span></div>
       </div>
-      <div class="stat-card">
-        <div class="stat-card__label">Wins</div>
-        <div class="stat-card__value">198</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card__label">Losses</div>
-        <div class="stat-card__value">144</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card__label">Winrate</div>
-        <div class="stat-card__value">57.9%</div>
+
+      <div class="rating glow-box">
+        <div class="rating-sub">YOUR RATING</div>
+        <div class="rating-num">{{ user?.rating }}</div>
+        <div class="rating-sub">Global position: <span>#{{ user?.position }}</span></div>
+
+        <div class="spark"></div>
       </div>
     </section>
-
     <!-- RATING -->
-    <section class="rating-panel">
-      <div class="rating-panel__left">
-        <div class="rating-number">2450</div>
-        <div class="rating-sub">Global position: <span class="muted">#137</span></div>
-      </div>
-      <div class="rating-panel__right"> <!-- placeholder for spark/graph -->
-        <div class="sparkline"></div>
-      </div>
-    </section>
 
 
     <!-- LEADERBOARD -->
     <section class="leaderboard">
-      <h2 class="section-title">LEADERBOARD</h2>
-      <ul class="leaderboard__list">
-        <li class="leaderboard__item"><span>#1</span><span class="name">Admiral_Frost</span><span class="score">2450</span></li>
-        <li class="leaderboard__item"><span>#2</span><span class="name">DeepSeaHunter</span><span class="score">2380</span></li>
-        <li class="leaderboard__item"><span>#3</span><span class="name">NavalStrike</span><span class="score">2320</span></li>
-        <li class="leaderboard__item"><span>#4</span><span class="name">TorpedoAce</span><span class="score">2290</span></li>
-        <li class="leaderboard__item"><span>#5</span><span class="name">FleetCommander</span><span class="score">2245</span></li>
-        <li class="leaderboard__item"><span>#6</span><span class="name">OceanWarrior</span><span class="score">2210</span></li>
-        <li class="leaderboard__item"><span>#7</span><span class="name">SeaWolf</span><span class="score">2185</span></li>
-        <li class="leaderboard__item"><span>#8</span><span class="name">Battlemaster</span><span class="score">2160</span></li>
+      <h3>LEADERBOARD</h3>
+      <hr>
+      <ul>
+        <li class="glow-box" *ngFor="let p of topPlayers; let i = index">
+          <div class="left">
+            <span class="position">#{{ i + 1 }}</span>
+            <span class="nickname">{{ p.username }}</span>
+          </div>
+          <span class="elo">{{ p.rating }}</span>
+        </li>
       </ul>
     </section>
 
-    <!-- MATCH HISTORY -->
-    <section class="match-history">
-      <h2 class="section-title">MATCH HISTORY</h2>
-      <ul class="history__list">
-        <li class="history__item">
-          <div class="history__left">
-            <div class="player">DeepSeaHunter</div>
-            <div class="date">2024-01-15</div>
-          </div>
-          <div class="history__right"><span class="badge badge--win">WIN 10-7</span><button class="btn small">Online</button></div>
-        </li>
 
-        <li class="history__item">
-          <div class="history__left">
-            <div class="player">NavalStrike</div>
-            <div class="date">2024-01-15</div>
-          </div>
-          <div class="history__right"><span class="badge badge--loss">LOSS 8-10</span><button class="btn small">Online</button></div>
-        </li>
-
-        <li class="history__item">
-          <div class="history__left">
-            <div class="player">TorpedoAce</div>
-            <div class="date">2024-01-14</div>
-          </div>
-          <div class="history__right"><span class="badge badge--win">WIN 10-5</span><button class="btn small">Online</button></div>
-        </li>
-
-      </ul>
-    </section>
   </main>
-
 
 </body>
 </html>
