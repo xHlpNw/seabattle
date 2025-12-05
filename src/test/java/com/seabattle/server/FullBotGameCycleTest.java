@@ -80,4 +80,49 @@ public class FullBotGameCycleTest {
                 ", wins: " + playerAfter.getWins() +
                 ", losses: " + playerAfter.getLosses());
     }
+
+    @Test
+    void testMissesMarkedAroundSunkShip() {
+        // Create a board and place a small ship
+        com.seabattle.server.engine.BoardModel board = new com.seabattle.server.engine.BoardModel();
+
+        // Place a 2-cell ship horizontally at (4,4) and (4,5)
+        board.placeShip(1, 4, 4, true, 2);
+
+        // Verify initial state - ship cells should be SHIP
+        assertThat(board.getCells()[4][4].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.SHIP);
+        assertThat(board.getCells()[4][5].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.SHIP);
+
+        // Adjacent cells should be EMPTY initially
+        assertThat(board.getCells()[3][3].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.EMPTY);
+        assertThat(board.getCells()[3][4].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.EMPTY);
+        assertThat(board.getCells()[3][5].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.EMPTY);
+        assertThat(board.getCells()[4][3].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.EMPTY);
+        assertThat(board.getCells()[4][6].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.EMPTY);
+        assertThat(board.getCells()[5][3].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.EMPTY);
+        assertThat(board.getCells()[5][4].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.EMPTY);
+        assertThat(board.getCells()[5][5].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.EMPTY);
+        assertThat(board.getCells()[5][6].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.EMPTY);
+
+        // Shoot at first cell of ship - should hit but not sink
+        var outcome1 = board.shoot(4, 4);
+        assertThat(outcome1.hit).isTrue();
+        assertThat(outcome1.sunk).isFalse();
+
+        // Shoot at second cell of ship - should hit and sink
+        var outcome2 = board.shoot(4, 5);
+        assertThat(outcome2.hit).isTrue();
+        assertThat(outcome2.sunk).isTrue();
+
+        // Now check that adjacent cells are marked as misses
+        assertThat(board.getCells()[3][3].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.MISS);
+        assertThat(board.getCells()[3][4].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.MISS);
+        assertThat(board.getCells()[3][5].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.MISS);
+        assertThat(board.getCells()[4][3].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.MISS);
+        assertThat(board.getCells()[4][6].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.MISS);
+        assertThat(board.getCells()[5][3].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.MISS);
+        assertThat(board.getCells()[5][4].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.MISS);
+        assertThat(board.getCells()[5][5].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.MISS);
+        assertThat(board.getCells()[5][6].getState()).isEqualTo(com.seabattle.server.engine.BoardModel.CellState.MISS);
+    }
 }

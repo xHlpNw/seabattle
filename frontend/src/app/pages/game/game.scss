@@ -37,6 +37,7 @@
           &.ship { background-color: #555; }
           &.hit { background-color: red; }
           &.miss { background-color: lightblue; }
+          &.disabled { opacity: 0.5; }
 
           // Для доски противника скрываем корабли
           .enemy-board &.ship {
@@ -49,7 +50,7 @@
 }
 
 // Дополнительно: курсор и подсветка при наведении для доски противника
-.enemy-board .cell:hover {
+.enemy-board .cell:not(.disabled):hover {
   filter: brightness(1.2);
 }
 

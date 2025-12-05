@@ -112,6 +112,9 @@ public class GameService {
         if (game.getStatus() != Game.GameStatus.IN_PROGRESS) {
             throw new IllegalStateException("Game not in progress");
         }
+        if (game.getCurrentTurn() != Game.Turn.HOST) {
+            throw new IllegalStateException("Not your turn");
+        }
 
         Board playerBoard = boardRepo.findByGameIdAndPlayerId(gameId, playerId).orElseThrow();
         Board botBoard = boardRepo.findByGameIdAndPlayerIsNull(gameId).orElseThrow();
@@ -164,55 +167,51 @@ public class GameService {
             return dto;
         }
 
-        // player missed -> bot moves (bot may hit and continue while hitting)
+        // player missed -> bot moves (only one shot per turn)
         BoardModel playerBm = BoardModel.fromJson(playerBoard.getCells());
-        boolean botKeepsShooting = true;
-        while (botKeepsShooting) {
-            BotAiService.BotMove botMove = botAi.nextMove(playerBm);
-            BoardModel.ShotOutcome botOutcome = playerBm.shoot(botMove.x(), botMove.y());
+        BotAiService.BotMove botMove = botAi.nextMove(playerBm);
+        BoardModel.ShotOutcome botOutcome = playerBm.shoot(botMove.x(), botMove.y());
 
-            System.out.println(String.format("Bot shoots at ({}, {}), hit: {}, sunk: {}", botMove.x(), botMove.y(), botOutcome.hit, botOutcome.sunk));
+        System.out.println(String.format("Bot shoots at ({}, {}), hit: {}, sunk: {}", botMove.x(), botMove.y(), botOutcome.hit, botOutcome.sunk));
 
+        Move botMoveEntity = Move.builder()
+                .game(game)
+                .player(null)
+                .x((short)botMove.x())
+                .y((short)botMove.y())
+                .hit(botOutcome.hit)
+                .build();
+        moveRepo.save(botMoveEntity);
 
-            Move botMoveEntity = Move.builder()
-                    .game(game)
-                    .player(null)
-                    .x((short)botMove.x())
-                    .y((short)botMove.y())
-                    .hit(botOutcome.hit)
-                    .build();
-            moveRepo.save(botMoveEntity);
-
-            if (!botOutcome.already) {
-                // update board
-                playerBoard.setCells(playerBm.toJson());
-                boardRepo.save(playerBoard);
-            }
-
-            if (botOutcome.already) {
-                // already tried cell — pick next
-                botKeepsShooting = true;
-            } else if (botOutcome.hit) {
-                // bot hit -> by rule A bot continues to shoot
-                botKeepsShooting = true;
-            } else {
-                // bot missed -> stop
-                botKeepsShooting = false;
-            }
-
-            if (playerBm.allShipsSunk()) {
-                game.setStatus(Game.GameStatus.FINISHED);
-                game.setResult(Game.GameResult.GUEST_WIN);
-                game.setFinishedAt(OffsetDateTime.now());
-                gameRepo.save(game);
-
-                persistHistoryAndStats(game, playerBoard.getPlayer(), null, "LOSS", -10);
-                dto.setGameOver(true);
-                dto.setResult("GUEST_WIN");
-                dto.setMessage("Bot won.");
-                return dto;
-            }
+        if (!botOutcome.already) {
+            // update board
+            playerBoard.setCells(playerBm.toJson());
+            boardRepo.save(playerBoard);
         }
+
+        // Check if bot won
+        if (playerBm.allShipsSunk()) {
+            game.setStatus(Game.GameStatus.FINISHED);
+            game.setResult(Game.GameResult.GUEST_WIN);
+            game.setFinishedAt(OffsetDateTime.now());
+            gameRepo.save(game);
+
+            persistHistoryAndStats(game, playerBoard.getPlayer(), null, "LOSS", -10);
+            dto.setGameOver(true);
+            dto.setResult("GUEST_WIN");
+            dto.setMessage("Bot won.");
+            return dto;
+        }
+
+        // Turn management: if bot hit and didn't sink, bot keeps turn; otherwise player gets turn back
+        if (botOutcome.hit && !botOutcome.sunk) {
+            game.setCurrentTurn(Game.Turn.GUEST); // bot's turn
+            dto.setMessage("Bot hit — bot's turn again.");
+        } else {
+            game.setCurrentTurn(Game.Turn.HOST); // player's turn
+            dto.setMessage("Bot " + (botOutcome.hit ? "sunk a ship" : "missed") + " — your turn.");
+        }
+        gameRepo.save(game);
 
         // game continues
         dto.setGameOver(false);
@@ -315,26 +314,21 @@ public class GameService {
                     .orElseThrow(() -> new EntityNotFoundException("Доска игрока не найдена"));
             BoardModel playerModel = BoardModel.fromJson(playerBoard.getCells());
 
-            boolean botContinues = true;
-            while (botContinues) {
-                lastBotMove = makeBotMove(playerModel, playerBoard);
+            // Bot makes only one shot per turn
+            lastBotMove = makeBotMove(playerModel, playerBoard);
 
-                // Если бот промахнулся → передаём ход игроку
-                if (!lastBotMove.isHit()) {
-                    game.setCurrentTurn(Game.Turn.HOST);
-                    botContinues = false;
-                }
-
-                // Проверка победы бота
-                if (playerModel.allShipsSunk()) {
-                    game.setStatus(Game.GameStatus.FINISHED);
-                    game.setResult(Game.GameResult.GUEST_WIN);
-                    game.setFinishedAt(OffsetDateTime.now());
-                    persistHistoryAndStats(game, player, null, "LOSS", -10);
-                    botContinues = false;
-                }
-
-                // если бот попал и игра не окончена, он стреляет снова
+            // Проверка победы бота
+            if (playerModel.allShipsSunk()) {
+                game.setStatus(Game.GameStatus.FINISHED);
+                game.setResult(Game.GameResult.GUEST_WIN);
+                game.setFinishedAt(OffsetDateTime.now());
+                persistHistoryAndStats(game, player, null, "LOSS", -10);
+            } else if (!lastBotMove.isHit()) {
+                // Bot missed - player's turn
+                game.setCurrentTurn(Game.Turn.HOST);
+            } else {
+                // Bot hit (even if sunk) - bot keeps turn
+                game.setCurrentTurn(Game.Turn.GUEST);
             }
 
             boardRepo.save(playerBoard);
@@ -424,11 +418,11 @@ public class GameService {
         if (playerModel.allShipsSunk()) {
             game.setStatus(Game.GameStatus.FINISHED);
             game.setResult(Game.GameResult.GUEST_WIN);
-        } else if (!botMove.isHit() || botMove.isSunk()) {
-            // ход возвращается игроку
+        } else if (!botMove.isHit()) {
+            // бот промахнулся — ход возвращается игроку
             game.setCurrentTurn(Game.Turn.HOST);
         } else {
-            // бот попал — остаётся его ход для следующего запроса
+            // бот попал (даже если потопил корабль) — остаётся его ход для следующего запроса
             game.setCurrentTurn(Game.Turn.GUEST);
         }
 
@@ -449,9 +443,18 @@ public class GameService {
 
         result.setPlayerBoard(playerModel.toIntArray(true)); // кастомный метод для List<List<Integer>>
         result.setEnemyBoard(enemyModel.toIntArray(true)); // enemy — скрываем корабли
-        result.setHit(outcome.hit);
-        result.setSunk(outcome.sunk);
-        result.setAlready(outcome.already);
+
+        // Only set outcome fields if outcome is not null (for player shots)
+        if (outcome != null) {
+            result.setHit(outcome.hit);
+            result.setSunk(outcome.sunk);
+            result.setAlready(outcome.already);
+        } else {
+            // For bot-only moves, set defaults
+            result.setHit(false);
+            result.setSunk(false);
+            result.setAlready(false);
+        }
 
         if (botMove != null) {
             result.setBotX(botMove.getX());
@@ -466,6 +469,7 @@ public class GameService {
                         ? null
                         : game.getResult().name()
         );
+        result.setCurrentTurn(game.getCurrentTurn() != null ? game.getCurrentTurn().name() : null);
 
         return result;
     }

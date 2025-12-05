@@ -130,7 +130,12 @@ public class BoardModel {
                 for (Coord coord : target.cells) {
                     if (cells[coord.x][coord.y].state != CellState.HIT) { allHit = false; break; }
                 }
-                if (allHit) { target.sunk = true; sunk = true; }
+                if (allHit) {
+                    target.sunk = true;
+                    sunk = true;
+                    // Mark misses around the sunk ship
+                    markMissesAroundShip(target);
+                }
             }
             return new ShotOutcome(true, sunk, false);
         } else {
@@ -203,6 +208,35 @@ public class BoardModel {
             }
         }
         return grid;
+    }
+
+    /**
+     * Marks all adjacent cells around a sunk ship as misses.
+     * This prevents wasting shots on cells that cannot contain ships.
+     */
+    private void markMissesAroundShip(Ship ship) {
+        for (Coord coord : ship.cells) {
+            int x = coord.x;
+            int y = coord.y;
+
+            // Check all 8 adjacent cells
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    int nx = x + dx;
+                    int ny = y + dy;
+
+                    // Skip the cell itself and check bounds
+                    if ((dx == 0 && dy == 0) || nx < 0 || nx >= SIZE || ny < 0 || ny >= SIZE) {
+                        continue;
+                    }
+
+                    // Mark as miss if it's empty (not ship, hit, or already miss)
+                    if (cells[nx][ny].state == CellState.EMPTY) {
+                        cells[nx][ny].state = CellState.MISS;
+                    }
+                }
+            }
+        }
     }
 
     public static void fixShipIds(BoardModel bm) {

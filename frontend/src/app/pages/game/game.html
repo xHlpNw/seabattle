@@ -24,7 +24,7 @@
 
   <!-- ДОСКА ПРОТИВНИКА -->
   <div class="board enemy-board">
-    <h3>ENEMY BOARD</h3>
+    <h3>ENEMY BOARD {{ isPlayerTurn ? '(Your Turn)' : '(Bot Turn)' }}</h3>
     <div class="grid">
       <div *ngFor="let row of enemyBoard; let i = index" class="row">
         <div *ngFor="let cell of row; let j = index"
@@ -33,8 +33,10 @@
                'empty': cell === 0,
                'ship': cell === 1,
                'hit': cell === 2,
-               'miss': cell === 3
+               'miss': cell === 3,
+               'disabled': !isPlayerTurn
              }"
+             [style.cursor]="isPlayerTurn ? 'pointer' : 'not-allowed'"
              (click)="attackEnemy(i,j)">
         </div>
       </div>

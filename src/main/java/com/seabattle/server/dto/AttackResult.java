@@ -21,5 +21,6 @@ public class AttackResult {
 
     private boolean gameFinished;
     private String winner;
+    private String currentTurn;
 }
 

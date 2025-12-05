@@ -169,7 +169,8 @@ public class GameController {
                         .map(row -> Arrays.stream(row).boxed().toList())
                         .toList()),
                 Map.entry("gameFinished", game.getStatus() == Game.GameStatus.FINISHED),
-                Map.entry("winner", game.getResult() != null ? game.getResult().name() : "NONE")
+                Map.entry("winner", game.getResult() != null ? game.getResult().name() : "NONE"),
+                Map.entry("currentTurn", game.getCurrentTurn() != null ? game.getCurrentTurn().name() : "HOST")
         );
 
         return ResponseEntity.ok(response);
@@ -187,6 +188,16 @@ public class GameController {
             return ResponseEntity.ok(result);
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(404).body(e.getMessage());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{gameId}/bot-move")
+    public ResponseEntity<?> botMove(@PathVariable UUID gameId) {
+        try {
+            AttackResult result = gameService.botMove(gameId);
+            return ResponseEntity.ok(result);
         } catch (IllegalStateException e) {
             return ResponseEntity.status(403).body(e.getMessage());
         }

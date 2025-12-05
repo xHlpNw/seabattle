@@ -45,8 +45,8 @@ export class GameApi {
     return this.http.get<{grid: number[][]}>(`/api/games/${gameId}/board`);
   }
 
-  getBoards(gameId: string): Observable<{ playerBoard: number[][]; enemyBoard: number[][] }> {
-    return this.http.get<{ playerBoard: number[][]; enemyBoard: number[][] }>(`/api/games/${gameId}/boards`);
+  getBoards(gameId: string): Observable<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string; gameFinished: boolean; winner: string }> {
+    return this.http.get<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string; gameFinished: boolean; winner: string }>(`/api/games/${gameId}/boards`);
   }
 
   attackEnemy(gameId: string, x: number, y: number) {
@@ -65,7 +65,24 @@ export class GameApi {
 
       gameFinished: boolean;
       winner: string | null;
+      currentTurn: string | null;
     }>(`/api/games/${gameId}/attack`, { x, y });
+  }
+
+  botMove(gameId: string) {
+    return this.http.post<{
+      playerBoard: number[][];
+      enemyBoard: number[][];
+
+      botX: number | null;
+      botY: number | null;
+      botHit: boolean | null;
+      botSunk: boolean | null;
+
+      gameFinished: boolean;
+      winner: string | null;
+      currentTurn: string | null;
+    }>(`/api/games/${gameId}/bot-move`, {});
   }
 
 

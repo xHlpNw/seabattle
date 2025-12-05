@@ -34,6 +34,9 @@ export class GameComponent implements OnInit {
   showResultModal: boolean = false;
   resultText: string = "";
 
+  currentTurn: string | null = null;
+  isPlayerTurn: boolean = true;
+
   async ngOnInit() {
     const token = localStorage.getItem('token') ?? undefined;
     const username = localStorage.getItem('username');
@@ -71,6 +74,8 @@ export class GameComponent implements OnInit {
 
       this.playerBoard = res.playerBoard;
       this.enemyBoard = res.enemyBoard;
+      this.currentTurn = res.currentTurn;
+      this.isPlayerTurn = res.currentTurn === 'HOST' || res.currentTurn === null;
 
       // Проверяем, закончена ли игра
       if (res.gameFinished) {
@@ -81,6 +86,9 @@ export class GameComponent implements OnInit {
           : res.winner === 'GUEST_WIN'
             ? "💀 Вы проиграли!"
             : "Игра завершена";
+      } else if (!this.isPlayerTurn) {
+        // If it's the bot's turn when loading the board, trigger bot move
+        this.triggerBotMove();
       }
 
     } catch (err) {
@@ -103,14 +111,15 @@ export class GameComponent implements OnInit {
   }
 
   attackEnemy(i: number, j: number) {
-    if (!this.gameId) return;
+    if (!this.gameId || !this.isPlayerTurn) return;
 
     this.gameApi.attackEnemy(this.gameId, i, j).subscribe(res => {
       console.log('Ответ сервера после выстрела:', res);
 
       this.playerBoard = res.playerBoard;
-
       this.enemyBoard = res.enemyBoard;
+      this.currentTurn = res.currentTurn;
+      this.isPlayerTurn = res.currentTurn === 'HOST' || res.currentTurn === null;
 
       if (res.hit) console.log('Попадание!');
       if (res.sunk) console.log('Корабль потоплен!');
@@ -134,8 +143,50 @@ export class GameComponent implements OnInit {
         }
 
         this.showResultModal = true; // ← показываем модалку
+      } else if (!this.isPlayerTurn) {
+        // If it's now the bot's turn, automatically trigger bot move
+        this.triggerBotMove();
       }
 
     });
+  }
+
+  private triggerBotMove() {
+    if (!this.gameId) return;
+
+    // Small delay to show the board update before bot moves
+    setTimeout(() => {
+      this.gameApi.botMove(this.gameId!).subscribe(res => {
+        console.log('Ответ сервера после хода бота:', res);
+
+        this.playerBoard = res.playerBoard;
+        this.enemyBoard = res.enemyBoard;
+        this.currentTurn = res.currentTurn;
+        this.isPlayerTurn = res.currentTurn === 'HOST' || res.currentTurn === null;
+
+        if (res.botX != null && res.botY != null) {
+          this.botLastX = res.botX;
+          this.botLastY = res.botY;
+          console.log(`Бот стрелял: ${res.botX}, ${res.botY}`);
+        }
+
+        if (res.gameFinished) {
+          this.gameOver = true;
+
+          if (res.winner === 'HOST') {
+            this.resultText = "🎉 Вы победили!";
+          } else if (res.winner === 'GUEST') {
+            this.resultText = "💀 Вы проиграли!";
+          } else {
+            this.resultText = "Игра завершена";
+          }
+
+          this.showResultModal = true;
+        } else if (!this.isPlayerTurn) {
+          // If bot hit again, continue with bot moves
+          this.triggerBotMove();
+        }
+      });
+    }, 1000); // 1 second delay to show the board update
   }
 }
