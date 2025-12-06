@@ -314,8 +314,14 @@ public class GameService {
                     .orElseThrow(() -> new EntityNotFoundException("Доска игрока не найдена"));
             BoardModel playerModel = BoardModel.fromJson(playerBoard.getCells());
 
-            // Bot makes only one shot per turn
-            lastBotMove = makeBotMove(playerModel, playerBoard);
+            // Bot makes intelligent shot using probability map AI
+            BotAiService.BotMove botMove = botAi.nextMove(playerModel);
+            BoardModel.ShotOutcome botOutcome = playerModel.shoot(botMove.x(), botMove.y());
+
+            System.out.println(String.format("Bot shoots at ({}, {}), hit: {}, sunk: {}", botMove.x(), botMove.y(), botOutcome.hit, botOutcome.sunk));
+
+            // Convert to GameService.BotMove for compatibility
+            lastBotMove = new BotMove(botMove.x(), botMove.y(), botOutcome.hit, botOutcome.sunk);
 
             // Проверка победы бота
             if (playerModel.allShipsSunk()) {
@@ -323,7 +329,7 @@ public class GameService {
                 game.setResult(Game.GameResult.GUEST_WIN);
                 game.setFinishedAt(OffsetDateTime.now());
                 persistHistoryAndStats(game, player, null, "LOSS", -10);
-            } else if (!lastBotMove.isHit()) {
+            } else if (!botOutcome.hit) {
                 // Bot missed - player's turn
                 game.setCurrentTurn(Game.Turn.HOST);
             } else {
@@ -331,6 +337,7 @@ public class GameService {
                 game.setCurrentTurn(Game.Turn.GUEST);
             }
 
+            playerBoard.setCells(playerModel.toJson());
             boardRepo.save(playerBoard);
         } else if (!playerOutcome.hit) {
             // Игра с человеком — переключаем ход
@@ -412,13 +419,16 @@ public class GameService {
                 .orElseThrow(() -> new RuntimeException("Несколько досок с одинаковым id игры и без игрока"));
         BoardModel playerModel = BoardModel.fromJson(playerBoard.getCells());
 
-        BotMove botMove = makeBotMove(playerModel, playerBoard);
+        BotAiService.BotMove botMove = botAi.nextMove(playerModel);
+        BoardModel.ShotOutcome botOutcome = playerModel.shoot(botMove.x(), botMove.y());
+
+        System.out.println(String.format("Bot shoots at ({}, {}), hit: {}, sunk: {}", botMove.x(), botMove.y(), botOutcome.hit, botOutcome.sunk));
 
         // Проверка победы
         if (playerModel.allShipsSunk()) {
             game.setStatus(Game.GameStatus.FINISHED);
             game.setResult(Game.GameResult.GUEST_WIN);
-        } else if (!botMove.isHit()) {
+        } else if (!botOutcome.hit) {
             // бот промахнулся — ход возвращается игроку
             game.setCurrentTurn(Game.Turn.HOST);
         } else {
@@ -426,13 +436,17 @@ public class GameService {
             game.setCurrentTurn(Game.Turn.GUEST);
         }
 
+        playerBoard.setCells(playerModel.toJson());
         boardRepo.save(playerBoard);
         gameRepo.save(game);
 
         Board enemyBoard = boardRepo.findByGameIdAndPlayerIsNull(gameId).orElseThrow();
         BoardModel enemyModel = BoardModel.fromJson(enemyBoard.getCells());
 
-        return buildAttackResult(playerModel, enemyModel, null, botMove, game);
+        // Convert BotAiService.BotMove to GameService.BotMove
+        BotMove gameServiceBotMove = new BotMove(botMove.x(), botMove.y(), botOutcome.hit, botOutcome.sunk);
+
+        return buildAttackResult(playerModel, enemyModel, null, gameServiceBotMove, game);
     }
 
 
