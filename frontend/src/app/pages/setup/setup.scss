@@ -1,3 +1,14 @@
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  overscroll-behavior: none;
+    touch-action: none;
+}
+
 :host {
   display: block;
   height: 100vh;
@@ -8,6 +19,7 @@
   font-family: Arial, sans-serif;
   color: #d6e8f0;
 }
+
 
 * {
   box-sizing: border-box;
@@ -33,12 +45,12 @@
     width: 60%;
   max-width: 60rem;
     min-width: 18rem;
-    margin: 0;
+    margin-left: 20rem;
 }
 
 .title {
   font-size: 2vw;
-    max-font-size: 2.875rem; /* fallback ignored by browsers */
+    max-font-size: 2.5rem; /* fallback ignored by browsers */
     margin: 0;
   color: #53c7f5;
 }
@@ -114,7 +126,7 @@
 
 .letters {
   display: grid;
-  grid-template-columns: repeat(10, 2.9vw);
+  grid-template-columns: repeat(10, 2.7vw);
   margin-left: 0; /* убираем сдвиг */
   margin-bottom: 0.4vw;
 }
@@ -138,8 +150,8 @@
 }
 
 .cell {
-  width: 2.8vw;
-  height: 2.8vw;
+  width: 2.6vw;
+  height: 2.6vw;
   border: 1px solid rgba(83,199,245,0.3);
   margin: 0.05vw;
 }
@@ -216,8 +228,7 @@
 /* CONTROLS */
 .controls {
   margin-top: 45vh;
-  width: 20%;
-  min-width: 16rem;
+  width: 20rem;
   text-align: left;
 }
 

@@ -177,7 +177,7 @@ public class GameController {
                 Map.entry("playerBoard", Arrays.stream(playerModel.toIntArray(true))
                         .map(row -> Arrays.stream(row).boxed().toList())
                         .toList()),
-                Map.entry("enemyBoard", Arrays.stream(enemyModel.toIntArray(true))
+                Map.entry("enemyBoard", Arrays.stream(enemyModel.toIntArray(false))
                         .map(row -> Arrays.stream(row).boxed().toList())
                         .toList()),
                 Map.entry("gameFinished", game.getStatus() == Game.GameStatus.FINISHED),

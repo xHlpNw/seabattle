@@ -456,7 +456,7 @@ public class GameService {
         AttackResult result = new AttackResult();
 
         result.setPlayerBoard(playerModel.toIntArray(true)); // кастомный метод для List<List<Integer>>
-        result.setEnemyBoard(enemyModel.toIntArray(true)); // enemy — скрываем корабли
+        result.setEnemyBoard(enemyModel.toIntArray(false)); // enemy — скрываем корабли
 
         // Only set outcome fields if outcome is not null (for player shots)
         if (outcome != null) {
