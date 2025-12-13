@@ -45,8 +45,8 @@ export class GameApi {
     return this.http.get<{grid: number[][]}>(`/api/games/${gameId}/board`);
   }
 
-  getBoards(gameId: string): Observable<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string; gameFinished: boolean; winner: string }> {
-    return this.http.get<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string; gameFinished: boolean; winner: string }>(`/api/games/${gameId}/boards`);
+  getBoards(gameId: string): Observable<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string; gameFinished: boolean; winner: string; opponentName: string; isBotGame: boolean }> {
+    return this.http.get<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string; gameFinished: boolean; winner: string; opponentName: string; isBotGame: boolean }>(`/api/games/${gameId}/boards`);
   }
 
   attackEnemy(gameId: string, x: number, y: number) {

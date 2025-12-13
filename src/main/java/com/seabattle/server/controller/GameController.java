@@ -161,6 +161,18 @@ public class GameController {
         BoardModel playerModel = BoardModel.fromJson(playerBoard.getCells());
         BoardModel enemyModel = BoardModel.fromJson(enemyBoard.getCells());
 
+        // Определяем информацию о противнике
+        String opponentName;
+        boolean isBotGame = game.isBot();
+
+        if (isBotGame) {
+            opponentName = "Bot";
+        } else {
+            // Для онлайн игр получаем имя противника
+            User opponent = game.getHost().equals(player) ? game.getGuest() : game.getHost();
+            opponentName = opponent != null ? opponent.getUsername() : "Waiting for opponent...";
+        }
+
         Map<String, Object> response = Map.ofEntries(
                 Map.entry("playerBoard", Arrays.stream(playerModel.toIntArray(true))
                         .map(row -> Arrays.stream(row).boxed().toList())
@@ -170,7 +182,9 @@ public class GameController {
                         .toList()),
                 Map.entry("gameFinished", game.getStatus() == Game.GameStatus.FINISHED),
                 Map.entry("winner", game.getResult() != null ? game.getResult().name() : "NONE"),
-                Map.entry("currentTurn", game.getCurrentTurn() != null ? game.getCurrentTurn().name() : "HOST")
+                Map.entry("currentTurn", game.getCurrentTurn() != null ? game.getCurrentTurn().name() : "HOST"),
+                Map.entry("opponentName", opponentName),
+                Map.entry("isBotGame", isBotGame)
         );
 
         return ResponseEntity.ok(response);

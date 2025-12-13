@@ -37,6 +37,9 @@ export class GameComponent implements OnInit {
   currentTurn: string | null = null;
   isPlayerTurn: boolean = true;
 
+  opponentName: string = "Commander Beta";
+  isBotGame: boolean = true;
+
   async ngOnInit() {
     const token = localStorage.getItem('token') ?? undefined;
     const username = localStorage.getItem('username');
@@ -76,6 +79,8 @@ export class GameComponent implements OnInit {
       this.enemyBoard = res.enemyBoard;
       this.currentTurn = res.currentTurn;
       this.isPlayerTurn = res.currentTurn === 'HOST' || res.currentTurn === null;
+      this.opponentName = res.opponentName;
+      this.isBotGame = res.isBotGame;
 
       // Проверяем, закончена ли игра
       if (res.gameFinished) {
