@@ -85,5 +85,10 @@ export class GameApi {
     }>(`/api/games/${gameId}/bot-move`, {});
   }
 
+  /** Сдаться в игре */
+  surrender(gameId: string): Observable<string> {
+    return this.http.post(`/api/bot/${gameId}/surrender`, {}, { responseType: 'text' });
+  }
+
 
 }

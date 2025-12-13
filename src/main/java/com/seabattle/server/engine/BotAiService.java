@@ -321,3 +321,4 @@ public class BotAiService {
 
     public record BotMove(int x, int y) {}
 }
+

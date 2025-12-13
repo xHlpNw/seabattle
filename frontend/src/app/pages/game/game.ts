@@ -85,7 +85,9 @@ export class GameComponent implements OnInit {
           ? "🎉 Вы победили!"
           : res.winner === 'GUEST_WIN'
             ? "💀 Вы проиграли!"
-            : "Игра завершена";
+            : res.winner === 'SURRENDER'
+              ? "🏳️ Вы сдались!"
+              : "Игра завершена";
       } else if (!this.isPlayerTurn) {
         // If it's the bot's turn when loading the board, trigger bot move
         this.triggerBotMove();
@@ -188,5 +190,22 @@ export class GameComponent implements OnInit {
         }
       });
     }, 1000); // 1 second delay to show the board update
+  }
+
+  surrender() {
+    if (!this.gameId) return;
+
+    if (confirm('Вы уверены, что хотите сдаться? Вы проиграете игру.')) {
+      this.gameApi.surrender(this.gameId).subscribe({
+        next: (response) => {
+          console.log('Сдался:', response);
+          // После сдачи обновляем доски, чтобы показать финальное состояние
+          this.loadBoards();
+        },
+        error: (err) => {
+          console.error('Ошибка при сдаче:', err);
+        }
+      });
+    }
   }
 }
