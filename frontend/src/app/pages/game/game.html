@@ -1,56 +1,64 @@
-<div *ngIf="isLoading" class="loading">
-  Загрузка досок...
-</div>
+<!-- Battleship Game Page HTML -->
+<div class="game-page">
+  <header class="topbar">
+    <div class="logo">⚓ BATTLESHIP</div>
+    <div class="enemy-tag">Commander Beta</div>
+  </header>
+  <div class="turn-banner">YOUR TURN</div>
+  <main class="boards-wrapper">
 
-<div class="boards" *ngIf="!isLoading">
-
-  <!-- ДОСКА ИГРОКА -->
-  <div class="board player-board">
-    <h3>YOUR BOARD</h3>
-    <div class="grid">
-      <div *ngFor="let row of playerBoard; let i = index" class="row">
-        <div *ngFor="let cell of row; let j = index"
-             class="cell"
-             [ngClass]="{
-               'empty': cell === 0,
-               'ship': cell === 1,
-               'hit': cell === 2,
-               'miss': cell === 3
-             }">
+    <!-- PLAYER BOARD -->
+    <section class="board-container">
+      <h3 class="board-title">YOUR FLEET</h3>
+      <div class="grid player-grid">
+        <div *ngFor="let row of playerBoard; let i = index" class="row">
+          <div *ngFor="let cell of row; let j = index"
+               class="cell"
+               [ngClass]="{
+                 'empty': cell === 0,
+                 'ship': cell === 1,
+                 'hit': cell === 3,
+                 'miss': cell === 2
+               }">
+          </div>
         </div>
       </div>
-    </div>
-  </div>
+    </section>
 
-  <!-- ДОСКА ПРОТИВНИКА -->
-  <div class="board enemy-board">
-    <h3>ENEMY BOARD {{ isPlayerTurn ? '(Your Turn)' : '(Bot Turn)' }}</h3>
-    <div class="grid">
-      <div *ngFor="let row of enemyBoard; let i = index" class="row">
-        <div *ngFor="let cell of row; let j = index"
-             class="cell"
-             [ngClass]="{
-               'empty': cell === 0,
-               'ship': cell === 1,
-               'hit': cell === 2,
-               'miss': cell === 3,
-               'disabled': !isPlayerTurn
-             }"
-             [style.cursor]="isPlayerTurn ? 'pointer' : 'not-allowed'"
-             (click)="attackEnemy(i,j)">
+    <!-- ENEMY BOARD -->
+    <section class="board-container">
+      <h3 class="board-title">ENEMY WATERS</h3>
+      <div class="grid enemy-grid">
+        <div *ngFor="let row of enemyBoard; let i = index" class="row">
+          <div *ngFor="let cell of row; let j = index"
+               class="cell"
+               [ngClass]="{
+                 'empty': cell === 0,
+                 'ship': cell === 1,
+                 'hit': cell === 3,
+                 'miss': cell === 2,
+                 'disabled': !isPlayerTurn
+               }"
+               [style.cursor]="isPlayerTurn ? 'pointer' : 'not-allowed'"
+               (click)="attackEnemy(i,j)">
+          </div>
         </div>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 
-</div>
+  <footer class="game-footer">
+    <button class="surrender" >SURRENDER</button> <!-- (click)="surrender()" -->
+  </footer>
 
-<div class="modal-backdrop" *ngIf="showResultModal">
-  <div class="modal-window">
-    <h2>{{ resultText }}</h2>
-    <div class="modal-actions">
-      <button (click)="goToHome()">Новая игра</button>
-      <button (click)="goToHome()">В меню</button>
+  <!-- MODAL -->
+  <div class="modal-backdrop" *ngIf="showResultModal">
+    <div class="modal-window">
+      <h2>{{ resultText }}</h2>
+      <div class="modal-actions">
+        <button (click)="goToHome()">New Game</button>
+        <button (click)="goToHome()">Back to Menu</button>
+      </div>
     </div>
   </div>
 </div>

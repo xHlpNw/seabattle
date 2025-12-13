@@ -1,111 +1,198 @@
-.game-container {
-  max-width: 400px;
-  margin: 0 auto;
+:host {
+  display: block;
+  min-height: 100vh;
+  background:
+    linear-gradient(rgba(6,22,33,0.93), rgba(6,22,33,0.93)),
+    url('../../../assets/background1.jpg') center / cover no-repeat;
+  color: #d6e8f0;
   font-family: Arial, sans-serif;
 }
 
-.boards {
+/* ===== PAGE ===== */
+
+.game-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ===== TOP BAR ===== */
+
+.topbar {
   display: flex;
   justify-content: space-between;
-  gap: 20px;
+  align-items: center;
+  padding: 1.5vh 4vw;
+}
 
-  .board {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.logo {
+  color: #53c7f5;
+  font-size: clamp(16px, 2vw, 24px);
+}
 
-    h3 {
-      margin-bottom: 10px;
-      text-align: center;
-    }
+.turn-banner {
+  text-align: center;
+  color: #53c7f5;
+  font-size: clamp(16px, 2vw, 22px);
+  margin-top: 1vh;
+  margin: 0;
+  letter-spacing: 0.08em;
+}
 
-    .grid {
-      display: inline-block;
+.enemy-tag {
+  opacity: 0.6;
+  font-size: clamp(12px, 1.2vw, 16px);
+}
 
-      .row {
-        display: flex;
+/* ===== BOARDS ===== */
+.boards-wrapper {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, clamp(280px, 40vw, 640px));
+  gap: 3vw;
+  padding: 2vw 2vw;
+  align-items: center;
+  justify-content: center;
+}
 
-        .cell {
-          width: 30px;
-          height: 30px;
-          border: 1px solid #333;
-          display: inline-block;
-          cursor: pointer;
-          transition: background-color 0.2s;
+.board-container {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid #53c7f5;
+  padding: 1.5vw;
+  box-shadow:
+    0 0 10px rgba(83,199,245,0.15),
+    0 0 20px rgba(83,199,245,0.1);
+}
 
-          &.empty { background-color: #e0e0e0; }
-          &.ship { background-color: #555; }
-          &.hit { background-color: red; }
-          &.miss { background-color: lightblue; }
-          &.disabled { opacity: 0.5; }
+.board-title {
+  text-align: center;
+  margin-bottom: 1vw;
+  color: #53c7f5;
+  font-weight: 300;
+  font-size: clamp(14px, 1.4vw, 18px);
+}
 
-          // Для доски противника скрываем корабли
-          .enemy-board &.ship {
-            background-color: #e0e0e0;
-          }
-        }
-      }
-    }
+/* ===== GRID (РЕЗИНОВАЯ) ===== */
+
+.grid {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  display: grid;
+  grid-template-rows: repeat(10, 1fr);
+  gap: 0.3vmin;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 0.3vmin;
+}
+
+.cell {
+  box-sizing: border-box;
+  border: 1px solid rgba(83,199,245,0.2);
+  background: transparent;
+}
+
+/* ===== CELL STATES ===== */
+
+.cell.empty { background: transparent; }
+.cell.ship { background: rgba(83,199,245,0.15); }
+.cell.hit {
+  background-color: transparent; /* сохраняем фон поля */
+  position: relative;
+}
+.cell.hit::after {
+  content: "";
+  position: absolute;
+  top: 2px; left: 2px; right: 2px; bottom: 2px;
+  background: rgba(83,199,245,0.15);
+   background-image:
+      linear-gradient(45deg, transparent 45%, red 45%, red 55%, transparent 55%),
+      linear-gradient(-45deg, transparent 45%, red 45%, red 55%, transparent 55%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  pointer-events: none;
+}
+.cell.miss {
+  background: transparent;
+  position: relative;
+}
+.cell.miss::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20%;
+  height: 20%;
+  background-color: rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.enemy-grid .disabled { pointer-events: none; opacity: 0.4; }
+.enemy-grid .cell {
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+.enemy-grid .cell:not(.hit):not(.miss):not(.disabled):hover {
+  background: rgba(83,199,245,0.25);
+  box-shadow: inset 0 0 0 1px #53c7f5;
+}
+
+/* ===== FOOTER ===== */
+
+.game-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2vh 4vw;
+}
+
+.surrender {
+  background: transparent;
+  border: 1px solid #d9534f;
+  color: #d9534f;
+  padding: 0.8em 1.4em;
+  font-size: clamp(12px, 1.2vw, 16px);
+  cursor: pointer;
+}
+
+.surrender:hover {
+  background: #d9534f;
+  color: #000;
   }
-}
 
-// Дополнительно: курсор и подсветка при наведении для доски противника
-.enemy-board .cell:not(.disabled):hover {
-  filter: brightness(1.2);
-}
+/* ===== MODAL ===== */
 
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.6); // затемнение
+  inset: 0;
+  background: rgba(0,0,0,0.65);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000; // поверх всего
+  justify-content: center;
 }
 
 .modal-window {
-  background: #fff;
-  padding: 25px 30px;
-  border-radius: 10px;
-  width: 320px;
+  background: #061621;
+  border: 1px solid #53c7f5;
+  padding: 2vw;
+  max-width: 90vw;
   text-align: center;
-  box-shadow: 0 0 15px rgba(0,0,0,0.3);
-  animation: fadeIn 0.2s ease-out;
 }
 
-.modal-window h2 {
-  margin-bottom: 20px;
-  font-size: 22px;
-  font-weight: bold;
-}
+/* ===== MOBILE ===== */
 
-.modal-actions {
-  display: flex;
-  justify-content: space-around;
-}
+@media (max-width: 768px) {
+  .topbar {
+    flex-direction: column;
+    gap: 0.5em;
+  }
 
-.modal-actions button {
-  padding: 8px 16px;
-  border: none;
-  background: #1976d2;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s;
+  .boards-wrapper {
+    grid-template-columns: 1fr;
+  }
 }
-
-.modal-actions button:hover {
-  background: #0e5aa7;
-}
-
-/* Простая анимация появления */
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
-}
-
