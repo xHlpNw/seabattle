@@ -153,7 +153,7 @@ html, body {
 
 .game-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 1.2vh 4vw;
 }
@@ -165,6 +165,7 @@ html, body {
   padding: 0.8em 1.4em;
   font-size: clamp(12px, 1.2vw, 16px);
   cursor: pointer;
+  margin-bottom: 1rem;
 }
 
 .surrender:hover {

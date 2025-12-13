@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { GameApi } from '../../core/api/game.api'
 
@@ -25,6 +26,9 @@ export class HomeComponent {
 
   isLoggedIn = false;
   topPlayers: Player[] = [];
+
+  showUnfinishedGamesModal: boolean = false;
+  unfinishedGames: { gameId: string; createdAt: string }[] = [];
 
   ngOnInit() {
     this.auth.isLoggedIn$.subscribe(v => this.isLoggedIn = v);
@@ -54,6 +58,27 @@ export class HomeComponent {
       return;
     }
 
+    // First check for unfinished bot games
+    this.gameApi.getUnfinishedBotGames().subscribe({
+      next: (unfinishedGames) => {
+        if (unfinishedGames.length > 0) {
+          // Show modal to choose what to do with unfinished games
+          this.unfinishedGames = unfinishedGames;
+          this.showUnfinishedGamesModal = true;
+        } else {
+          // No unfinished games, create new one
+          this.createNewBotGame();
+        }
+      },
+      error: (err) => {
+        console.error('❌ Ошибка при проверке незавершенных игр:', err);
+        // If we can't check, proceed with creating new game
+        this.createNewBotGame();
+      }
+    });
+  }
+
+  private createNewBotGame() {
     this.gameApi.createBotGame().subscribe({
       next: (res) => {
         console.log('✅ Игра с ботом создана:', res);
@@ -67,5 +92,32 @@ export class HomeComponent {
 
   playOnline() {
     this.router.navigate(['/lobby']);
+  }
+
+  continueUnfinishedGame(gameId: string) {
+    this.showUnfinishedGamesModal = false;
+    // Navigate to the game page to continue
+    this.router.navigate(['/game'], { queryParams: { gameId: gameId } });
+  }
+
+  surrenderAndStartNew() {
+    // Surrender all unfinished games and start a new one
+    const surrenderPromises = this.unfinishedGames.map(game =>
+      firstValueFrom(this.gameApi.surrender(game.gameId))
+    );
+
+    Promise.all(surrenderPromises).then(() => {
+      this.showUnfinishedGamesModal = false;
+      this.createNewBotGame();
+    }).catch(err => {
+      console.error('❌ Ошибка при сдаче игр:', err);
+      // Still try to create new game
+      this.showUnfinishedGamesModal = false;
+      this.createNewBotGame();
+    });
+  }
+
+  cancelUnfinishedGamesModal() {
+    this.showUnfinishedGamesModal = false;
   }
 }

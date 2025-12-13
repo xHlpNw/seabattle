@@ -62,7 +62,15 @@ export class GameComponent implements OnInit {
 
     this.route.paramMap.subscribe(async params => {
       this.gameId = params.get('gameId');
-      if (this.gameId) {
+      if (!this.gameId) {
+        // Check query parameters if not found in route params
+        this.route.queryParams.subscribe(async queryParams => {
+          this.gameId = queryParams['gameId'];
+          if (this.gameId) {
+            await this.loadBoards();
+          }
+        });
+      } else {
         await this.loadBoards();
       }
     });

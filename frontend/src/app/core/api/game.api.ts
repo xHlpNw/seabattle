@@ -29,6 +29,11 @@ export class GameApi {
     return this.http.post<{ gameId: string; message: string }>('/api/bot/create', {});
   }
 
+  /** Проверка незавершенных игр с ботом */
+  getUnfinishedBotGames(): Observable<{ gameId: string; createdAt: string }[]> {
+    return this.http.get<{ gameId: string; createdAt: string }[]>('/api/bot/unfinished');
+  }
+
   getTopPlayers(limit: number) {
     return this.http.get<Player[]>(`/api/users/top?limit=${limit}`);
   }

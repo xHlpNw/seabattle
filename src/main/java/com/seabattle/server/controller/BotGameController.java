@@ -10,6 +10,7 @@ import com.seabattle.server.entity.Board;
 import com.seabattle.server.entity.Game;
 import com.seabattle.server.entity.User;
 import com.seabattle.server.repository.BoardRepository;
+import com.seabattle.server.repository.GameRepository;
 import com.seabattle.server.repository.UserRepository;
 import com.seabattle.server.service.GameService;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +21,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/bot")
@@ -31,6 +34,7 @@ public class BotGameController {
     private final GameService gameService;
     private final UserRepository userRepo;
     private final BoardRepository boardRepository;
+    private final GameRepository gameRepo;
 
     @PostMapping("/create")
     public ResponseEntity<CreateBotGameResponse> create(@AuthenticationPrincipal UserDetails userDetails) throws Exception {
@@ -95,6 +99,22 @@ public class BotGameController {
         User user = userRepo.findByUsername(userDetails.getUsername()).orElseThrow();
         gameService.surrender(gameId, user.getId());
         return ResponseEntity.ok("You surrendered.");
+    }
+
+    @GetMapping("/unfinished")
+    public ResponseEntity<List<Map<String, Object>>> getUnfinishedGames(@AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepo.findByUsername(userDetails.getUsername()).orElseThrow();
+
+        List<Game> unfinishedGames = gameRepo.findByHostIdAndTypeAndStatus(user.getId(), Game.GameType.BOT, Game.GameStatus.IN_PROGRESS);
+
+        List<Map<String, Object>> result = unfinishedGames.stream()
+            .map(game -> Map.of(
+                "gameId", (Object) game.getId().toString(),
+                "createdAt", (Object) game.getCreatedAt().toString()
+            ))
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/{gameId}/rematch")

@@ -68,4 +68,24 @@
     </div>
   </footer>
 
+  <!-- UNFINISHED GAMES MODAL -->
+  <div class="modal-backdrop" *ngIf="showUnfinishedGamesModal">
+    <div class="modal-window">
+      <h2>Незавершенные игры</h2>
+      <p>У вас есть незавершенные игры с ботом. Что вы хотите сделать?</p>
+
+      <div class="unfinished-games-list">
+        <div *ngFor="let game of unfinishedGames" class="unfinished-game-item">
+          <span>Игра от {{ game.createdAt | date:'short' }}</span>
+          <button (click)="continueUnfinishedGame(game.gameId)">Продолжить</button>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="surrender-all" (click)="surrenderAndStartNew()">Сдаться и начать новую игру</button>
+        <button (click)="cancelUnfinishedGamesModal()">Отмена</button>
+      </div>
+    </div>
+  </div>
+
 </div>
