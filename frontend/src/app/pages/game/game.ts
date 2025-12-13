@@ -33,6 +33,7 @@ export class GameComponent implements OnInit {
 
   showResultModal: boolean = false;
   resultText: string = "";
+  gameResultStatus: string = "";
 
   currentTurn: string | null = null;
   isPlayerTurn: boolean = true;
@@ -86,13 +87,20 @@ export class GameComponent implements OnInit {
       if (res.gameFinished) {
         this.gameOver = true;
         this.showResultModal = true;
-        this.resultText = res.winner === 'HOST_WIN'
-          ? "🎉 Вы победили!"
-          : res.winner === 'GUEST_WIN'
-            ? "💀 Вы проиграли!"
-            : res.winner === 'SURRENDER'
-              ? "🏳️ Вы сдались!"
-              : "Игра завершена";
+
+        if (res.winner === 'HOST_WIN') {
+          this.gameResultStatus = "VICTORY";
+          this.resultText = "🎉 Вы победили!";
+        } else if (res.winner === 'GUEST_WIN') {
+          this.gameResultStatus = "DEFEAT";
+          this.resultText = "💀 Вы проиграли!";
+        } else if (res.winner === 'SURRENDER') {
+          this.gameResultStatus = "DEFEAT";
+          this.resultText = "🏳️ Вы сдались!";
+        } else {
+          this.gameResultStatus = "GAME OVER";
+          this.resultText = "Игра завершена";
+        }
       } else if (!this.isPlayerTurn) {
         // If it's the bot's turn when loading the board, trigger bot move
         this.triggerBotMove();
@@ -141,11 +149,17 @@ export class GameComponent implements OnInit {
       if (res.gameFinished) {
         this.gameOver = true;
 
-        if (res.winner === 'HOST') {
+        if (res.winner === 'HOST_WIN') {
+          this.gameResultStatus = "VICTORY";
           this.resultText = "🎉 Вы победили!";
-        } else if (res.winner === 'GUEST') {
+        } else if (res.winner === 'GUEST_WIN') {
+          this.gameResultStatus = "DEFEAT";
           this.resultText = "💀 Вы проиграли!";
+        } else if (res.winner === 'SURRENDER') {
+          this.gameResultStatus = "DEFEAT";
+          this.resultText = "🏳️ Вы сдались!";
         } else {
+          this.gameResultStatus = "GAME OVER";
           this.resultText = "Игра завершена";
         }
 
@@ -180,11 +194,17 @@ export class GameComponent implements OnInit {
         if (res.gameFinished) {
           this.gameOver = true;
 
-          if (res.winner === 'HOST') {
+          if (res.winner === 'HOST_WIN') {
+            this.gameResultStatus = "VICTORY";
             this.resultText = "🎉 Вы победили!";
-          } else if (res.winner === 'GUEST') {
+          } else if (res.winner === 'GUEST_WIN') {
+            this.gameResultStatus = "DEFEAT";
             this.resultText = "💀 Вы проиграли!";
+          } else if (res.winner === 'SURRENDER') {
+            this.gameResultStatus = "DEFEAT";
+            this.resultText = "🏳️ Вы сдались!";
           } else {
+            this.gameResultStatus = "GAME OVER";
             this.resultText = "Игра завершена";
           }
 

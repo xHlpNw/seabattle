@@ -184,6 +184,56 @@
   text-align: center;
 }
 
+.game-result-status {
+  font-size: clamp(24px, 4vw, 48px);
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 20px currentColor;
+  text-align: center;
+}
+
+.game-result-status.victory {
+  color: #ffd700; /* Gold color for victory */
+}
+
+.game-result-status.defeat {
+  color: #ff4444; /* Red color for defeat */
+}
+
+.modal-window .modal-actions {
+  display: flex;
+  gap: 20px;
+  }
+
+.modal-window h2 {
+  margin-bottom: 1rem;
+  }
+
+.modal-window button {
+  border: 2px solid #53c7f5;
+  background: transparent;
+  color: #53c7f5;
+  padding: 8px 20px;
+  cursor: pointer;
+  font-size: clamp(14px, 1.3vw, 18px);
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 10px rgba(83,199,245,0.3), 0 0 20px rgba(83,199,245,0.2),
+        inset -5px -5px 20px rgba(83,199,245,0.25), inset 5px 5px 45px rgba(83,199,245,0.2), inset 0px 0px 55px rgba(83,199,245,0.15);
+
+
+  text-shadow: 0 0 10px rgba(83,199,245,0.4), 0 0 15px rgba(83,199,245,0.3), 0 0 20px rgba(83,199,245,0.2);
+}
+
+.modal-window button:hover {
+  border: 2px solid #53c7f5;
+  background: #53c7f5;
+  color: #000000;
+  padding: 8px 20px;
+  cursor: pointer;
+}
+
 /* ===== MOBILE ===== */
 
 @media (max-width: 768px) {

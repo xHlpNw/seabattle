@@ -54,7 +54,9 @@
   <!-- MODAL -->
   <div class="modal-backdrop" *ngIf="showResultModal">
     <div class="modal-window">
-      <h2>{{ resultText }}</h2>
+      <div class="game-result-status" [ngClass]="{'victory': gameResultStatus === 'VICTORY', 'defeat': gameResultStatus === 'DEFEAT'}">
+        {{ gameResultStatus }}
+      </div>
       <div class="modal-actions">
         <button (click)="goToHome()">New Game</button>
         <button (click)="goToHome()">Back to Menu</button>
