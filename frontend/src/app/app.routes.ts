@@ -5,12 +5,17 @@ import { HomeComponent } from './pages/home/home';
 import { ProfileComponent } from './pages/profile/profile';
 import { SetupComponent } from './pages/setup/setup';
 import { GameComponent } from './pages/game/game';
+import { LobbyComponent } from './pages/lobby/lobby';
 import { AuthGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   {
     path: '',
     component: HomeComponent
+  },
+  {
+    path: 'lobby',
+    component: LobbyComponent
   },
   {
     path: 'login',

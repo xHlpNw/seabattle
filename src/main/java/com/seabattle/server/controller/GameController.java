@@ -7,9 +7,11 @@ import com.seabattle.server.dto.ShipDTO;
 import com.seabattle.server.engine.BoardModel;
 import com.seabattle.server.entity.Board;
 import com.seabattle.server.entity.Game;
+import com.seabattle.server.entity.Room;
 import com.seabattle.server.entity.User;
 import com.seabattle.server.repository.BoardRepository;
 import com.seabattle.server.repository.GameRepository;
+import com.seabattle.server.repository.RoomRepository;
 import com.seabattle.server.repository.UserRepository;
 import com.seabattle.server.service.GameService;
 import jakarta.persistence.EntityNotFoundException;
@@ -22,6 +24,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,6 +35,7 @@ public class GameController {
 
     private final BoardRepository boardRepository;
     private final GameRepository gameRepository;
+    private final RoomRepository roomRepository;
     private final UserRepository userRepository;
     private final GameService gameService;
 
@@ -214,6 +218,56 @@ public class GameController {
             return ResponseEntity.ok(result);
         } catch (IllegalStateException e) {
             return ResponseEntity.status(403).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/online/create")
+    public ResponseEntity<?> createOnlineGame(@RequestParam UUID roomToken,
+                                             @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+            // Check if room exists and user is part of it
+            Room room = roomRepository.findByToken(roomToken);
+            if (room == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Room not found"));
+            }
+
+            if (!room.getHost().equals(user)) {
+                return ResponseEntity.status(403).body(Map.of("message", "Only room host can create the game"));
+            }
+
+            if ("EXPIRED".equals(room.getStatus()) || room.getExpiresAt().isBefore(OffsetDateTime.now())) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Room has expired"));
+            }
+
+            // Create online game
+            Game game = Game.builder()
+                    .type(Game.GameType.ONLINE)
+                    .host(user)
+                    .status(Game.GameStatus.WAITING)
+                    .roomToken(roomToken)
+                    .build();
+
+            gameRepository.save(game);
+
+            // Create empty board for host
+            Board hostBoard = Board.builder()
+                    .game(game)
+                    .player(user)
+                    .cells(new BoardModel().toJson())
+                    .build();
+
+            boardRepository.save(hostBoard);
+
+            return ResponseEntity.ok(Map.of(
+                    "gameId", game.getId(),
+                    "message", "Online game created successfully"
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("message", "Failed to create online game: " + e.getMessage()));
         }
     }
 

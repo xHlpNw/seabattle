@@ -29,6 +29,11 @@ export class GameApi {
     return this.http.post<{ gameId: string; message: string }>('/api/bot/create', {});
   }
 
+  /** Создание онлайн игры */
+  createOnlineGame(roomToken: string): Observable<{ gameId: string; message: string }> {
+    return this.http.post<{ gameId: string; message: string }>(`/api/games/online/create?roomToken=${roomToken}`, {});
+  }
+
   /** Проверка незавершенных игр с ботом */
   getUnfinishedBotGames(): Observable<{ gameId: string; createdAt: string }[]> {
     return this.http.get<{ gameId: string; createdAt: string }[]>('/api/bot/unfinished');

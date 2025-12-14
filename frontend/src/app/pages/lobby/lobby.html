@@ -1,0 +1,49 @@
+<!-- Lobby Page -->
+<div class="lobby-page">
+  <header class="topbar">
+    <div class="logo">⚓ BATTLESHIP</div>
+    <button class="back-btn" (click)="backToHome()">← BACK</button>
+  </header>
+
+  <main class="lobby-content">
+    <div class="lobby-container">
+      <h1>ONLINE MULTIPLAYER</h1>
+      <p>Challenge another player to a naval battle</p>
+
+      <div class="lobby-setup">
+        <div class="lobby-code-section">
+          <h3>LOBBY CODE</h3>
+          <div class="code-display">
+            <span class="code">{{ lobbyCode }}</span>
+            <button class="refresh-btn" (click)="generateLobbyCode()" title="Generate new code">
+              🔄
+            </button>
+          </div>
+        </div>
+
+        <div class="invite-section">
+          <h3>INVITE A FRIEND</h3>
+          <p>Share this link with another player to join your lobby:</p>
+          <div class="invite-link-container">
+            <input type="text" readonly [value]="inviteLink" class="invite-input">
+            <button class="copy-btn" (click)="copyInviteLink()">COPY</button>
+          </div>
+        </div>
+
+        <div class="status-section">
+          <div class="waiting-indicator">
+            <div class="spinner"></div>
+            <p>Waiting for opponent to join...</p>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="create-game-btn" (click)="createOnlineGame()" [disabled]="isCreatingLobby">
+            {{ isCreatingLobby ? 'CREATING LOBBY...' : 'CREATE GAME' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
