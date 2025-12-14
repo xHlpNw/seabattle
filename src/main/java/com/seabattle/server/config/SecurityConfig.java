@@ -37,14 +37,17 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/",  // Allow access to root for SPA
+                                "/index.html",  // Allow direct access to index.html
+                                "/favicon.ico",  // Allow favicon
+                                "/assets/**",  // Allow static assets
                                 "/api/users/register",
                                 "/api/users/login",
                                 "/default_avatar.png",
                                 "/images/**",
                                 "/css/**",
                                 "/js/**",
-                                "api/users/top",
-                                "api/users/top",
+                                "/api/users/top",
                                 "/api/users/profile"
                         ).permitAll()
                         .anyRequest().authenticated()
