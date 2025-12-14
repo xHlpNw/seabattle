@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Profile — Admiral_Frost</title>
+  <title>Profile</title>
   <link rel="stylesheet" href="profile.scss" />
 </head>
 
@@ -24,7 +24,7 @@
       <div class="profile-left">
         <img [src]="user.avatar ? 'http://localhost:8080' + user.avatar : 'http://localhost:8080/default_avatar.png'"
              alt="avatar" class="avatar" />
-        <h1 class="username">Admiral_Frost</h1>
+        <h1 class="username">{{ user?.username }}</h1>
       </div>
 
       <button (click)="logout()" class="logout-btn">ВЫЙТИ</button>

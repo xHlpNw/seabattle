@@ -3,6 +3,7 @@ import { UserApi } from '../../core/api/user.api';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'page-profile',
@@ -15,6 +16,7 @@ export class ProfileComponent {
 
   private userApi = inject(UserApi);
   private router = inject(Router);
+  private title = inject(Title);
 
   user: any = null;
   topPlayers: any[] = [];
@@ -27,6 +29,9 @@ export class ProfileComponent {
       // username можно взять из localStorage или из токена
           const username = localStorage.getItem('username')!;
           this.user = await this.userApi.getProfile(username);
+
+          // Обновляем заголовок страницы с именем пользователя
+          this.title.setTitle(`Profile — ${this.user.username}`);
 
           // Получаем топ 10 игроков для leaderboard
           this.topPlayers = await this.userApi.getTopPlayers(10);

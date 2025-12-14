@@ -58,7 +58,7 @@ public class UserController {
         response.put("token", token);
         response.put("username", user.getUsername());
         response.put("avatar", user.getAvatar()); // null допустим
-        response.put("rating", user.getRating());
+        response.put("rating", user.getRating() != null ? user.getRating() : 1000);
 
         return ResponseEntity.ok(response);
 
@@ -76,16 +76,19 @@ public class UserController {
             position++;
         }
 
-        int totalGames = user.getWins() + user.getLosses();
-        double winrate = totalGames > 0 ? (double) user.getWins() / totalGames * 100 : 0;
+        int wins = user.getWins() != null ? user.getWins() : 0;
+        int losses = user.getLosses() != null ? user.getLosses() : 0;
+        int rating = user.getRating() != null ? user.getRating() : 1000;
+        int totalGames = wins + losses;
+        double winrate = totalGames > 0 ? (double) wins / totalGames * 100 : 0;
 
         return new UserProfileDTO(
                 user.getUsername(),
                 totalGames,
-                user.getWins(),
-                user.getLosses(),
+                wins,
+                losses,
                 winrate,
-                user.getRating(),
+                rating,
                 position
         );
     }
@@ -96,7 +99,7 @@ public class UserController {
         return userRepository.findAll(PageRequest.of(0, limit, Sort.by("rating").descending()))
                 .getContent()
                 .stream()
-                .map(u -> new UserRatingDto(u.getUsername(), u.getRating()))
+                .map(u -> new UserRatingDto(u.getUsername(), u.getRating() != null ? u.getRating() : 1000))
                 .toList();
     }
 
@@ -111,6 +114,7 @@ public class UserController {
         }
 
         User user = userRepository.findByUsername(username).orElseThrow(() -> new EntityNotFoundException("Cannot find user by nickname"));
-        return new UserRankDTO(user.getRating(), position);
+        int userRating = user.getRating() != null ? user.getRating() : 1000;
+        return new UserRankDTO(userRating, position);
     }
 }
