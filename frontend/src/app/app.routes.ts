@@ -15,7 +15,8 @@ export const routes: Routes = [
   },
   {
     path: 'lobby',
-    component: LobbyComponent
+    component: LobbyComponent,
+    canActivate: [AuthGuard]
   },
   {
     path: 'login',
@@ -27,22 +28,27 @@ export const routes: Routes = [
   },
   {
     path: 'profile',
-    component: ProfileComponent
+    component: ProfileComponent,
+    canActivate: [AuthGuard]
   },
   {
     path: 'setup',
-    component: SetupComponent
+    component: SetupComponent,
+    canActivate: [AuthGuard]
   },
   {
     path: 'game',
-    component: GameComponent
+    component: GameComponent,
+    canActivate: [AuthGuard]
   },
   {
     path: 'game/:gameId',
-    component: GameComponent
+    component: GameComponent,
+    canActivate: [AuthGuard]
   },
   {
     path: 'game/:gameId/play',
-    component: GameComponent
+    component: GameComponent,
+    canActivate: [AuthGuard]
   }
 ];

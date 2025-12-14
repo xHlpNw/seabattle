@@ -53,4 +53,10 @@ export class ProfileComponent {
     this.router.navigate(['/login']);
   }
 
+  getBackendUrl(): string {
+    const currentHost = window.location.hostname;
+    const backendHost = currentHost === 'localhost' ? 'localhost' : currentHost;
+    return `http://${backendHost}:8080`;
+  }
+
 }

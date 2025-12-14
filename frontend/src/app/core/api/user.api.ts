@@ -24,7 +24,13 @@ interface RegisterRequest {
 export class UserApi {
 
   private http = inject(HttpClient);
-  private base = '/api/users';
+
+  // Dynamically determine backend URL based on current location
+  private get base(): string {
+    const currentHost = window.location.hostname;
+    const backendHost = currentHost === 'localhost' ? 'localhost' : currentHost;
+    return `http://${backendHost}:8080/api/users`;
+  }
 
   login(data: LoginRequest): Promise<LoginResponse> {
     return firstValueFrom(this.http.post<LoginResponse>(`${this.base}/login`, data));
@@ -35,13 +41,15 @@ export class UserApi {
   }
 
   async getProfile(username: string): Promise<any> {
-    const res = await fetch(`http://localhost:8080/api/users/profile?username=${username}`);
+    const backendUrl = this.base.replace('/api/users', '');
+    const res = await fetch(`${backendUrl}/api/users/profile?username=${username}`);
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     return res.json();
   }
 
   async getTopPlayers(limit: number = 10): Promise<any[]> {
-    return fetch(`http://localhost:8080/api/users/top?limit=${limit}`, {
+    const backendUrl = this.base.replace('/api/users', '');
+    return fetch(`${backendUrl}/api/users/top?limit=${limit}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -50,7 +58,8 @@ export class UserApi {
   }
 
   async getUserRank(username: string): Promise<any> {
-    return fetch(`http://localhost:8080/api/users/rating/position?username=${username}`)
+    const backendUrl = this.base.replace('/api/users', '');
+    return fetch(`${backendUrl}/api/users/rating/position?username=${username}`)
       .then(r => r.json());
   }
 

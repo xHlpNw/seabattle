@@ -24,39 +24,45 @@ export interface Player {
 export class GameApi {
   constructor(private http: HttpClient) {}
 
+  private get baseUrl(): string {
+    const currentHost = window.location.hostname;
+    const backendHost = currentHost === 'localhost' ? 'localhost' : currentHost;
+    return `http://${backendHost}:8080`;
+  }
+
   /** Создание игры с ботом */
   createBotGame(): Observable<{ gameId: string; message: string }> {
-    return this.http.post<{ gameId: string; message: string }>('/api/bot/create', {});
+    return this.http.post<{ gameId: string; message: string }>(`${this.baseUrl}/api/bot/create`, {});
   }
 
   /** Создание онлайн игры */
   createOnlineGame(roomToken: string): Observable<{ gameId: string; message: string }> {
-    return this.http.post<{ gameId: string; message: string }>(`/api/games/online/create?roomToken=${roomToken}`, {});
+    return this.http.post<{ gameId: string; message: string }>(`${this.baseUrl}/api/games/online/create?roomToken=${roomToken}`, {});
   }
 
   /** Проверка незавершенных игр с ботом */
   getUnfinishedBotGames(): Observable<{ gameId: string; createdAt: string }[]> {
-    return this.http.get<{ gameId: string; createdAt: string }[]>('/api/bot/unfinished');
+    return this.http.get<{ gameId: string; createdAt: string }[]>(`${this.baseUrl}/api/bot/unfinished`);
   }
 
   getTopPlayers(limit: number) {
-    return this.http.get<Player[]>(`/api/users/top?limit=${limit}`);
+    return this.http.get<Player[]>(`${this.baseUrl}/api/users/top?limit=${limit}`);
   }
 
   placeShipsAuto(gameId: string): Observable<{ message: string; grid: number[][] }> {
-    return this.http.post<{ message: string; grid: number[][] }>(`/api/bot/${gameId}/place/auto`, {});
+    return this.http.post<{ message: string; grid: number[][] }>(`${this.baseUrl}/api/bot/${gameId}/place/auto`, {});
   }
 
   placeShips(gameId: string, payload: BoardPayload) {
-    return this.http.post(`/api/games/${gameId}/place-ships`, payload);
+    return this.http.post(`${this.baseUrl}/api/games/${gameId}/place-ships`, payload);
   }
 
   getBoard(gameId: string) {
-    return this.http.get<{grid: number[][]}>(`/api/games/${gameId}/board`);
+    return this.http.get<{grid: number[][]}>(`${this.baseUrl}/api/games/${gameId}/board`);
   }
 
   getBoards(gameId: string): Observable<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string; gameFinished: boolean; winner: string; opponentName: string; isBotGame: boolean }> {
-    return this.http.get<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string; gameFinished: boolean; winner: string; opponentName: string; isBotGame: boolean }>(`/api/games/${gameId}/boards`);
+    return this.http.get<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string; gameFinished: boolean; winner: string; opponentName: string; isBotGame: boolean }>(`${this.baseUrl}/api/games/${gameId}/boards`);
   }
 
   attackEnemy(gameId: string, x: number, y: number) {
@@ -76,7 +82,7 @@ export class GameApi {
       gameFinished: boolean;
       winner: string | null;
       currentTurn: string | null;
-    }>(`/api/games/${gameId}/attack`, { x, y });
+    }>(`${this.baseUrl}/api/games/${gameId}/attack`, { x, y });
   }
 
   botMove(gameId: string) {
@@ -92,12 +98,12 @@ export class GameApi {
       gameFinished: boolean;
       winner: string | null;
       currentTurn: string | null;
-    }>(`/api/games/${gameId}/bot-move`, {});
+    }>(`${this.baseUrl}/api/games/${gameId}/bot-move`, {});
   }
 
   /** Сдаться в игре */
   surrender(gameId: string): Observable<string> {
-    return this.http.post(`/api/bot/${gameId}/surrender`, {}, { responseType: 'text' });
+    return this.http.post(`${this.baseUrl}/api/bot/${gameId}/surrender`, {}, { responseType: 'text' });
   }
 
 

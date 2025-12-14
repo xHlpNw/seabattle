@@ -33,12 +33,8 @@ export class LoginComponent {
 
       console.log('Before login', res);
 
-      // Сохраняем token и username в localStorage
-      localStorage.setItem('token', res.token);
-      localStorage.setItem('username', res.username);
-
-      // Также уведомляем AuthService о логине
-      this.auth.login(res.token);
+      // Также уведомляем AuthService о логине (AuthService handles token and username storage)
+      this.auth.login(res.token, res.username);
 
       console.log('After login', res);
 
