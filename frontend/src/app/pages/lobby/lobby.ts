@@ -35,19 +35,47 @@ export class LobbyComponent implements OnInit {
   }
 
   copyInviteLink() {
-    navigator.clipboard.writeText(this.inviteLink).then(() => {
-      alert('Invite link copied to clipboard!');
-    }).catch(err => {
-      console.error('Failed to copy link:', err);
-      // Fallback for older browsers
+    // Try modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(this.inviteLink).then(() => {
+        // Link copied successfully
+      }).catch(err => {
+        console.error('Modern clipboard API failed:', err);
+        this.fallbackCopyToClipboard();
+      });
+    } else {
+      // Fallback for browsers without clipboard API
+      this.fallbackCopyToClipboard();
+    }
+  }
+
+  private fallbackCopyToClipboard() {
+    try {
+      // Create a temporary textarea element
       const textArea = document.createElement('textarea');
       textArea.value = this.inviteLink;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
       document.body.appendChild(textArea);
+
+      // Select and copy the text
+      textArea.focus();
       textArea.select();
-      document.execCommand('copy');
+
+      const successful = document.execCommand('copy');
       document.body.removeChild(textArea);
-      alert('Invite link copied to clipboard!');
-    });
+
+      if (successful) {
+        // Link copied successfully
+      } else {
+        throw new Error('execCommand copy failed');
+      }
+    } catch (err) {
+      console.error('Fallback clipboard copy failed:', err);
+      // Last resort: show the link and ask user to copy manually
+      alert(`Please copy this link manually:\n\n${this.inviteLink}`);
+    }
   }
 
   createOnlineGame() {
@@ -61,4 +89,6 @@ export class LobbyComponent implements OnInit {
     this.router.navigate(['/']);
   }
 }
+
+
 
