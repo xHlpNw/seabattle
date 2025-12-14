@@ -6,6 +6,7 @@ import { ProfileComponent } from './pages/profile/profile';
 import { SetupComponent } from './pages/setup/setup';
 import { GameComponent } from './pages/game/game';
 import { LobbyComponent } from './pages/lobby/lobby';
+import { LobbyJoinComponent } from './pages/lobby/lobby-join';
 import { AuthGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
@@ -16,6 +17,11 @@ export const routes: Routes = [
   {
     path: 'lobby',
     component: LobbyComponent,
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'lobby/join/:token',
+    component: LobbyJoinComponent,
     canActivate: [AuthGuard]
   },
   {

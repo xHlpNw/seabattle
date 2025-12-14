@@ -1,7 +1,9 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { GameApi } from '../../core/api/game.api';
+import { RoomApi, RoomStatus } from '../../core/api/room.api';
+import { WebSocketService, RoomUpdate } from '../../core/ws/ws.service';
 
 @Component({
   selector: 'page-lobby',
@@ -10,28 +12,165 @@ import { GameApi } from '../../core/api/game.api';
   standalone: true,
   imports: [CommonModule]
 })
-export class LobbyComponent implements OnInit {
+export class LobbyComponent implements OnInit, OnDestroy {
 
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private gameApi = inject(GameApi);
+  private roomApi = inject(RoomApi);
+  private wsService = inject(WebSocketService);
 
-  lobbyCode: string = '';
+  roomToken: string = '';
   isCreatingLobby: boolean = false;
+  isJoiningRoom: boolean = false;
   inviteLink: string = '';
+  roomStatus: RoomStatus | null = null;
+  isHost: boolean = false;
+  opponentJoined: boolean = false;
+  hostUsername: string = '';
+  errorMessage: string = '';
 
   ngOnInit() {
-    // Generate a lobby code when component initializes
-    this.generateLobbyCode();
+    // Connect to WebSocket early
+    this.connectToWebSocket();
+
+    // Check if joining an existing room via query parameter
+    this.route.queryParams.subscribe(params => {
+      const roomToken = params['roomToken'];
+      if (roomToken) {
+        this.isJoiningRoom = true;
+        this.roomToken = roomToken;
+        this.loadRoomStatus();
+      } else {
+        // Create a new room
+        this.createRoom();
+      }
+    });
   }
 
-  generateLobbyCode() {
-    // Generate a random 6-character code
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    this.lobbyCode = '';
-    for (let i = 0; i < 6; i++) {
-      this.lobbyCode += characters.charAt(Math.floor(Math.random() * characters.length));
+  createRoom() {
+    this.isCreatingLobby = true;
+    this.roomApi.createRoom().subscribe({
+      next: (response) => {
+        this.roomToken = response.roomToken;
+        this.inviteLink = response.shareableLink || `${window.location.origin}/lobby/join/${this.roomToken}`;
+        this.isCreatingLobby = false;
+        // Subscribe to room updates now that we have the token
+        this.subscribeToRoomUpdates();
+        this.loadRoomStatus();
+      },
+      error: (error) => {
+        this.isCreatingLobby = false;
+        this.errorMessage = 'Failed to create room';
+        console.error('Failed to create room:', error);
+      }
+    });
+  }
+
+  loadRoomStatus() {
+    if (!this.roomToken) return;
+
+    this.roomApi.getRoomStatus(this.roomToken).subscribe({
+      next: (status) => {
+        this.roomStatus = status;
+        this.isHost = status.isHost;
+        this.hostUsername = status.hostUsername;
+
+        // Check if guest has already joined
+        if (status.guestUsername && status.guestUsername !== status.hostUsername) {
+          this.opponentJoined = true;
+          this.errorMessage = '';
+        }
+
+        if (status.status === 'IN_GAME') {
+          // Game has started, redirect to game
+          this.checkForExistingGame();
+        } else {
+          // Connect to WebSocket for real-time updates
+          this.connectToWebSocket();
+        }
+      },
+      error: (error) => {
+        this.errorMessage = 'Failed to load room status';
+        console.error('Failed to load room status:', error);
+      }
+    });
+  }
+
+  connectToWebSocket() {
+    this.wsService.connect().subscribe({
+      next: () => {
+        // Subscribe to room updates if we have a room token
+        if (this.roomToken) {
+          this.subscribeToRoomUpdates();
+        }
+      },
+      error: (error) => {
+        console.error('Failed to connect to WebSocket:', error);
+        // Fallback to polling if WebSocket fails
+        this.startFallbackPolling();
+      }
+    });
+  }
+
+  subscribeToRoomUpdates() {
+    if (this.roomToken) {
+      this.wsService.subscribeToRoomUpdates(this.roomToken).subscribe((update: RoomUpdate | null) => {
+        if (update) {
+          this.handleRoomUpdate(update);
+        }
+      });
     }
-    this.inviteLink = `${window.location.origin}/lobby/join/${this.lobbyCode}`;
+  }
+
+  handleRoomUpdate(update: RoomUpdate) {
+    if (update.type === 'playerJoined' && update.username !== this.roomStatus?.hostUsername) {
+      this.opponentJoined = true;
+      this.errorMessage = '';
+      // Refresh room status to get updated guest info
+      this.checkIfOpponentJoined();
+    }
+  }
+
+  checkIfOpponentJoined() {
+    // Check room status to see if a guest has joined
+    this.roomApi.getRoomStatus(this.roomToken).subscribe({
+      next: (status) => {
+        // Update room status with latest data
+        this.roomStatus = status;
+        // Check if guest has joined (not null and not the host)
+        if (status.guestUsername && status.guestUsername !== status.hostUsername) {
+          this.opponentJoined = true;
+          this.errorMessage = '';
+        }
+      },
+      error: (error) => {
+        console.log('Error checking room status:', error);
+      }
+    });
+  }
+
+  startFallbackPolling() {
+    // Fallback polling if WebSocket fails
+    const pollInterval = setInterval(() => {
+      this.checkIfOpponentJoined();
+    }, 5000);
+  }
+
+
+  checkForExistingGame() {
+    // If game exists, redirect to it
+    // This would be called when joining a room that already has a game
+    this.roomApi.joinRoom(this.roomToken).subscribe({
+      next: (response) => {
+        if (response.gameId) {
+          this.router.navigate(['/game', response.gameId, 'play']);
+        }
+      },
+      error: (error) => {
+        console.error('Failed to check for existing game:', error);
+      }
+    });
   }
 
   copyInviteLink() {
@@ -79,10 +218,34 @@ export class LobbyComponent implements OnInit {
   }
 
   createOnlineGame() {
+    if (!this.roomToken) return;
+
     this.isCreatingLobby = true;
-    // TODO: Implement online game creation
-    // For now, just show the lobby interface
-    console.log('Creating online game with lobby code:', this.lobbyCode);
+    // Start the game (only host can do this)
+    this.roomApi.startGame(this.roomToken).subscribe({
+      next: (response) => {
+        this.isCreatingLobby = false;
+        if (response.gameId) {
+          // Notify other players that game is starting
+          this.wsService.sendMessage('status', {
+            roomToken: this.roomToken,
+            status: 'starting'
+          });
+          this.router.navigate(['/game', response.gameId, 'play']);
+        } else {
+          this.errorMessage = 'Failed to start game';
+        }
+      },
+      error: (error) => {
+        this.isCreatingLobby = false;
+        this.errorMessage = error.error?.message || 'Failed to start game';
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    // Clean up WebSocket connection
+    this.wsService.disconnect();
   }
 
   backToHome() {

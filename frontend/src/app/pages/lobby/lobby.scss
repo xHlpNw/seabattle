@@ -204,6 +204,42 @@
   font-size: 16px;
 }
 
+.success-indicator {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 8px;
+  color: #81c784;
+}
+
+.success-indicator p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.error-section {
+  margin-top: 1rem;
+}
+
+.error {
+  color: #e57373;
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  padding: 1rem;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.host-info {
+  color: rgba(214,232,240,0.7);
+  font-size: 14px;
+  margin-top: 0.5rem;
+}
+
 /* ===== ACTIONS ===== */
 
 .actions {

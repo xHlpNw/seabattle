@@ -6,6 +6,7 @@ export interface RoomStatus {
   token: string;
   status: string;
   hostUsername: string;
+  guestUsername: string | null;
   isHost: boolean;
   createdAt: string;
   expiresAt: string;
@@ -35,6 +36,11 @@ export class RoomApi {
   /** Get room status */
   getRoomStatus(token: string): Observable<RoomStatus> {
     return this.http.get<RoomStatus>(`${this.baseUrl}/api/rooms/${token}`);
+  }
+
+  /** Start a game in a room (host only) */
+  startGame(token: string): Observable<{ message: string; gameId?: string }> {
+    return this.http.post<{ message: string; gameId?: string }>(`${this.baseUrl}/api/rooms/start/${token}`, {});
   }
 
   /** Delete a room (host only) */

@@ -21,6 +21,10 @@ public class Room {
     @JoinColumn(name = "host_id", nullable = false)
     private User host;
 
+    @ManyToOne
+    @JoinColumn(name = "guest_id")
+    private User guest;
+
     @Column(nullable = false, unique = true)
     private UUID token;
 
@@ -38,6 +42,6 @@ public class Room {
     void prePersist() {
         OffsetDateTime now = OffsetDateTime.now();
         if (createdAt == null) createdAt = now;
-        if (expiresAt == null) expiresAt = now.plusMinutes(30);
+        if (expiresAt == null) expiresAt = now.plusDays(1); // 24 hours for testing
     }
 }

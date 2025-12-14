@@ -11,13 +11,18 @@
       <p>Challenge another player to a naval battle</p>
 
       <div class="lobby-setup">
-        <div class="lobby-code-section">
-          <h3>LOBBY CODE</h3>
+        <div class="lobby-code-section" *ngIf="isHost">
+          <h3>ROOM TOKEN</h3>
           <div class="code-display">
-            <span class="code">{{ lobbyCode }}</span>
-            <button class="refresh-btn" (click)="generateLobbyCode()" title="Generate new code">
-              🔄
-            </button>
+            <span class="code">{{ roomToken }}</span>
+          </div>
+        </div>
+
+        <div class="lobby-code-section" *ngIf="!isHost">
+          <h3>JOINED ROOM</h3>
+          <div class="code-display">
+            <span class="code">{{ roomToken }}</span>
+            <p class="host-info">Host: {{ hostUsername }}</p>
           </div>
         </div>
 
@@ -31,16 +36,29 @@
         </div>
 
         <div class="status-section">
-          <div class="waiting-indicator">
+          <div class="waiting-indicator" *ngIf="isHost && !opponentJoined">
             <div class="spinner"></div>
             <p>Waiting for opponent to join...</p>
           </div>
+
+          <div class="waiting-indicator" *ngIf="!isHost">
+            <div class="spinner"></div>
+            <p>Waiting for {{ hostUsername }} to start the game...</p>
+          </div>
+
+          <div class="success-indicator" *ngIf="isHost && opponentJoined">
+            <p>✅ Opponent joined! Ready to start the game.</p>
+          </div>
         </div>
 
-        <div class="actions">
-          <button class="create-game-btn" (click)="createOnlineGame()" [disabled]="isCreatingLobby">
-            {{ isCreatingLobby ? 'CREATING LOBBY...' : 'CREATE GAME' }}
+        <div class="actions" *ngIf="isHost">
+          <button class="create-game-btn" (click)="createOnlineGame()" [disabled]="isCreatingLobby || !opponentJoined">
+            {{ isCreatingLobby ? 'STARTING GAME...' : 'START GAME' }}
           </button>
+        </div>
+
+        <div class="error-section" *ngIf="errorMessage">
+          <p class="error">{{ errorMessage }}</p>
         </div>
       </div>
     </div>

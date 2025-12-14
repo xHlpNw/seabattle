@@ -7,6 +7,7 @@ public record RoomResponseDTO(
         UUID token,
         String status,
         String hostUsername,
+        String guestUsername,
         boolean isHost,
         OffsetDateTime createdAt,
         OffsetDateTime expiresAt,

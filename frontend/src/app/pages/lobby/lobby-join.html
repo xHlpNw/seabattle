@@ -1,0 +1,36 @@
+<!-- Lobby Join Page -->
+<div class="lobby-page">
+  <header class="topbar">
+    <div class="logo">⚓ BATTLESHIP</div>
+    <button class="back-btn" (click)="backToHome()">← BACK</button>
+  </header>
+
+  <main class="lobby-content">
+    <div class="lobby-container">
+      <h1>JOINING LOBBY</h1>
+
+      <div class="lobby-setup" *ngIf="isJoining">
+        <div class="waiting-indicator">
+          <div class="spinner"></div>
+          <p>Joining lobby...</p>
+        </div>
+      </div>
+
+      <div class="lobby-setup" *ngIf="!isJoining && !joinError">
+        <div class="waiting-indicator">
+          <div class="spinner"></div>
+          <p>Successfully joined {{ hostUsername }}'s lobby!</p>
+          <p>Redirecting to lobby...</p>
+        </div>
+      </div>
+
+      <div class="lobby-setup" *ngIf="joinError">
+        <div class="error-message">
+          <h3>Unable to Join Lobby</h3>
+          <p>{{ joinError }}</p>
+          <button class="create-game-btn" (click)="backToHome()">BACK TO HOME</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
