@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GameApi } from '../../core/api/game.api';
 import { UserApi } from '../../core/api/user.api';
+import { AuthService } from '../../core/auth/auth.service';
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 
@@ -18,6 +19,7 @@ export class GameComponent implements OnInit {
   private router = inject(Router);
   private gameApi = inject(GameApi);
   private userApi = inject(UserApi);
+  private auth = inject(AuthService);
 
   gameId: string | null = null;
   profile: any = null;
@@ -42,7 +44,7 @@ export class GameComponent implements OnInit {
   isBotGame: boolean = true;
 
   async ngOnInit() {
-    const token = localStorage.getItem('token') ?? undefined;
+    const token = this.auth.getToken();
     const username = localStorage.getItem('username');
 
     if (!username || !token) {
