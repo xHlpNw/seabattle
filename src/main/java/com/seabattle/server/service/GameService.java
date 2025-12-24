@@ -428,6 +428,8 @@ public class GameService {
         if (playerModel.allShipsSunk()) {
             game.setStatus(Game.GameStatus.FINISHED);
             game.setResult(Game.GameResult.GUEST_WIN);
+            game.setFinishedAt(OffsetDateTime.now());
+            persistHistoryAndStats(game, playerBoard.getPlayer(), null, "LOSS", -10);
         } else if (!botOutcome.hit) {
             // бот промахнулся — ход возвращается игроку
             game.setCurrentTurn(Game.Turn.HOST);
