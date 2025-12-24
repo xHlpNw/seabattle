@@ -251,10 +251,13 @@ public class GameService {
 
         if ("WIN".equals(result)) {
             player.setWins((player.getWins() == null ? 0 : player.getWins()) + 1);
-            player.setRating((player.getRating() == null ? 1000 : player.getRating()) + delta);
+            int currentRating = player.getRating() == null ? 0 : player.getRating();
+            player.setRating(currentRating + delta);
         } else if ("LOSS".equals(result)) {
             player.setLosses((player.getLosses() == null ? 0 : player.getLosses()) + 1);
-            player.setRating((player.getRating() == null ? 1000 : player.getRating()) + delta);
+            int currentRating = player.getRating() == null ? 0 : player.getRating();
+            int newRating = Math.max(0, currentRating + delta); // Ensure rating doesn't go below 0
+            player.setRating(newRating);
         }
         player.setUpdatedAt(OffsetDateTime.now());
         userRepo.save(player);

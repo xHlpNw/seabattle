@@ -29,7 +29,7 @@ public class User {
     private String passwordHash;
 
     @Builder.Default
-    private Integer rating = 1000;
+    private Integer rating = 0;
 
     @Builder.Default
     private Integer wins = 0;

@@ -38,7 +38,7 @@ public class UserController {
                 .username(userDto.getUsername())
                 .passwordHash(passwordEncoder.encode(userDto.getPassword()))
                 .avatar(userDto.getAvatar() != null ? userDto.getAvatar() : "/default_avatar.png")
-                .rating(1000)
+                .rating(0)
                 .build();
         userRepository.save(user);
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
@@ -58,7 +58,7 @@ public class UserController {
         response.put("token", token);
         response.put("username", user.getUsername());
         response.put("avatar", user.getAvatar()); // null допустим
-        response.put("rating", user.getRating() != null ? user.getRating() : 1000);
+        response.put("rating", user.getRating() != null ? user.getRating() : 0);
 
         return ResponseEntity.ok(response);
 
@@ -78,7 +78,7 @@ public class UserController {
 
         int wins = user.getWins() != null ? user.getWins() : 0;
         int losses = user.getLosses() != null ? user.getLosses() : 0;
-        int rating = user.getRating() != null ? user.getRating() : 1000;
+        int rating = user.getRating() != null ? user.getRating() : 0;
         int totalGames = wins + losses;
         double winrate = totalGames > 0 ? (double) wins / totalGames * 100 : 0;
 
@@ -99,7 +99,7 @@ public class UserController {
         return userRepository.findAll(PageRequest.of(0, limit, Sort.by("rating").descending()))
                 .getContent()
                 .stream()
-                .map(u -> new UserRatingDto(u.getUsername(), u.getRating() != null ? u.getRating() : 1000))
+                .map(u -> new UserRatingDto(u.getUsername(), u.getRating() != null ? u.getRating() : 0))
                 .toList();
     }
 
@@ -114,7 +114,7 @@ public class UserController {
         }
 
         User user = userRepository.findByUsername(username).orElseThrow(() -> new EntityNotFoundException("Cannot find user by nickname"));
-        int userRating = user.getRating() != null ? user.getRating() : 1000;
+        int userRating = user.getRating() != null ? user.getRating() : 0;
         return new UserRankDTO(userRating, position);
     }
 }
