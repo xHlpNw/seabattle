@@ -31,10 +31,13 @@ export class AuthService {
   }
 
   logout() {
+    // Clear token first
     this.tokenStorage.clearToken();
     localStorage.removeItem('username');
     this._isLoggedIn$.next(false);
-    this.router.navigate(['/']);
+
+    // Force navigation to home page, bypassing any guards
+    this.router.navigateByUrl('/', { replaceUrl: true });
   }
 
   getToken(): string | null {

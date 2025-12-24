@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'page-profile',
@@ -17,6 +18,7 @@ export class ProfileComponent {
   private userApi = inject(UserApi);
   private router = inject(Router);
   private title = inject(Title);
+  private authService = inject(AuthService);
 
   user: any = null;
   topPlayers: any[] = [];
@@ -48,9 +50,7 @@ export class ProfileComponent {
   }
 
   logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 
   getBackendUrl(): string {
