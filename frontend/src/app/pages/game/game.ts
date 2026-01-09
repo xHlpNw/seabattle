@@ -42,6 +42,7 @@ export class GameComponent implements OnInit {
 
   opponentName: string = "Commander Beta";
   isBotGame: boolean = true;
+  isHost: boolean = true;
 
   async ngOnInit() {
     const token = this.auth.getToken();
@@ -89,9 +90,20 @@ export class GameComponent implements OnInit {
       this.playerBoard = res.playerBoard;
       this.enemyBoard = res.enemyBoard;
       this.currentTurn = res.currentTurn;
-      this.isPlayerTurn = res.currentTurn === 'HOST' || res.currentTurn === null;
       this.opponentName = res.opponentName;
       this.isBotGame = res.isBotGame;
+      this.isHost = res.isHost;
+
+      // Определяем, чей сейчас ход
+      if (this.isBotGame) {
+        // В играх с ботом: ход игрока когда currentTurn = HOST или null
+        this.isPlayerTurn = res.currentTurn === 'HOST' || res.currentTurn === null;
+      } else {
+        // В онлайн играх: ход игрока когда currentTurn совпадает с его ролью
+        this.isPlayerTurn = (this.isHost && res.currentTurn === 'HOST') || (!this.isHost && res.currentTurn === 'GUEST');
+      }
+
+      console.log('loadBoards - isBotGame:', this.isBotGame, 'isHost:', this.isHost, 'currentTurn:', this.currentTurn, 'isPlayerTurn:', this.isPlayerTurn);
 
       // Проверяем, закончена ли игра
       if (res.gameFinished) {
@@ -111,8 +123,10 @@ export class GameComponent implements OnInit {
           this.gameResultStatus = "GAME OVER";
           this.resultText = "Игра завершена";
         }
-      } else if (!this.isPlayerTurn) {
+      } else if (this.isBotGame && !this.isPlayerTurn) {
         // If it's the bot's turn when loading the board, trigger bot move
+        // Only for bot games, never for online games
+        console.log('loadBoards: Triggering bot move');
         this.triggerBotMove();
       }
 
@@ -144,7 +158,15 @@ export class GameComponent implements OnInit {
       this.playerBoard = res.playerBoard;
       this.enemyBoard = res.enemyBoard;
       this.currentTurn = res.currentTurn;
-      this.isPlayerTurn = res.currentTurn === 'HOST' || res.currentTurn === null;
+
+      // Определяем, чей сейчас ход (после атаки ход может измениться)
+      if (this.isBotGame) {
+        this.isPlayerTurn = res.currentTurn === 'HOST' || res.currentTurn === null;
+      } else {
+        this.isPlayerTurn = (this.isHost && res.currentTurn === 'HOST') || (!this.isHost && res.currentTurn === 'GUEST');
+      }
+
+      console.log('attack - isBotGame:', this.isBotGame, 'isHost:', this.isHost, 'currentTurn:', this.currentTurn, 'isPlayerTurn:', this.isPlayerTurn);
 
       if (res.hit) console.log('Попадание!');
       if (res.sunk) console.log('Корабль потоплен!');
@@ -174,8 +196,10 @@ export class GameComponent implements OnInit {
         }
 
         this.showResultModal = true; // ← показываем модалку
-      } else if (!this.isPlayerTurn) {
+      } else if (this.isBotGame && !this.isPlayerTurn) {
         // If it's now the bot's turn, automatically trigger bot move
+        // Only for bot games, never for online games
+        console.log('attack: Triggering bot move');
         this.triggerBotMove();
       }
 
@@ -219,8 +243,10 @@ export class GameComponent implements OnInit {
           }
 
           this.showResultModal = true;
-        } else if (!this.isPlayerTurn) {
+        } else if (this.isBotGame && !this.isPlayerTurn) {
           // If bot hit again, continue with bot moves
+          // Only for bot games, never for online games
+          console.log('triggerBotMove: Triggering bot move again');
           this.triggerBotMove();
         }
       });

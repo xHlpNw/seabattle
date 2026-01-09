@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -30,7 +30,7 @@ interface AutoPlaceResponse {
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule]
 })
-export class SetupComponent implements OnInit {
+export class SetupComponent implements OnInit, OnDestroy {
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -60,6 +60,7 @@ export class SetupComponent implements OnInit {
   hoverCells: { x: number, y: number; valid: boolean }[] = [];
   orientation: 'horizontal' | 'vertical' = 'horizontal';
   autoPlacedDone: boolean = false;
+  isReady: boolean = false;
 
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
@@ -210,6 +211,8 @@ export class SetupComponent implements OnInit {
     }
   }
 
+  private pollingInterval: any;
+
   async ready() {
     if (!this.gameId || !this.allShipsPlaced) return;
 
@@ -224,16 +227,56 @@ export class SetupComponent implements OnInit {
       }))
     };
 
-  try {
+    try {
+      // Отправляем доску на сервер
       await firstValueFrom(this.gameApi.placeShips(this.gameId, payload));
       console.log('Доска с кораблями отправлена');
 
-      const board = await firstValueFrom(this.gameApi.getBoard(this.gameId));
-      this.grid = board?.grid || this.createEmptyGrid();
+      // Отмечаем игрока как готового
+      const readyResponse = await firstValueFrom(this.gameApi.markReady(this.gameId));
+      console.log('Игрок отмечен как готовый:', readyResponse);
 
-      this.router.navigate(['/game', this.gameId, 'play']);
+      // Отмечаем локально, что игрок готов
+      this.isReady = true;
+
+      // Если оба игрока уже готовы, сразу переходим к игре
+      if ((readyResponse as any).bothReady && (readyResponse as any).gameStarted) {
+        this.router.navigate(['/game'], { queryParams: { gameId: this.gameId } });
+        return;
+      }
+
+      // Начинаем polling для проверки готовности обоих игроков
+      this.startReadyPolling();
+
     } catch (err) {
-      console.error('Ошибка сохранения:', err);
+      console.error('Ошибка:', err);
+    }
+  }
+
+  private startReadyPolling() {
+    if (!this.gameId) return;
+
+    console.log('Начинаем polling готовности игроков...');
+    this.pollingInterval = setInterval(async () => {
+      try {
+        // Проверяем статус игры через getBoards (или можно добавить отдельный эндпоинт)
+        const boards = await firstValueFrom(this.gameApi.getBoards(this.gameId!));
+
+        // Если игра начата, переходим к игре
+        if (!boards.gameFinished && boards.currentTurn) {
+          console.log('Игра начата! Переходим к игре...');
+          clearInterval(this.pollingInterval);
+          this.router.navigate(['/game'], { queryParams: { gameId: this.gameId } });
+        }
+      } catch (err) {
+        console.log('Ошибка при проверке статуса игры:', err);
+      }
+    }, 2000); // Проверяем каждые 2 секунды
+  }
+
+  ngOnDestroy() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
     }
   }
 }

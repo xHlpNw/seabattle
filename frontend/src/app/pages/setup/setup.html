@@ -52,9 +52,9 @@
           <div class="buttons-area">
             <button class="auto-place" (click)="autoPlaceShips()">AUTO-PLACE FLEET</button>
             <button class="start-game"
-                    [disabled]="!allShipsPlaced"
+                    [disabled]="!allShipsPlaced || isReady"
                     (click)="ready()">
-              CONFIRM AND START GAME
+              {{ isReady ? 'WAITING FOR OPPONENT' : 'READY' }}
             </button>
           </div>
 

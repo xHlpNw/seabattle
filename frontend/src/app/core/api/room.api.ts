@@ -11,6 +11,7 @@ export interface RoomStatus {
   createdAt: string;
   expiresAt: string;
   expired: boolean;
+  gameId: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -47,4 +48,5 @@ export class RoomApi {
   deleteRoom(token: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.baseUrl}/api/rooms/${token}`);
   }
+
 }

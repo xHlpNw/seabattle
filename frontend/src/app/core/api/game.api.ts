@@ -57,12 +57,16 @@ export class GameApi {
     return this.http.post(`${this.baseUrl}/api/games/${gameId}/place-ships`, payload);
   }
 
+  markReady(gameId: string): Observable<{ message: string; bothReady: boolean; gameStarted: boolean }> {
+    return this.http.post<{ message: string; bothReady: boolean; gameStarted: boolean }>(`${this.baseUrl}/api/games/${gameId}/ready`, {});
+  }
+
   getBoard(gameId: string) {
     return this.http.get<{grid: number[][]}>(`${this.baseUrl}/api/games/${gameId}/board`);
   }
 
-  getBoards(gameId: string): Observable<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string; gameFinished: boolean; winner: string; opponentName: string; isBotGame: boolean }> {
-    return this.http.get<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string; gameFinished: boolean; winner: string; opponentName: string; isBotGame: boolean }>(`${this.baseUrl}/api/games/${gameId}/boards`);
+  getBoards(gameId: string): Observable<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string | null; gameFinished: boolean; winner: string; opponentName: string; isBotGame: boolean; isHost: boolean }> {
+    return this.http.get<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string; gameFinished: boolean; winner: string; opponentName: string; isBotGame: boolean; isHost: boolean }>(`${this.baseUrl}/api/games/${gameId}/boards`);
   }
 
   attackEnemy(gameId: string, x: number, y: number) {
@@ -103,7 +107,7 @@ export class GameApi {
 
   /** Сдаться в игре */
   surrender(gameId: string): Observable<string> {
-    return this.http.post(`${this.baseUrl}/api/bot/${gameId}/surrender`, {}, { responseType: 'text' });
+    return this.http.post(`${this.baseUrl}/api/games/${gameId}/surrender`, {}, { responseType: 'text' });
   }
 
 

@@ -29,13 +29,17 @@ export class WebSocketService {
       }
 
       try {
-        // Use native WebSocket with a simple protocol
+        // Use native WebSocket - connect directly to backend
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const host = window.location.host;
-        this.socket = new WebSocket(`${protocol}//${host}/api/ws/room`);
+        // Connect directly to backend on port 8080
+        const backendHost = window.location.hostname;
+        const backendPort = ':8080'; // Always use port 8080 for backend
+        const wsUrl = `${protocol}//${backendHost}${backendPort}/api/ws/room`;
+        console.log('🔌 Attempting WebSocket connection to:', wsUrl);
+        this.socket = new WebSocket(wsUrl);
 
         this.socket.onopen = () => {
-          console.log('Connected to WebSocket');
+          console.log('✅ WebSocket connected successfully to:', `${protocol}//${backendHost}${backendPort}/api/ws/room`);
           this.reconnectAttempts = 0;
           observer.next(true);
           observer.complete();

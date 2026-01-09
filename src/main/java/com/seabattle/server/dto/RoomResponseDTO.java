@@ -11,7 +11,8 @@ public record RoomResponseDTO(
         boolean isHost,
         OffsetDateTime createdAt,
         OffsetDateTime expiresAt,
-        boolean expired
+        boolean expired,
+        UUID gameId
 ) {}
 
 

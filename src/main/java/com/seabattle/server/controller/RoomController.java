@@ -60,22 +60,9 @@ public class RoomController {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        // Check if user already has an active room (not expired)
-        Room existingRoom = roomRepository.findByHost(user).stream()
-                .filter(room -> "WAITING".equals(room.getStatus()) &&
-                        !room.getExpiresAt().isBefore(OffsetDateTime.now()))
-                .findFirst()
-                .orElse(null);
+        System.out.println("createRoom called by user: " + user.getUsername());
 
-        if (existingRoom != null) {
-            return ResponseEntity.ok(Map.of(
-                    "roomToken", existingRoom.getToken(),
-                    "shareableLink", buildShareableLink(existingRoom.getToken()),
-                    "message", "Using existing active room"
-            ));
-        }
-
-        // Create new room
+        // Always create new room (no checking for existing active rooms)
         Room room = new Room();
         room.setHost(user);
         room.setToken(UUID.randomUUID());
@@ -85,6 +72,7 @@ public class RoomController {
 
         roomRepository.save(room);
 
+        System.out.println("Room created with token: " + room.getToken() + ", host: " + user.getUsername());
 
         return ResponseEntity.ok(Map.of(
                 "roomToken", room.getToken(),
@@ -126,6 +114,9 @@ public class RoomController {
         // Set guest on room (don't create game yet)
         room.setGuest(user);
         roomRepository.save(room);
+
+        // Player joined successfully (no WebSocket notification needed)
+        System.out.println("👥 Player " + user.getUsername() + " joined room " + room.getToken());
 
         return ResponseEntity.ok(Map.of(
                 "message", "Successfully joined room",
@@ -206,14 +197,30 @@ public class RoomController {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
+        System.out.println("getRoomStatus called by user: " + user.getUsername() + " for room token: " + token);
+
         Room room = roomRepository.findByToken(token);
         if (room == null) {
+            System.out.println("Room not found for token: " + token);
             return ResponseEntity.notFound().build();
         }
 
+        System.out.println("Room found: host=" + room.getHost().getUsername() + ", guest=" + (room.getGuest() != null ? room.getGuest().getUsername() : "null"));
+
+        // Check if user is a participant in this room
         boolean isHost = room.getHost().equals(user);
+        boolean isGuest = room.getGuest() != null && room.getGuest().equals(user);
+        if (!isHost && !isGuest) {
+            System.out.println("Access denied: user " + user.getUsername() + " is not a participant in room " + token + ", host: " + room.getHost().getUsername() + ", guest: " + (room.getGuest() != null ? room.getGuest().getUsername() : "null"));
+            return ResponseEntity.status(403).build();
+        }
+
         boolean isExpired = room.getExpiresAt().isBefore(OffsetDateTime.now());
         String guestUsername = room.getGuest() != null ? room.getGuest().getUsername() : null;
+
+        // Get game ID if game exists for this room
+        Game game = gameRepository.findByRoomToken(token).stream().findFirst().orElse(null);
+        UUID gameId = game != null ? game.getId() : null;
 
         RoomResponseDTO response = new RoomResponseDTO(
                 room.getToken(),
@@ -223,7 +230,8 @@ public class RoomController {
                 isHost,
                 room.getCreatedAt(),
                 room.getExpiresAt(),
-                isExpired
+                isExpired,
+                gameId
         );
 
         return ResponseEntity.ok(response);
@@ -247,6 +255,7 @@ public class RoomController {
         roomRepository.delete(room);
         return ResponseEntity.ok(Map.of("message", "Room deleted successfully"));
     }
+
 }
 
 

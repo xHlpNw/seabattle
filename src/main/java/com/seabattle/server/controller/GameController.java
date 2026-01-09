@@ -39,6 +39,45 @@ public class GameController {
     private final UserRepository userRepository;
     private final GameService gameService;
 
+    @PostMapping("/{gameId}/ready")
+    public ResponseEntity<?> markReady(@PathVariable UUID gameId,
+                                      @AuthenticationPrincipal UserDetails userDetails) {
+        User player = userRepository.findByUsername(userDetails.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
+
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new EntityNotFoundException("Игра не найдена"));
+
+        // Проверяем, что игрок участвует в этой игре
+        if (!game.getHost().equals(player) && !game.getGuest().equals(player)) {
+            return ResponseEntity.status(403).body(Map.of("message", "Вы не участвуете в этой игре"));
+        }
+
+        // Отмечаем игрока как готового
+        if (game.getHost().equals(player)) {
+            game.setHostReady(true);
+        } else {
+            game.setGuestReady(true);
+        }
+
+        // Если оба игрока готовы, начинаем игру
+        if (game.isHostReady() && game.isGuestReady()) {
+            game.setStatus(Game.GameStatus.IN_PROGRESS);
+            game.setStartedAt(OffsetDateTime.now());
+            game.setCurrentTurn(Game.Turn.HOST); // Хост начинает первым
+        }
+
+        gameRepository.save(game);
+
+        Map<String, Object> response = Map.of(
+                "message", "Готовность отмечена",
+                "bothReady", game.isHostReady() && game.isGuestReady(),
+                "gameStarted", game.getStatus() == Game.GameStatus.IN_PROGRESS
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/{gameId}/place-ships")
     public ResponseEntity<?> placeShips(
             @PathVariable UUID gameId,
@@ -168,12 +207,13 @@ public class GameController {
         // Определяем информацию о противнике
         String opponentName;
         boolean isBotGame = game.isBot();
+        boolean isHost = game.getHost().equals(player);
 
         if (isBotGame) {
             opponentName = "Bot";
         } else {
             // Для онлайн игр получаем имя противника
-            User opponent = game.getHost().equals(player) ? game.getGuest() : game.getHost();
+            User opponent = isHost ? game.getGuest() : game.getHost();
             opponentName = opponent != null ? opponent.getUsername() : "Waiting for opponent...";
         }
 
@@ -186,9 +226,10 @@ public class GameController {
                         .toList()),
                 Map.entry("gameFinished", game.getStatus() == Game.GameStatus.FINISHED),
                 Map.entry("winner", game.getResult() != null ? game.getResult().name() : "NONE"),
-                Map.entry("currentTurn", game.getCurrentTurn() != null ? game.getCurrentTurn().name() : "HOST"),
+                Map.entry("currentTurn", game.getStatus() == Game.GameStatus.IN_PROGRESS && game.getCurrentTurn() != null ? game.getCurrentTurn().name() : null),
                 Map.entry("opponentName", opponentName),
-                Map.entry("isBotGame", isBotGame)
+                Map.entry("isBotGame", isBotGame),
+                Map.entry("isHost", isHost)
         );
 
         return ResponseEntity.ok(response);
@@ -216,6 +257,20 @@ public class GameController {
         try {
             AttackResult result = gameService.botMove(gameId);
             return ResponseEntity.ok(result);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{gameId}/surrender")
+    public ResponseEntity<String> surrender(@PathVariable UUID gameId,
+                                           @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+            gameService.surrenderOnline(gameId, user);
+            return ResponseEntity.ok("You surrendered.");
         } catch (IllegalStateException e) {
             return ResponseEntity.status(403).body(e.getMessage());
         }

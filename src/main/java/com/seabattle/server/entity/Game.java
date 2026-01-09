@@ -55,6 +55,14 @@ public class Game {
     @Column(name = "room_token")
     private UUID roomToken;
 
+    @Column(name = "host_ready")
+    @Builder.Default
+    private boolean hostReady = false;
+
+    @Column(name = "guest_ready")
+    @Builder.Default
+    private boolean guestReady = false;
+
     @Column(name = "started_at")
     private OffsetDateTime startedAt;
 

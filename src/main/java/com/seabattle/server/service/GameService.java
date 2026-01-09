@@ -233,6 +233,25 @@ public class GameService {
         persistHistoryAndStats(game, player, null, "LOSS", -5);
     }
 
+    public void surrenderOnline(UUID gameId, User player) {
+        Game game = gameRepo.findById(gameId).orElseThrow();
+        if (game.getType() != Game.GameType.ONLINE) throw new IllegalStateException("Not an online game");
+
+        game.setStatus(Game.GameStatus.FINISHED);
+        game.setResult(Game.GameResult.SURRENDER);
+        game.setFinishedAt(OffsetDateTime.now());
+        gameRepo.save(game);
+
+        // Определяем победителя и проигравшего
+        boolean isHostSurrendering = game.getHost().equals(player);
+        User winner = isHostSurrendering ? game.getGuest() : game.getHost();
+
+        // Обновляем статистику победителя
+        persistHistoryAndStats(game, winner, player, "WIN", +5);
+        // Обновляем статистику проигравшего
+        persistHistoryAndStats(game, player, winner, "LOSS", -5);
+    }
+
     @Transactional
     public Game rematch(UUID gameId, UUID playerId) throws Exception {
         var host = userRepo.findById(playerId).orElseThrow();
@@ -295,11 +314,22 @@ public class GameService {
         // Проверяем победу игрока
         if (enemyModel.allShipsSunk()) {
             game.setStatus(Game.GameStatus.FINISHED);
-            game.setResult(Game.GameResult.HOST_WIN);
             game.setFinishedAt(OffsetDateTime.now());
+
+            // Определяем победителя и обновляем статистику
+            boolean isHostWinner = game.getHost().equals(player);
+            if (isHostWinner) {
+                game.setResult(Game.GameResult.HOST_WIN);
+            } else {
+                game.setResult(Game.GameResult.GUEST_WIN);
+            }
             gameRepo.save(game);
 
-            persistHistoryAndStats(game, player, null, "WIN", +10);
+            // Обновляем статистику победителя
+            User opponent = isHostWinner ? game.getGuest() : game.getHost();
+            persistHistoryAndStats(game, player, opponent, "WIN", +10);
+            // Обновляем статистику проигравшего
+            persistHistoryAndStats(game, opponent, player, "LOSS", -10);
 
             return buildAttackResult(
                     BoardModel.fromJson(boardRepo.findByGameIdAndPlayerId(gameId, player.getId()).get().getCells()),

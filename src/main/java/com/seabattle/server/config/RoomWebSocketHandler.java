@@ -31,7 +31,7 @@ public class RoomWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        System.out.println("WebSocket connection established: " + session.getId());
+        System.out.println("🔌 WebSocket connection established: " + session.getId());
     }
 
     @Override
@@ -62,7 +62,7 @@ public class RoomWebSocketHandler extends TextWebSocketHandler {
         String roomToken = (String) payload.get("roomToken");
         if (roomToken != null) {
             roomSessions.computeIfAbsent(roomToken, k -> new CopyOnWriteArraySet<>()).add(session);
-            System.out.println("Session " + session.getId() + " subscribed to room " + roomToken);
+            System.out.println("📡 Session " + session.getId() + " subscribed to room " + roomToken);
         }
     }
 
@@ -95,18 +95,25 @@ public class RoomWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
-    private void broadcastToRoom(String roomToken, Object message) {
+    public void broadcastToRoom(String roomToken, Object message) {
+        System.out.println("📤 Broadcasting to room " + roomToken + ": " + message);
         CopyOnWriteArraySet<WebSocketSession> sessions = roomSessions.get(roomToken);
         if (sessions != null) {
+            System.out.println("📤 Found " + sessions.size() + " sessions in room " + roomToken);
             sessions.forEach(session -> {
                 if (session.isOpen()) {
                     try {
                         session.sendMessage(new TextMessage(objectMapper.writeValueAsString(message)));
+                        System.out.println("📤 Message sent to session " + session.getId());
                     } catch (IOException e) {
                         System.err.println("Error sending message to session " + session.getId() + ": " + e.getMessage());
                     }
+                } else {
+                    System.out.println("📤 Session " + session.getId() + " is not open");
                 }
             });
+        } else {
+            System.out.println("📤 No sessions found for room " + roomToken);
         }
     }
 

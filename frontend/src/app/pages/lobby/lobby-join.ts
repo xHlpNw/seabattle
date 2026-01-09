@@ -2,7 +2,6 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RoomApi } from '../../core/api/room.api';
-import { WebSocketService } from '../../core/ws/ws.service';
 
 @Component({
   selector: 'page-lobby-join',
@@ -16,7 +15,6 @@ export class LobbyJoinComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private roomApi = inject(RoomApi);
-  private wsService = inject(WebSocketService);
 
   roomToken: string = '';
   isJoining: boolean = true;
@@ -44,21 +42,10 @@ export class LobbyJoinComponent implements OnInit {
 
         // If game already exists, redirect to game
         if (response.gameId) {
-          this.router.navigate(['/game', response.gameId, 'play']);
+          this.router.navigate(['/setup'], { queryParams: { gameId: response.gameId } });
         } else {
-          // Notify other players that we joined via WebSocket
-          this.wsService.connect().subscribe({
-            next: () => {
-              this.wsService.sendMessage('join', { roomToken: this.roomToken });
-            },
-            error: (error) => {
-              console.error('Failed to connect to WebSocket for join notification:', error);
-            }
-          });
-          // Send WebSocket notification that we joined
-          this.wsService.sendMessage('join', { roomToken: this.roomToken });
-          // Redirect to lobby with the room token
-          this.router.navigate(['/lobby'], { queryParams: { roomToken: this.roomToken } });
+          // Successfully joined, redirect to lobby with the room token
+          this.router.navigate(['/lobby'], { queryParams: { token: this.roomToken } });
         }
       },
       error: (error) => {

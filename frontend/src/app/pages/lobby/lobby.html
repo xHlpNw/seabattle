@@ -10,7 +10,16 @@
       <h1>ONLINE MULTIPLAYER</h1>
       <p>Challenge another player to a naval battle</p>
 
-      <div class="lobby-setup">
+      <!-- Loading indicator -->
+      <div class="lobby-setup" *ngIf="isLoading">
+        <div class="waiting-indicator">
+          <div class="spinner"></div>
+          <p>Loading lobby...</p>
+        </div>
+      </div>
+
+      <!-- Lobby content when loaded -->
+      <div class="lobby-setup" *ngIf="!isLoading">
         <div class="lobby-code-section" *ngIf="isHost">
           <h3>ROOM TOKEN</h3>
           <div class="code-display">
@@ -51,9 +60,9 @@
           </div>
         </div>
 
-        <div class="actions" *ngIf="isHost">
-          <button class="create-game-btn" (click)="createOnlineGame()" [disabled]="isCreatingLobby || !opponentJoined">
-            {{ isCreatingLobby ? 'STARTING GAME...' : 'START GAME' }}
+        <div class="actions" *ngIf="isHost && opponentJoined">
+          <button class="create-game-btn" (click)="startGame()">
+            START GAME
           </button>
         </div>
 
