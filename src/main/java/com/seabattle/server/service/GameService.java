@@ -1,5 +1,6 @@
 package com.seabattle.server.service;
 
+import com.seabattle.server.config.GameWebSocketHandler;
 import com.seabattle.server.dto.AttackResult;
 import com.seabattle.server.dto.AutoPlaceResponse;
 import com.seabattle.server.dto.ShipDTO;
@@ -16,7 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
@@ -30,6 +33,7 @@ public class GameService {
     private final GameHistoryRepository historyRepo;
     private final UserRepository userRepo;
     private final BotAiService botAi;
+    private final GameWebSocketHandler gameWebSocketHandler;
 
     @Transactional
     public Game createBotGame(User host) throws Exception {
@@ -250,6 +254,9 @@ public class GameService {
         persistHistoryAndStats(game, winner, player, "WIN", +5);
         // Обновляем статистику проигравшего
         persistHistoryAndStats(game, player, winner, "LOSS", -5);
+
+        // Broadcast game finished event via WebSocket
+        broadcastGameFinished(gameId, game);
     }
 
     @Transactional
@@ -303,12 +310,19 @@ public class GameService {
         boardRepo.save(enemyBoard);
 
         if (playerOutcome.already) {
-            return buildAttackResult(
+            AttackResult result = buildAttackResult(
                     BoardModel.fromJson(boardRepo.findByGameIdAndPlayerId(gameId, player.getId()).get().getCells()),
                     enemyModel,
                     playerOutcome,
                     null, game
             );
+            
+            // Broadcast game state update for online games via WebSocket
+            if (game.getType() == Game.GameType.ONLINE && !game.isBot()) {
+                broadcastGameStateUpdate(gameId, result, player);
+            }
+            
+            return result;
         }
 
         // Проверяем победу игрока
@@ -331,12 +345,19 @@ public class GameService {
             // Обновляем статистику проигравшего
             persistHistoryAndStats(game, opponent, player, "LOSS", -10);
 
-            return buildAttackResult(
+            AttackResult result = buildAttackResult(
                     BoardModel.fromJson(boardRepo.findByGameIdAndPlayerId(gameId, player.getId()).get().getCells()),
                     enemyModel,
                     playerOutcome,
                     null, game
             );
+            
+            // Broadcast game finished event for online games via WebSocket
+            if (game.getType() == Game.GameType.ONLINE && !game.isBot()) {
+                broadcastGameStateUpdate(gameId, result, player);
+            }
+            
+            return result;
         }
 
         BotMove lastBotMove = null;
@@ -384,7 +405,14 @@ public class GameService {
                 .orElseThrow(() -> new EntityNotFoundException("Доска игрока не найдена"));
         BoardModel playerModel = BoardModel.fromJson(playerBoardEntity.getCells());
 
-        return buildAttackResult(playerModel, enemyModel, playerOutcome, lastBotMove, game);
+        AttackResult result = buildAttackResult(playerModel, enemyModel, playerOutcome, lastBotMove, game);
+
+        // Broadcast game state update for online games via WebSocket
+        if (game.getType() == Game.GameType.ONLINE && !game.isBot()) {
+            broadcastGameStateUpdate(gameId, result, player);
+        }
+
+        return result;
     }
 
     private User getPlayer(String username) {
@@ -540,5 +568,103 @@ public class GameService {
         public int getY() { return y; }
         public boolean isHit() { return hit; }
         public boolean isSunk() { return sunk; }
+    }
+
+    /**
+     * Broadcast game state update to all players in an online game via WebSocket
+     * AttackResult contains boards from attacker's perspective:
+     * - playerBoard: attacker's own board (no hit mark)
+     * - enemyBoard: defender's board (with hit mark if hit occurred)
+     * @param attacker The player who made the attack
+     */
+    private void broadcastGameStateUpdate(UUID gameId, AttackResult result, User attacker) {
+        try {
+            Game game = gameRepo.findById(gameId).orElse(null);
+            if (game == null || game.getType() != Game.GameType.ONLINE) {
+                return;
+            }
+
+            // Prepare base message
+            Map<String, Object> baseMessage = new HashMap<>();
+            baseMessage.put("type", "gameStateUpdate");
+            baseMessage.put("gameId", gameId.toString());
+            baseMessage.put("currentTurn", game.getCurrentTurn() != null ? game.getCurrentTurn().name() : null);
+            baseMessage.put("gameFinished", game.getStatus() == Game.GameStatus.FINISHED);
+            baseMessage.put("winner", game.getResult() != null ? game.getResult().name() : null);
+            baseMessage.put("hit", result.isHit());
+            baseMessage.put("sunk", result.isSunk());
+            baseMessage.put("already", result.isAlready());
+
+            // Get current state of both boards from database after the attack
+            Board hostBoard = boardRepo.findByGameIdAndPlayerId(gameId, game.getHost().getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Host board not found"));
+            BoardModel hostModel = BoardModel.fromJson(hostBoard.getCells());
+
+            Board guestBoard = null;
+            BoardModel guestModel = null;
+            if (game.getGuest() != null) {
+                guestBoard = boardRepo.findByGameIdAndPlayerId(gameId, game.getGuest().getId())
+                        .orElse(null);
+                if (guestBoard != null) {
+                    guestModel = BoardModel.fromJson(guestBoard.getCells());
+                }
+            }
+
+            // Each player sees their own board fully and opponent's board with ships hidden
+            // Host's view
+            Map<String, Object> hostMessage = new HashMap<>(baseMessage);
+            hostMessage.put("playerBoard", convertToLists(hostModel.toIntArray(true)));  // Host's own board, full visibility
+            if (guestModel != null) {
+                hostMessage.put("enemyBoard", convertToLists(guestModel.toIntArray(false)));  // Guest's board, ships hidden
+            }
+
+            // Guest's view
+            Map<String, Object> guestMessage = new HashMap<>(baseMessage);
+            if (guestModel != null) {
+                guestMessage.put("playerBoard", convertToLists(guestModel.toIntArray(true)));  // Guest's own board, full visibility
+            }
+            guestMessage.put("enemyBoard", convertToLists(hostModel.toIntArray(false)));  // Host's board, ships hidden
+
+            gameWebSocketHandler.sendToUser(gameId, game.getHost().getUsername(), hostMessage);
+            if (game.getGuest() != null) {
+                gameWebSocketHandler.sendToUser(gameId, game.getGuest().getUsername(), guestMessage);
+            }
+        } catch (Exception e) {
+            System.err.println("Error broadcasting game state update: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Broadcast game finished event to all players in an online game via WebSocket
+     */
+    private void broadcastGameFinished(UUID gameId, Game game) {
+        try {
+            Map<String, Object> message = new HashMap<>();
+            message.put("type", "gameFinished");
+            message.put("gameId", gameId.toString());
+            message.put("winner", game.getResult() != null ? game.getResult().name() : null);
+            message.put("gameFinished", true);
+
+            gameWebSocketHandler.broadcastToGame(gameId, message);
+        } catch (Exception e) {
+            System.err.println("Error broadcasting game finished: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Convert 2D array to list of lists for JSON serialization
+     */
+    private List<List<Integer>> convertToLists(int[][] array) {
+        List<List<Integer>> result = new java.util.ArrayList<>();
+        for (int[] row : array) {
+            List<Integer> rowList = new java.util.ArrayList<>();
+            for (int cell : row) {
+                rowList.add(cell);
+            }
+            result.add(rowList);
+        }
+        return result;
     }
 }

@@ -1,5 +1,6 @@
 package com.seabattle.server.controller;
 
+import com.seabattle.server.config.GameWebSocketHandler;
 import com.seabattle.server.dto.AttackResult;
 import com.seabattle.server.dto.BoardResponseDTO;
 import com.seabattle.server.dto.PlaceShipsRequest;
@@ -38,6 +39,7 @@ public class GameController {
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
     private final GameService gameService;
+    private final GameWebSocketHandler gameWebSocketHandler;
 
     @PostMapping("/{gameId}/ready")
     public ResponseEntity<?> markReady(@PathVariable UUID gameId,
@@ -68,6 +70,22 @@ public class GameController {
         }
 
         gameRepository.save(game);
+
+        // Broadcast player ready event for online games via WebSocket
+        if (game.getType() == Game.GameType.ONLINE && !game.isBot()) {
+            Map<String, Object> readyMessage = new HashMap<>();
+            readyMessage.put("type", "playerReady");
+            readyMessage.put("gameId", gameId.toString());
+            readyMessage.put("isHost", game.getHost().equals(player));
+            readyMessage.put("hostReady", game.isHostReady());
+            readyMessage.put("guestReady", game.isGuestReady());
+            readyMessage.put("bothReady", game.isHostReady() && game.isGuestReady());
+            readyMessage.put("gameStarted", game.getStatus() == Game.GameStatus.IN_PROGRESS);
+            if (game.getStatus() == Game.GameStatus.IN_PROGRESS) {
+                readyMessage.put("currentTurn", game.getCurrentTurn() != null ? game.getCurrentTurn().name() : null);
+            }
+            gameWebSocketHandler.broadcastToGame(gameId, readyMessage);
+        }
 
         Map<String, Object> response = Map.of(
                 "message", "Готовность отмечена",

@@ -48,7 +48,8 @@ public class SecurityConfig {
                                 "/css/**",
                                 "/js/**",
                                 "/api/users/top",
-                                "/api/users/profile"
+                                "/api/users/profile",
+                                "/api/ws/**"  // Allow WebSocket connections (authentication handled in handlers)
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

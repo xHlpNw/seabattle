@@ -1,10 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GameApi } from '../../core/api/game.api';
 import { UserApi } from '../../core/api/user.api';
 import { AuthService } from '../../core/auth/auth.service';
+import { GameWebSocketService, GameUpdate } from '../../core/ws/game-ws.service';
 import { CommonModule } from '@angular/common';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 
 @Component({
   selector: 'page-game',
@@ -13,13 +14,15 @@ import { firstValueFrom } from 'rxjs';
   standalone: true,
   imports: [CommonModule]
 })
-export class GameComponent implements OnInit {
+export class GameComponent implements OnInit, OnDestroy {
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private gameApi = inject(GameApi);
   private userApi = inject(UserApi);
   private auth = inject(AuthService);
+  private gameWs = inject(GameWebSocketService);
+  private gameUpdatesSubscription?: Subscription;
 
   gameId: string | null = null;
   profile: any = null;
@@ -130,12 +133,106 @@ export class GameComponent implements OnInit {
         this.triggerBotMove();
       }
 
+      // For online games, connect to WebSocket and subscribe to updates
+      if (!this.isBotGame && this.gameId) {
+        this.setupWebSocketConnection();
+      }
+
     } catch (err) {
       console.error('Ошибка получения досок:', err);
       this.playerBoard = this.createEmptyGrid();
       this.enemyBoard = this.createEmptyGrid();
     } finally {
       this.isLoading = false;
+    }
+  }
+
+  private setupWebSocketConnection() {
+    if (!this.gameId) return;
+
+    console.log('🎮 Setting up WebSocket connection for online game:', this.gameId);
+    
+    // Connect to WebSocket
+    this.gameWs.connect(this.gameId).subscribe({
+      next: (connected) => {
+        if (connected) {
+          console.log('🎮 WebSocket connected successfully');
+          // Subscribe to game updates
+          this.gameUpdatesSubscription = this.gameWs.getGameUpdates().subscribe(update => {
+            if (update) {
+              this.handleGameUpdate(update);
+            }
+          });
+        }
+      },
+      error: (err) => {
+        console.error('🎮 WebSocket connection error:', err);
+      }
+    });
+  }
+
+  private handleGameUpdate(update: GameUpdate) {
+    console.log('🎮 Handling game update:', update);
+
+    switch (update.type) {
+      case 'gameStateUpdate':
+        if (update.playerBoard) {
+          this.playerBoard = update.playerBoard;
+        }
+        if (update.enemyBoard) {
+          this.enemyBoard = update.enemyBoard;
+        }
+        if (update.currentTurn !== undefined) {
+          this.currentTurn = update.currentTurn;
+          this.isPlayerTurn = (this.isHost && update.currentTurn === 'HOST') || (!this.isHost && update.currentTurn === 'GUEST');
+        }
+        if (update.gameFinished) {
+          this.gameOver = true;
+          this.handleGameFinished(update.winner);
+        }
+        if (update.hit) console.log('Попадание!');
+        if (update.sunk) console.log('Корабль потоплен!');
+        if (update.already) console.log('Вы уже стреляли сюда');
+        break;
+
+      case 'gameFinished':
+        this.gameOver = true;
+        this.handleGameFinished(update.winner);
+        break;
+
+      case 'playerReady':
+        console.log('🎮 Player ready update:', update);
+        if (update.gameStarted && !this.gameOver) {
+          // Game started, might need to refresh boards
+          this.loadBoards();
+        }
+        break;
+
+      case 'error':
+        console.error('🎮 WebSocket error:', update.message);
+        break;
+
+      default:
+        console.log('🎮 Unknown update type:', update.type);
+    }
+  }
+
+  private handleGameFinished(winner?: string | null) {
+    this.gameOver = true;
+    this.showResultModal = true;
+
+    if (winner === 'HOST_WIN') {
+      this.gameResultStatus = this.isHost ? "VICTORY" : "DEFEAT";
+      this.resultText = this.isHost ? "🎉 Вы победили!" : "💀 Вы проиграли!";
+    } else if (winner === 'GUEST_WIN') {
+      this.gameResultStatus = !this.isHost ? "VICTORY" : "DEFEAT";
+      this.resultText = !this.isHost ? "🎉 Вы победили!" : "💀 Вы проиграли!";
+    } else if (winner === 'SURRENDER') {
+      this.gameResultStatus = "DEFEAT";
+      this.resultText = "🏳️ Вы сдались!";
+    } else {
+      this.gameResultStatus = "GAME OVER";
+      this.resultText = "Игра завершена";
     }
   }
 
@@ -152,58 +249,54 @@ export class GameComponent implements OnInit {
   attackEnemy(i: number, j: number) {
     if (!this.gameId || !this.isPlayerTurn) return;
 
-    this.gameApi.attackEnemy(this.gameId, i, j).subscribe(res => {
-      console.log('Ответ сервера после выстрела:', res);
+    // For online games, use WebSocket; for bot games, use HTTP
+    if (this.isBotGame) {
+      // Bot game - use HTTP as before
+      this.gameApi.attackEnemy(this.gameId, i, j).subscribe(res => {
+        console.log('Ответ сервера после выстрела:', res);
 
-      this.playerBoard = res.playerBoard;
-      this.enemyBoard = res.enemyBoard;
-      this.currentTurn = res.currentTurn;
+        this.playerBoard = res.playerBoard;
+        this.enemyBoard = res.enemyBoard;
+        this.currentTurn = res.currentTurn;
 
-      // Определяем, чей сейчас ход (после атаки ход может измениться)
-      if (this.isBotGame) {
+        // Определяем, чей сейчас ход (после атаки ход может измениться)
         this.isPlayerTurn = res.currentTurn === 'HOST' || res.currentTurn === null;
-      } else {
-        this.isPlayerTurn = (this.isHost && res.currentTurn === 'HOST') || (!this.isHost && res.currentTurn === 'GUEST');
-      }
 
-      console.log('attack - isBotGame:', this.isBotGame, 'isHost:', this.isHost, 'currentTurn:', this.currentTurn, 'isPlayerTurn:', this.isPlayerTurn);
+        console.log('attack - isBotGame:', this.isBotGame, 'isHost:', this.isHost, 'currentTurn:', this.currentTurn, 'isPlayerTurn:', this.isPlayerTurn);
 
-      if (res.hit) console.log('Попадание!');
-      if (res.sunk) console.log('Корабль потоплен!');
-      if (res.already) console.log('Вы уже стреляли сюда');
+        if (res.hit) console.log('Попадание!');
+        if (res.sunk) console.log('Корабль потоплен!');
+        if (res.already) console.log('Вы уже стреляли сюда');
 
-      if (res.botX != null && res.botY != null) {
-        this.botLastX = res.botX;
-        this.botLastY = res.botY;
-        console.log(`Бот стрелял: ${res.botX}, ${res.botY}`);
-      }
-
-      if (res.gameFinished) {
-        this.gameOver = true;
-
-        if (res.winner === 'HOST_WIN') {
-          this.gameResultStatus = "VICTORY";
-          this.resultText = "🎉 Вы победили!";
-        } else if (res.winner === 'GUEST_WIN') {
-          this.gameResultStatus = "DEFEAT";
-          this.resultText = "💀 Вы проиграли!";
-        } else if (res.winner === 'SURRENDER') {
-          this.gameResultStatus = "DEFEAT";
-          this.resultText = "🏳️ Вы сдались!";
-        } else {
-          this.gameResultStatus = "GAME OVER";
-          this.resultText = "Игра завершена";
+        if (res.botX != null && res.botY != null) {
+          this.botLastX = res.botX;
+          this.botLastY = res.botY;
+          console.log(`Бот стрелял: ${res.botX}, ${res.botY}`);
         }
 
-        this.showResultModal = true; // ← показываем модалку
-      } else if (this.isBotGame && !this.isPlayerTurn) {
-        // If it's now the bot's turn, automatically trigger bot move
-        // Only for bot games, never for online games
-        console.log('attack: Triggering bot move');
-        this.triggerBotMove();
-      }
-
-    });
+        if (res.gameFinished) {
+          this.gameOver = true;
+          this.handleGameFinished(res.winner);
+          this.showResultModal = true;
+        } else if (!this.isPlayerTurn) {
+          // If it's now the bot's turn, automatically trigger bot move
+          console.log('attack: Triggering bot move');
+          this.triggerBotMove();
+        }
+      });
+    } else {
+      // Online game - use HTTP to send attack (server will broadcast via WebSocket)
+      // WebSocket will receive the update and handle it in handleGameUpdate
+      this.gameApi.attackEnemy(this.gameId, i, j).subscribe({
+        next: (res) => {
+          console.log('🎯 Attack sent via HTTP, waiting for WebSocket update');
+          // The response will come via WebSocket update
+        },
+        error: (err) => {
+          console.error('🎯 Attack error:', err);
+        }
+      });
+    }
   }
 
   private triggerBotMove() {
@@ -257,16 +350,30 @@ export class GameComponent implements OnInit {
     if (!this.gameId) return;
 
     if (confirm('Вы уверены, что хотите сдаться? Вы проиграете игру.')) {
+      // For online games, WebSocket will receive gameFinished event
+      // For bot games, we still need to reload boards
       this.gameApi.surrender(this.gameId).subscribe({
         next: (response) => {
           console.log('Сдался:', response);
-          // После сдачи обновляем доски, чтобы показать финальное состояние
-          this.loadBoards();
+          // After surrender, for bot games reload boards
+          // For online games, WebSocket will notify us
+          if (this.isBotGame) {
+            this.loadBoards();
+          }
         },
         error: (err) => {
           console.error('Ошибка при сдаче:', err);
         }
       });
     }
+  }
+
+  ngOnDestroy() {
+    // Clean up WebSocket connection and subscriptions
+    if (this.gameUpdatesSubscription) {
+      this.gameUpdatesSubscription.unsubscribe();
+    }
+    this.gameWs.disconnect();
+    console.log('🎮 Game component destroyed, WebSocket disconnected');
   }
 }
