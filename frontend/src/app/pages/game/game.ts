@@ -47,6 +47,8 @@ export class GameComponent implements OnInit, OnDestroy {
   isBotGame: boolean = true;
   isHost: boolean = true;
 
+  private webSocketConnected: boolean = false;
+
   async ngOnInit() {
     const token = this.auth.getToken();
     const username = localStorage.getItem('username');
@@ -157,6 +159,7 @@ export class GameComponent implements OnInit, OnDestroy {
       next: (connected) => {
         if (connected) {
           console.log('🎮 WebSocket connected successfully');
+          this.webSocketConnected = true;
           // Subscribe to game updates
           this.gameUpdatesSubscription = this.gameWs.getGameUpdates().subscribe(update => {
             if (update) {
@@ -167,6 +170,7 @@ export class GameComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('🎮 WebSocket connection error:', err);
+        this.webSocketConnected = false;
       }
     });
   }
@@ -210,6 +214,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
       case 'error':
         console.error('🎮 WebSocket error:', update.message);
+        this.webSocketConnected = false;
         break;
 
       default:
@@ -283,11 +288,15 @@ export class GameComponent implements OnInit, OnDestroy {
       });
     } else {
       // Online game - use HTTP to send attack (server will broadcast via WebSocket)
-      // WebSocket will receive the update and handle it in handleGameUpdate
       this.gameApi.attackEnemy(this.gameId, i, j).subscribe({
         next: (res) => {
           console.log('🎯 Attack sent via HTTP, waiting for WebSocket update');
-          // The response will come via WebSocket update
+          // If WebSocket is not connected yet, reload boards via HTTP as fallback
+          if (!this.webSocketConnected) {
+            console.log('🎯 WebSocket not connected, reloading boards via HTTP');
+            setTimeout(() => this.loadBoards(), 500); // Small delay to let server process
+          }
+          // The response will come via WebSocket update if connected
         },
         error: (err) => {
           console.error('🎯 Attack error:', err);
@@ -353,9 +362,10 @@ export class GameComponent implements OnInit, OnDestroy {
         next: (response) => {
           console.log('Сдался:', response);
           // After surrender, for bot games reload boards
-          // For online games, WebSocket will notify us
-          if (this.isBotGame) {
-            this.loadBoards();
+          // For online games, WebSocket will notify us, but if not connected, reload via HTTP
+          if (this.isBotGame || !this.webSocketConnected) {
+            console.log('🏳️ Reloading boards after surrender (bot game or WebSocket not connected)');
+            setTimeout(() => this.loadBoards(), 500); // Small delay to let server process
           }
         },
         error: (err) => {
@@ -367,6 +377,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     // Clean up WebSocket connection and subscriptions
+    this.webSocketConnected = false;
     if (this.gameUpdatesSubscription) {
       this.gameUpdatesSubscription.unsubscribe();
     }

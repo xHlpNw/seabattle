@@ -88,6 +88,11 @@ export class GameWebSocketService {
         this.socket.onclose = () => {
           console.log('🎮 Disconnected from Game WebSocket');
           this.currentGameId = null;
+          // Notify about disconnection
+          this.gameUpdates$.next({
+            type: 'error',
+            message: 'WebSocket disconnected'
+          });
           if (this.reconnectAttempts < this.maxReconnectAttempts) {
             this.attemptReconnect(gameId);
           }
