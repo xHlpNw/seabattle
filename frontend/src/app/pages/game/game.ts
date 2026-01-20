@@ -227,9 +227,6 @@ export class GameComponent implements OnInit, OnDestroy {
     } else if (winner === 'GUEST_WIN') {
       this.gameResultStatus = !this.isHost ? "VICTORY" : "DEFEAT";
       this.resultText = !this.isHost ? "🎉 Вы победили!" : "💀 Вы проиграли!";
-    } else if (winner === 'SURRENDER') {
-      this.gameResultStatus = "DEFEAT";
-      this.resultText = "🏳️ Вы сдались!";
     } else {
       this.gameResultStatus = "GAME OVER";
       this.resultText = "Игра завершена";

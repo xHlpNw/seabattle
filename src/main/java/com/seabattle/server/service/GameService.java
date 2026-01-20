@@ -242,18 +242,55 @@ public class GameService {
         if (game.getType() != Game.GameType.ONLINE) throw new IllegalStateException("Not an online game");
 
         game.setStatus(Game.GameStatus.FINISHED);
-        game.setResult(Game.GameResult.SURRENDER);
+
+        // Определяем победителя и устанавливаем правильный результат
+        boolean isHostSurrendering = game.getHost().equals(player);
+        if (isHostSurrendering) {
+            game.setResult(Game.GameResult.GUEST_WIN); // Хост сдался - гость победил
+        } else {
+            game.setResult(Game.GameResult.HOST_WIN);  // Гость сдался - хост победил
+        }
+
         game.setFinishedAt(OffsetDateTime.now());
         gameRepo.save(game);
 
         // Определяем победителя и проигравшего
-        boolean isHostSurrendering = game.getHost().equals(player);
         User winner = isHostSurrendering ? game.getGuest() : game.getHost();
 
         // Обновляем статистику победителя
         persistHistoryAndStats(game, winner, player, "WIN", +5);
         // Обновляем статистику проигравшего
         persistHistoryAndStats(game, player, winner, "LOSS", -5);
+
+        // Send final game state update to show current board state
+        try {
+            // Get both boards from DB - they should have correct final state
+            Board hostBoard = boardRepo.findByGameIdAndPlayerId(gameId, game.getHost().getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Host board not found"));
+            BoardModel hostModel = BoardModel.fromJson(hostBoard.getCells());
+
+            Board guestBoard = null;
+            BoardModel guestModel = null;
+            if (game.getGuest() != null) {
+                guestBoard = boardRepo.findByGameIdAndPlayerId(gameId, game.getGuest().getId())
+                        .orElse(null);
+                if (guestBoard != null) {
+                    guestModel = BoardModel.fromJson(guestBoard.getCells());
+                }
+            }
+
+            // Create a final attack result with game finished
+            AttackResult finalResult = new AttackResult();
+            finalResult.setGameFinished(true);
+            finalResult.setWinner(game.getResult() != null ? game.getResult().name() : null);
+            finalResult.setCurrentTurn(game.getCurrentTurn() != null ? game.getCurrentTurn().name() : null);
+
+            // Send final state to both players
+            broadcastGameStateUpdate(gameId, finalResult, winner != null ? winner : player);
+        } catch (Exception e) {
+            System.err.println("Error sending final game state: " + e.getMessage());
+            e.printStackTrace();
+        }
 
         // Broadcast game finished event via WebSocket
         broadcastGameFinished(gameId, game);
