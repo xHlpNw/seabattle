@@ -358,7 +358,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (confirm('Вы уверены, что хотите сдаться? Вы проиграете игру.')) {
       // For online games, WebSocket will receive gameFinished event
       // For bot games, we still need to reload boards
-      this.gameApi.surrender(this.gameId).subscribe({
+      this.gameApi.surrender(this.gameId, this.isBotGame).subscribe({
         next: (response) => {
           console.log('Сдался:', response);
           // After surrender, for bot games reload boards

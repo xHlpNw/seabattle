@@ -40,7 +40,8 @@
     <!-- RIGHT CARD -->
     <section class="ratings">
       <h3>TOP 5 PLAYERS</h3>
-      <ul>
+      <p class="no-players" *ngIf="topPlayers.length === 0">Игроки не найдены</p>
+      <ul *ngIf="topPlayers.length > 0">
         <li *ngFor="let player of topPlayers">
           <span>{{ player.username }}</span>
           <span class="ELO">{{ player.rating }}</span>

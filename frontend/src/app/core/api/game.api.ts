@@ -105,9 +105,12 @@ export class GameApi {
     }>(`${this.baseUrl}/api/games/${gameId}/bot-move`, {});
   }
 
-  /** Сдаться в игре */
-  surrender(gameId: string): Observable<string> {
-    return this.http.post(`${this.baseUrl}/api/games/${gameId}/surrender`, {}, { responseType: 'text' });
+  /** Сдаться в игре (бот или онлайн — вызывается нужный эндпоинт) */
+  surrender(gameId: string, isBotGame: boolean): Observable<string> {
+    const path = isBotGame
+      ? `${this.baseUrl}/api/bot/${gameId}/surrender`
+      : `${this.baseUrl}/api/games/${gameId}/surrender`;
+    return this.http.post(path, {}, { responseType: 'text' });
   }
 
 

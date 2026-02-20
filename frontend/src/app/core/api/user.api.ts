@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 
 interface LoginRequest {
   username: string;
@@ -30,6 +30,15 @@ export class UserApi {
     const currentHost = window.location.hostname;
     const backendHost = currentHost === 'localhost' ? 'localhost' : currentHost;
     return `http://${backendHost}:8080/api/users`;
+  }
+
+  private get backendBase(): string {
+    return this.base.replace('/api/users', '');
+  }
+
+  /** Проверка валидности токена на бэкенде (нужен Authorization: Bearer). */
+  validateToken(): Observable<{ valid: boolean }> {
+    return this.http.get<{ valid: boolean }>(`${this.backendBase}/api/auth/validate`);
   }
 
   login(data: LoginRequest): Promise<LoginResponse> {

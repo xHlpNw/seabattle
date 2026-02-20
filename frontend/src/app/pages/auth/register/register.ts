@@ -37,10 +37,13 @@ export class RegisterComponent {
         password: this.password
       });
 
-      // после успешной регистрации логиним пользователя
-      this.auth.login(this.username);
+      // после успешной регистрации автоматически входим в аккаунт
+      const loginResponse = await this.userApi.login({
+        username: this.username,
+        password: this.password
+      });
+      this.auth.login(loginResponse.token, loginResponse.username);
       this.router.navigate(['/']);
-
     } catch (e: any) {
       this.errorMsg = 'Ошибка регистрации: возможно имя уже занято';
     }

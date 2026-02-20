@@ -120,7 +120,7 @@ export class HomeComponent {
   surrenderAndStartNew() {
     // Surrender all unfinished games and start a new one
     const surrenderPromises = this.unfinishedGames.map(game =>
-      firstValueFrom(this.gameApi.surrender(game.gameId))
+      firstValueFrom(this.gameApi.surrender(game.gameId, true))
     );
 
     Promise.all(surrenderPromises).then(() => {
