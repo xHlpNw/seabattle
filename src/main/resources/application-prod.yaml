@@ -1,0 +1,25 @@
+# Production profile
+# Activate with: spring.profiles.active=prod
+# Set env vars for secrets: SPRING_DATASOURCE_URL, SPRING_DATASOURCE_USERNAME,
+# SPRING_DATASOURCE_PASSWORD, JWT_SECRET, JWT_EXPIRATION_MS
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate   # Schema only from Flyway; never auto-create/update in prod
+    show-sql: false
+  datasource:
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+  flyway:
+    clean-disabled: true   # Never allow Flyway clean in production
+
+logging:
+  level:
+    root: WARN
+    com.seabattle: INFO
+    org.springframework: WARN

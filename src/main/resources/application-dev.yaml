@@ -1,0 +1,16 @@
+# Development profile
+# Activate with: spring.profiles.active=dev (or --spring.profiles.active=dev)
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate   # Schema from Flyway only; do not drop or alter tables
+    show-sql: true
+  flyway:
+    clean-disabled: false   # Allow clean in dev only if needed (use with care)
+
+logging:
+  level:
+    root: INFO
+    com.seabattle: DEBUG
+    org.hibernate.SQL: DEBUG
