@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
+import { getWsBaseUrl } from '../api/api-config';
 
 export interface GameUpdate {
   type: 'gameStateUpdate' | 'attackResult' | 'gameFinished' | 'playerReady' | 'subscribed' | 'error';
@@ -50,22 +51,14 @@ export class GameWebSocketService {
       }
 
       try {
-        // Use native WebSocket - connect directly to backend
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const backendHost = window.location.hostname;
-        const backendPort = ':8080'; // Always use port 8080 for backend
-        
-        // Get token from AuthService (same as used for HTTP requests)
+        const wsBase = getWsBaseUrl();
         const token = this.authService.getToken();
         const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
-        
-        const wsUrl = `${protocol}//${backendHost}${backendPort}/api/ws/game${tokenParam}`;
-        console.log('🎮 Attempting Game WebSocket connection to:', wsUrl);
+        const wsUrl = `${wsBase}/api/ws/game${tokenParam}`;
         this.socket = new WebSocket(wsUrl);
         this.currentGameId = gameId;
 
         this.socket.onopen = () => {
-          console.log('✅ Game WebSocket connected successfully to:', wsUrl);
           this.reconnectAttempts = 0;
           
           // Subscribe to game updates
@@ -78,15 +71,13 @@ export class GameWebSocketService {
         this.socket.onmessage = (event) => {
           try {
             const data: GameUpdate = JSON.parse(event.data);
-            console.log('🎮 Game WebSocket message received:', data);
             this.gameUpdates$.next(data);
           } catch (error) {
-            console.error('Failed to parse Game WebSocket message:', error);
+            this.gameUpdates$.next({ type: 'error', message: 'Invalid message' });
           }
         };
 
         this.socket.onclose = () => {
-          console.log('🎮 Disconnected from Game WebSocket');
           this.currentGameId = null;
           // Notify about disconnection
           this.gameUpdates$.next({
@@ -99,12 +90,10 @@ export class GameWebSocketService {
         };
 
         this.socket.onerror = (error) => {
-          console.error('🎮 Game WebSocket error:', error);
           observer.error(error);
         };
 
       } catch (error) {
-        console.error('Failed to connect to Game WebSocket:', error);
         observer.error(error);
       }
     });
@@ -113,13 +102,9 @@ export class GameWebSocketService {
   private attemptReconnect(gameId: string): void {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      console.log(`🎮 Attempting to reconnect to game... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-
       setTimeout(() => {
         this.connect(gameId).subscribe();
       }, this.reconnectDelay);
-    } else {
-      console.error('🎮 Max reconnection attempts reached');
     }
   }
 
@@ -138,7 +123,6 @@ export class GameWebSocketService {
         type: 'subscribe',
         gameId: gameId
       }));
-      console.log('📡 Subscribed to game:', gameId);
     }
   }
 
@@ -154,9 +138,6 @@ export class GameWebSocketService {
         x: x,
         y: y
       }));
-      console.log('🎯 Attack sent via WebSocket:', { gameId, x, y });
-    } else {
-      console.warn('🎯 WebSocket not connected, attack sent via HTTP instead');
     }
   }
 
@@ -166,9 +147,6 @@ export class GameWebSocketService {
         type: 'ready',
         gameId: gameId
       }));
-      console.log('✅ Ready sent via WebSocket:', gameId);
-    } else {
-      console.warn('✅ WebSocket not connected, ready sent via HTTP instead');
     }
   }
 
@@ -178,9 +156,6 @@ export class GameWebSocketService {
         type: 'surrender',
         gameId: gameId
       }));
-      console.log('🏳️ Surrender sent via WebSocket:', gameId);
-    } else {
-      console.warn('🏳️ WebSocket not connected, surrender sent via HTTP instead');
     }
   }
 

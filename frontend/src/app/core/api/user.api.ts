@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, Observable } from 'rxjs';
+import { getApiBaseUrl } from './api-config';
 
 interface LoginRequest {
   username: string;
@@ -25,15 +26,14 @@ export class UserApi {
 
   private http = inject(HttpClient);
 
-  // Dynamically determine backend URL based on current location
   private get base(): string {
-    const currentHost = window.location.hostname;
-    const backendHost = currentHost === 'localhost' ? 'localhost' : currentHost;
-    return `http://${backendHost}:8080/api/users`;
+    const apiBase = getApiBaseUrl();
+    return apiBase ? `${apiBase}/api/users` : '/api/users';
   }
 
   private get backendBase(): string {
-    return this.base.replace('/api/users', '');
+    const apiBase = getApiBaseUrl();
+    return apiBase || '';
   }
 
   /** Проверка валидности токена на бэкенде (нужен Authorization: Bearer). */

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { getApiBaseUrl } from './api-config';
 
 export interface RoomStatus {
   token: string;
@@ -19,9 +20,7 @@ export class RoomApi {
   constructor(private http: HttpClient) {}
 
   private get baseUrl(): string {
-    const currentHost = window.location.hostname;
-    const backendHost = currentHost === 'localhost' ? 'localhost' : currentHost;
-    return `http://${backendHost}:8080`;
+    return getApiBaseUrl() || '';
   }
 
   /** Create a new room */

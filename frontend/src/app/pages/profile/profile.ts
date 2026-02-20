@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { UserApi } from '../../core/api/user.api';
+import { getApiBaseUrl } from '../../core/api/api-config';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -54,9 +55,7 @@ export class ProfileComponent {
   }
 
   getBackendUrl(): string {
-    const currentHost = window.location.hostname;
-    const backendHost = currentHost === 'localhost' ? 'localhost' : currentHost;
-    return `http://${backendHost}:8080`;
+    return getApiBaseUrl() || '';
   }
 
 }

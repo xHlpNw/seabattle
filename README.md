@@ -73,8 +73,15 @@ CREATE DATABASE battleship_db;
 -- Create user
 CREATE USER battleship_user WITH PASSWORD 'battleship_pass';
 
--- Grant privileges
+-- Grant database privileges
 GRANT ALL PRIVILEGES ON DATABASE battleship_db TO battleship_user;
+
+-- Connect to battleship_db (e.g. \c battleship_db in psql), then grant schema access
+-- Required in PostgreSQL 15+ so the user can create tables in public schema
+\c battleship_db
+GRANT USAGE, CREATE ON SCHEMA public TO battleship_user;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO battleship_user;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO battleship_user;
 ```
 
 **Note**: The application uses **Flyway** to create and update the database schema (migrations in `src/main/resources/db/migration/`). Hibernate is set to `validate` only. On first run, Flyway will create all tables. If you had an existing database created by Hibernate earlier, either use a fresh database or see [Flyway baseline](https://flywaydb.org/documentation/usage/commandline/baseline) for existing databases.
@@ -108,7 +115,20 @@ mvnw.cmd spring-boot:run
 
 The backend will start on `http://localhost:8080`.
 
-### 4. Frontend Setup
+#### Вариант: бэкенд в IDEA + фронт из сборки (один порт)
+
+Если запускаешь бэкенд из **IDEA**, а фронт только собираешь (`npm run build`):
+
+1. Собрать фронт: `cd frontend && npm run build`
+2. Скопировать сборку в ресурсы бэкенда:
+   - Windows (из папки `server`): `scripts\copy-frontend.cmd` или `powershell -File scripts\copy-frontend.ps1`
+   - Вручную: скопировать всё из `frontend/dist/frontend-app/` в `src/main/resources/static/`
+3. Запустить приложение в IDEA.
+4. Открыть в браузере: **http://localhost:8080**
+
+Приложение и API работают с одного адреса.
+
+### 4. Frontend Setup (режим разработки)
 
 Open a new terminal and navigate to the frontend directory:
 
@@ -182,7 +202,10 @@ jwt:
 
 ### Frontend Configuration
 
-Proxy configuration in `server/frontend/proxy.conf.json`:
+- **Environments**: `src/environments/environment.ts` (dev) and `environment.prod.ts` (prod). Dev uses `http://localhost:8080` (or same host with port 8080 when testing from network). Prod uses same origin (`apiBaseUrl: ''`) — deploy frontend and reverse-proxy `/api` and WebSocket to the backend.
+- **Production build**: `npm run build` (uses `environment.prod.ts` via file replacement). No dev proxy; all requests go to relative `/api` and same-origin WebSocket.
+
+Proxy configuration for **development** only (`server/frontend/proxy.conf.json`):
 
 ```json
 {
@@ -237,6 +260,12 @@ npm test
    - Clear Maven cache: `mvn clean`
    - Clear npm cache: `npm cache clean --force`
    - Reinstall dependencies
+
+5. **Flyway: "нет доступа к схеме public" / "permission denied for schema public"**
+   - PostgreSQL 15+ does not grant create on `public` to new users. Connect as superuser (e.g. `psql -U postgres -d battleship_db`) and run:
+   - `GRANT USAGE, CREATE ON SCHEMA public TO battleship_user;`
+   - `GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO battleship_user;`
+   - `GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO battleship_user;`
 
 ### Development Mode
 

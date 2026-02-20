@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { getWsBaseUrl } from '../api/api-config';
 
 export interface RoomUpdate {
   type: string;
@@ -29,17 +30,11 @@ export class WebSocketService {
       }
 
       try {
-        // Use native WebSocket - connect directly to backend
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        // Connect directly to backend on port 8080
-        const backendHost = window.location.hostname;
-        const backendPort = ':8080'; // Always use port 8080 for backend
-        const wsUrl = `${protocol}//${backendHost}${backendPort}/api/ws/room`;
-        console.log('🔌 Attempting WebSocket connection to:', wsUrl);
+        const wsBase = getWsBaseUrl();
+        const wsUrl = `${wsBase}/api/ws/room`;
         this.socket = new WebSocket(wsUrl);
 
         this.socket.onopen = () => {
-          console.log('✅ WebSocket connected successfully to:', `${protocol}//${backendHost}${backendPort}/api/ws/room`);
           this.reconnectAttempts = 0;
           observer.next(true);
           observer.complete();
@@ -49,23 +44,20 @@ export class WebSocketService {
           try {
             const data: RoomUpdate = JSON.parse(event.data);
             this.roomUpdates$.next(data);
-          } catch (error) {
-            console.error('Failed to parse WebSocket message:', error);
+          } catch {
+            this.roomUpdates$.next({ type: 'error', message: 'Invalid message' });
           }
         };
 
         this.socket.onclose = () => {
-          console.log('Disconnected from WebSocket');
           this.attemptReconnect();
         };
 
         this.socket.onerror = (error) => {
-          console.error('WebSocket error:', error);
           observer.error(error);
         };
 
       } catch (error) {
-        console.error('Failed to connect to WebSocket:', error);
         observer.error(error);
       }
     });
@@ -74,13 +66,9 @@ export class WebSocketService {
   private attemptReconnect(): void {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-
       setTimeout(() => {
         this.connect().subscribe();
       }, this.reconnectDelay);
-    } else {
-      console.error('Max reconnection attempts reached');
     }
   }
 

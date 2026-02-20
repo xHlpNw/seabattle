@@ -37,10 +37,12 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/",  // Allow access to root for SPA
-                                "/index.html",  // Allow direct access to index.html
-                                "/favicon.ico",  // Allow favicon
-                                "/assets/**",  // Allow static assets
+                                "/",  // SPA root
+                                "/index.html",
+                                "/favicon.ico",
+                                "/assets/**",
+                                "/*.js", "/*.css", "/*.ico",  // Angular production build (hashed files at root)
+                                "/login", "/register", "/lobby", "/lobby/**", "/profile", "/setup", "/game", "/game/**",  // SPA routes (serve index.html)
                                 "/api/users/register",
                                 "/api/users/login",
                                 "/default_avatar.png",
@@ -49,7 +51,7 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/api/users/top",
                                 "/api/users/profile",
-                                "/api/ws/**"  // Allow WebSocket connections (authentication handled in handlers)
+                                "/api/ws/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
