@@ -218,10 +218,27 @@ Proxy configuration for **development** only (`server/frontend/proxy.conf.json`)
 }
 ```
 
-## API Documentation
+## Production
 
-The backend includes SpringDoc OpenAPI for API documentation. When the server is running, visit:
-**http://localhost:8080/swagger-ui.html**
+With profile `prod` (`--spring.profiles.active=prod`) **обязательно** задать переменные окружения (в приложении нет дефолтов):
+
+| Переменная | Описание |
+|------------|----------|
+| `SPRING_DATASOURCE_URL` | JDBC URL, например `jdbc:postgresql://host:5432/battleship_db` |
+| `SPRING_DATASOURCE_USERNAME` | Пользователь БД |
+| `SPRING_DATASOURCE_PASSWORD` | Пароль БД |
+| `JWT_SECRET` | Секрет для подписи JWT (достаточно длинная строка) |
+| `JWT_EXPIRATION_MS` | (необязательно) Время жизни токена в мс, по умолчанию 3600000 (1 ч) |
+| `CORS_ALLOWED_ORIGINS` | (необязательно) Разрешённые origin для CORS и WebSocket, через запятую. По умолчанию в prod: `https://yourdomain.com` — замени на домен фронта (например `https://myapp.com`) |
+
+Пример запуска:
+```bash
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/battleship_db
+export SPRING_DATASOURCE_USERNAME=battleship_user
+export SPRING_DATASOURCE_PASSWORD=your_secure_password
+export JWT_SECRET=your_long_random_secret_key
+./mvnw spring-boot:run -Dspring-boot.run.profiles=prod
+```
 
 ## Testing
 

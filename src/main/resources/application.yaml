@@ -36,3 +36,8 @@ logging:
 server:
   address: 0.0.0.0
   port: 8080
+
+# CORS and WebSocket allowed origins (comma-separated). Use * for dev (all origins).
+app:
+  cors:
+    allowed-origins: "*"
