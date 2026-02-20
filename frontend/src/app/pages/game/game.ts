@@ -30,7 +30,7 @@ export class GameComponent implements OnInit, OnDestroy {
   playerBoard: number[][] = [];
   enemyBoard: number[][] = [];
 
-  isLoading: boolean = true;
+  isLoading: boolean = false;
   gameOver: boolean = false;
 
   botLastX: number | null = null;
@@ -68,17 +68,32 @@ export class GameComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const resolveGameId = () => {
+      const fromParams = this.route.snapshot.paramMap.get('gameId');
+      const fromQuery = this.route.snapshot.queryParamMap.get('gameId');
+      return fromParams || fromQuery || null;
+    };
+
+    // Сразу при загрузке (и при обновлении страницы) берём gameId из URL и загружаем доски/результат
+    this.gameId = resolveGameId();
+    if (this.gameId) {
+      await this.loadBoards();
+    }
+
+    // Реакция на переход по маршруту (например с setup на game)
     this.route.paramMap.subscribe(async params => {
-      this.gameId = params.get('gameId');
-      if (!this.gameId) {
-        // Check query parameters if not found in route params
-        this.route.queryParams.subscribe(async queryParams => {
-          this.gameId = queryParams['gameId'];
-          if (this.gameId) {
-            await this.loadBoards();
-          }
-        });
-      } else {
+      const paramId = params.get('gameId');
+      const queryId = this.route.snapshot.queryParamMap.get('gameId');
+      const newGameId = paramId || queryId || null;
+      if (newGameId && newGameId !== this.gameId) {
+        this.gameId = newGameId;
+        await this.loadBoards();
+      }
+    });
+    this.route.queryParamMap.subscribe(async query => {
+      const queryId = query.get('gameId');
+      if (queryId && queryId !== this.gameId) {
+        this.gameId = queryId;
         await this.loadBoards();
       }
     });
@@ -356,16 +371,19 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!this.gameId) return;
 
     if (confirm('Вы уверены, что хотите сдаться? Вы проиграете игру.')) {
-      // For online games, WebSocket will receive gameFinished event
-      // For bot games, we still need to reload boards
       this.gameApi.surrender(this.gameId, this.isBotGame).subscribe({
         next: (response) => {
           console.log('Сдался:', response);
-          // After surrender, for bot games reload boards
-          // For online games, WebSocket will notify us, but if not connected, reload via HTTP
-          if (this.isBotGame || !this.webSocketConnected) {
-            console.log('🏳️ Reloading boards after surrender (bot game or WebSocket not connected)');
-            setTimeout(() => this.loadBoards(), 500); // Small delay to let server process
+          if (this.isBotGame) {
+            // Сразу показываем результат сдачи в игре с ботом
+            this.gameOver = true;
+            this.showResultModal = true;
+            this.gameResultStatus = 'DEFEAT';
+            this.resultText = '🏳️ Вы сдались!';
+            // Обновляем доски с сервера (опционально, для актуального состояния)
+            setTimeout(() => this.loadBoards(), 300);
+          } else if (!this.webSocketConnected) {
+            setTimeout(() => this.loadBoards(), 500);
           }
         },
         error: (err) => {

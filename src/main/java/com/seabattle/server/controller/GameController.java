@@ -244,7 +244,7 @@ public class GameController {
                         .toList()),
                 Map.entry("gameFinished", game.getStatus() == Game.GameStatus.FINISHED),
                 Map.entry("winner", game.getResult() != null ? game.getResult().name() : "NONE"),
-                Map.entry("currentTurn", game.getStatus() == Game.GameStatus.IN_PROGRESS && game.getCurrentTurn() != null ? game.getCurrentTurn().name() : null),
+                Map.entry("currentTurn", game.getStatus() == Game.GameStatus.IN_PROGRESS && game.getCurrentTurn() != null ? game.getCurrentTurn().name() : "NONE"),
                 Map.entry("opponentName", opponentName),
                 Map.entry("isBotGame", isBotGame),
                 Map.entry("isHost", isHost)

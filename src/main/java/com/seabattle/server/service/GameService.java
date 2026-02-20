@@ -379,8 +379,10 @@ public class GameService {
             // Обновляем статистику победителя
             User opponent = isHostWinner ? game.getGuest() : game.getHost();
             persistHistoryAndStats(game, player, opponent, "WIN", +10);
-            // Обновляем статистику проигравшего
-            persistHistoryAndStats(game, opponent, player, "LOSS", -10);
+            // Статистику проигравшего пишем только для онлайн-игры (у бота нет User, opponent == null)
+            if (opponent != null) {
+                persistHistoryAndStats(game, opponent, player, "LOSS", -10);
+            }
 
             AttackResult result = buildAttackResult(
                     BoardModel.fromJson(boardRepo.findByGameIdAndPlayerId(gameId, player.getId()).get().getCells()),

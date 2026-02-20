@@ -209,6 +209,12 @@ html, body {
   color: #ff4444; /* Red color for defeat */
 }
 
+.game-result-text {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: clamp(14px, 2vw, 18px);
+  margin: 0 0 1.25rem 0;
+}
+
 .modal-window .modal-actions {
   display: flex;
   gap: 20px;
