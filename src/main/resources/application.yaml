@@ -14,8 +14,11 @@ spring:
         connection:
           charSet: UTF-8
     hibernate:
-      ddl-auto: create
-      show-sql: true
+      ddl-auto: validate   # Schema managed by Flyway; use dev/prod profile to override logging
+    show-sql: false
+
+  flyway:
+    locations: classpath:db/migration
 
 jwt:
   secret: MY_SUPER_SECRET_KEY_1234567890_ABCDEF

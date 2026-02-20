@@ -3,6 +3,8 @@ package com.seabattle.server.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seabattle.server.entity.User;
 import com.seabattle.server.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -19,6 +21,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @Component
 public class RoomWebSocketHandler extends TextWebSocketHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(RoomWebSocketHandler.class);
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final UserRepository userRepository;
 
@@ -31,7 +35,7 @@ public class RoomWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        System.out.println("🔌 WebSocket connection established: " + session.getId());
+        log.info("Room WebSocket connection established: sessionId={}", session.getId());
     }
 
     @Override
@@ -51,10 +55,10 @@ public class RoomWebSocketHandler extends TextWebSocketHandler {
                     handleStatus(session, payload);
                     break;
                 default:
-                    System.out.println("Unknown message type: " + type);
+                    log.warn("Unknown message type: {}", type);
             }
         } catch (Exception e) {
-            System.err.println("Error handling WebSocket message: " + e.getMessage());
+            log.error("Error handling WebSocket message", e);
         }
     }
 
@@ -62,7 +66,7 @@ public class RoomWebSocketHandler extends TextWebSocketHandler {
         String roomToken = (String) payload.get("roomToken");
         if (roomToken != null) {
             roomSessions.computeIfAbsent(roomToken, k -> new CopyOnWriteArraySet<>()).add(session);
-            System.out.println("📡 Session " + session.getId() + " subscribed to room " + roomToken);
+            log.debug("Session {} subscribed to room {}", session.getId(), roomToken);
         }
     }
 
@@ -96,24 +100,24 @@ public class RoomWebSocketHandler extends TextWebSocketHandler {
     }
 
     public void broadcastToRoom(String roomToken, Object message) {
-        System.out.println("📤 Broadcasting to room " + roomToken + ": " + message);
+        log.debug("Broadcasting to room {}: {}", roomToken, message);
         CopyOnWriteArraySet<WebSocketSession> sessions = roomSessions.get(roomToken);
         if (sessions != null) {
-            System.out.println("📤 Found " + sessions.size() + " sessions in room " + roomToken);
+            log.debug("Found {} sessions in room {}", sessions.size(), roomToken);
             sessions.forEach(session -> {
                 if (session.isOpen()) {
                     try {
                         session.sendMessage(new TextMessage(objectMapper.writeValueAsString(message)));
-                        System.out.println("📤 Message sent to session " + session.getId());
+                        log.trace("Message sent to session {}", session.getId());
                     } catch (IOException e) {
-                        System.err.println("Error sending message to session " + session.getId() + ": " + e.getMessage());
+                        log.warn("Error sending message to session {}: {}", session.getId(), e.getMessage());
                     }
                 } else {
-                    System.out.println("📤 Session " + session.getId() + " is not open");
+                    log.debug("Session {} is not open", session.getId());
                 }
             });
         } else {
-            System.out.println("📤 No sessions found for room " + roomToken);
+            log.debug("No sessions found for room {}", roomToken);
         }
     }
 
@@ -126,6 +130,6 @@ public class RoomWebSocketHandler extends TextWebSocketHandler {
                 roomSessions.remove(roomToken);
             }
         });
-        System.out.println("WebSocket connection closed: " + session.getId());
+        log.info("Room WebSocket connection closed: sessionId={}", session.getId());
     }
 }

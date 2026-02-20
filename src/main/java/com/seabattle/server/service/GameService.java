@@ -16,6 +16,9 @@ import lombok.Setter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +29,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class GameService {
+
+    private static final Logger log = LoggerFactory.getLogger(GameService.class);
 
     private final GameRepository gameRepo;
     private final BoardRepository boardRepo;
@@ -176,7 +181,7 @@ public class GameService {
         BotAiService.BotMove botMove = botAi.nextMove(playerBm);
         BoardModel.ShotOutcome botOutcome = playerBm.shoot(botMove.x(), botMove.y());
 
-        System.out.println(String.format("Bot shoots at ({}, {}), hit: {}, sunk: {}", botMove.x(), botMove.y(), botOutcome.hit, botOutcome.sunk));
+        log.debug("Bot shoots at ({}, {}), hit: {}, sunk: {}", botMove.x(), botMove.y(), botOutcome.hit, botOutcome.sunk);
 
         Move botMoveEntity = Move.builder()
                 .game(game)
@@ -288,8 +293,7 @@ public class GameService {
             // Send final state to both players
             broadcastGameStateUpdate(gameId, finalResult, winner != null ? winner : player);
         } catch (Exception e) {
-            System.err.println("Error sending final game state: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error sending final game state", e);
         }
 
         // Broadcast game finished event via WebSocket
@@ -411,7 +415,7 @@ public class GameService {
             BotAiService.BotMove botMove = botAi.nextMove(playerModel);
             BoardModel.ShotOutcome botOutcome = playerModel.shoot(botMove.x(), botMove.y());
 
-            System.out.println(String.format("Bot shoots at ({}, {}), hit: {}, sunk: {}", botMove.x(), botMove.y(), botOutcome.hit, botOutcome.sunk));
+            log.debug("Bot shoots at ({}, {}), hit: {}, sunk: {}", botMove.x(), botMove.y(), botOutcome.hit, botOutcome.sunk);
 
             // Convert to GameService.BotMove for compatibility
             lastBotMove = new BotMove(botMove.x(), botMove.y(), botOutcome.hit, botOutcome.sunk);
@@ -522,7 +526,7 @@ public class GameService {
         BotAiService.BotMove botMove = botAi.nextMove(playerModel);
         BoardModel.ShotOutcome botOutcome = playerModel.shoot(botMove.x(), botMove.y());
 
-        System.out.println(String.format("Bot shoots at ({}, {}), hit: {}, sunk: {}", botMove.x(), botMove.y(), botOutcome.hit, botOutcome.sunk));
+        log.debug("Bot shoots at ({}, {}), hit: {}, sunk: {}", botMove.x(), botMove.y(), botOutcome.hit, botOutcome.sunk);
 
         // Проверка победы
         if (playerModel.allShipsSunk()) {
@@ -669,8 +673,7 @@ public class GameService {
                 gameWebSocketHandler.sendToUser(gameId, game.getGuest().getUsername(), guestMessage);
             }
         } catch (Exception e) {
-            System.err.println("Error broadcasting game state update: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error broadcasting game state update", e);
         }
     }
 
@@ -687,8 +690,7 @@ public class GameService {
 
             gameWebSocketHandler.broadcastToGame(gameId, message);
         } catch (Exception e) {
-            System.err.println("Error broadcasting game finished: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error broadcasting game finished", e);
         }
     }
 

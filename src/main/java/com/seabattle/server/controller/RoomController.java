@@ -12,6 +12,8 @@ import com.seabattle.server.repository.RoomRepository;
 import com.seabattle.server.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,6 +31,8 @@ import java.util.UUID;
 @RequestMapping("/api/rooms")
 @RequiredArgsConstructor
 public class RoomController {
+
+    private static final Logger log = LoggerFactory.getLogger(RoomController.class);
 
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
@@ -60,7 +64,7 @@ public class RoomController {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        System.out.println("createRoom called by user: " + user.getUsername());
+        log.debug("createRoom called by user: {}", user.getUsername());
 
         // Always create new room (no checking for existing active rooms)
         Room room = new Room();
@@ -72,7 +76,7 @@ public class RoomController {
 
         roomRepository.save(room);
 
-        System.out.println("Room created with token: " + room.getToken() + ", host: " + user.getUsername());
+        log.info("Room created: token={}, host={}", room.getToken(), user.getUsername());
 
         return ResponseEntity.ok(Map.of(
                 "roomToken", room.getToken(),
@@ -116,7 +120,7 @@ public class RoomController {
         roomRepository.save(room);
 
         // Player joined successfully (no WebSocket notification needed)
-        System.out.println("👥 Player " + user.getUsername() + " joined room " + room.getToken());
+        log.info("Player {} joined room {}", user.getUsername(), room.getToken());
 
         return ResponseEntity.ok(Map.of(
                 "message", "Successfully joined room",
@@ -197,21 +201,22 @@ public class RoomController {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        System.out.println("getRoomStatus called by user: " + user.getUsername() + " for room token: " + token);
+        log.debug("getRoomStatus called by user {} for room token {}", user.getUsername(), token);
 
         Room room = roomRepository.findByToken(token);
         if (room == null) {
-            System.out.println("Room not found for token: " + token);
+            log.debug("Room not found for token: {}", token);
             return ResponseEntity.notFound().build();
         }
 
-        System.out.println("Room found: host=" + room.getHost().getUsername() + ", guest=" + (room.getGuest() != null ? room.getGuest().getUsername() : "null"));
+        log.debug("Room found: host={}, guest={}", room.getHost().getUsername(),
+                room.getGuest() != null ? room.getGuest().getUsername() : null);
 
         // Check if user is a participant in this room
         boolean isHost = room.getHost().equals(user);
         boolean isGuest = room.getGuest() != null && room.getGuest().equals(user);
         if (!isHost && !isGuest) {
-            System.out.println("Access denied: user " + user.getUsername() + " is not a participant in room " + token + ", host: " + room.getHost().getUsername() + ", guest: " + (room.getGuest() != null ? room.getGuest().getUsername() : "null"));
+            log.warn("Access denied: user {} is not a participant in room {}", user.getUsername(), token);
             return ResponseEntity.status(403).build();
         }
 

@@ -77,7 +77,7 @@ CREATE USER battleship_user WITH PASSWORD 'battleship_pass';
 GRANT ALL PRIVILEGES ON DATABASE battleship_db TO battleship_user;
 ```
 
-**Note**: The application will automatically create tables using Hibernate (`ddl-auto: create`).
+**Note**: The application uses **Flyway** to create and update the database schema (migrations in `src/main/resources/db/migration/`). Hibernate is set to `validate` only. On first run, Flyway will create all tables. If you had an existing database created by Hibernate earlier, either use a fresh database or see [Flyway baseline](https://flywaydb.org/documentation/usage/commandline/baseline) for existing databases.
 
 ### 3. Backend Setup
 
@@ -92,10 +92,12 @@ The backend is already configured to connect to:
 - **Username**: `battleship_user`
 - **Password**: `battleship_pass`
 
-Start the Spring Boot server:
+Start the Spring Boot server (optionally with profile `dev` for SQL logging):
 
 ```bash
 ./mvnw spring-boot:run
+# or with dev profile:
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 
 Or on Windows:
@@ -174,6 +176,9 @@ jwt:
   secret: YOUR_SECRET_KEY_HERE
   expiration-ms: 3600000
 ```
+
+- **Profiles**: `application-dev.yaml` (SQL logging, DEBUG) and `application-prod.yaml` (HikariCP tuning, no SQL in logs). Activate with `--spring.profiles.active=dev` or `prod`.
+- **Schema**: Managed by **Flyway** (`db/migration/`). Hibernate uses `ddl-auto: validate` only.
 
 ### Frontend Configuration
 
