@@ -8,9 +8,7 @@
 
 - **Игра с ботом** — умный бот с прицеливанием по вероятностям
 - **Мультиплеер** — комнаты по ссылке, игра вдвоём
-- **Регистрация и вход** — JWT
 - **Рейтинг** — таблица лидеров
-- **WebSocket** — обновления ходов и лобби без перезагрузки
 - **Расстановка кораблей** — вручную или авто
 
 ---
@@ -23,15 +21,8 @@
 |------------|------------|
 | **Java 17** | Язык |
 | **Spring Boot 4.0.2** | Каркас приложения |
-| **Spring Web MVC** | REST API |
-| **Spring Security** | Аутентификация, CORS |
-| **Spring Data JPA** | Работа с БД |
-| **Spring WebSocket** | Игровые и комнатные события |
-| **Spring Validation** | Валидация запросов |
-| **PostgreSQL** | База данных |
-| **Flyway** | Миграции схемы БД |
-| **HikariCP** | Пул соединений (через Spring Boot) |
-| **Lombok** | Уменьшение шаблонного кода |
+| **PostgreSQL 13+** | База данных (проверялось на 17.8) |
+| **Flyway 12.0.2** | Миграции схемы БД |
 | **JJWT 0.11.5** | Создание и проверка JWT |
 
 ### Фронтенд
@@ -41,8 +32,6 @@
 | **Angular 20.3** | SPA-фреймворк |
 | **TypeScript 5.9** | Язык |
 | **RxJS 7.8** | Реактивные потоки |
-| **Angular Router** | Маршрутизация |
-| **Angular Forms** | Формы (логин, регистрация и т.д.) |
 | **SCSS** | Стили |
 | **Zone.js** | Зоны для Angular |
 
@@ -54,12 +43,26 @@
 
 ---
 
+## Версии технологий
+
+| Компонент | Версия |
+|-----------|--------|
+| Java | **17** |
+| Spring Boot | **4.0.2** |
+| PostgreSQL | 13+ (проверялось на **17.8**) |
+| Flyway | 12.0.2 |
+| Angular | 20.3.x |
+| TypeScript | 5.9.x |
+| Node.js | 18+ (для сборки фронта) |
+
+---
+
 ## Требования
 
-- **Java 21+**
-- **Node.js 18+** и **npm**
-- **PostgreSQL 13+** (проверялось на 18)
-- **Maven 3.6+** (или использовать `mvnw` / `mvnw.cmd` из проекта)
+- **Java 17** (указано в `pom.xml`)
+- **Node.js 18+** и **npm** — для сборки и запуска фронтенда
+- **PostgreSQL 13+** (проверялось на 17.8)
+- **Maven 3.6+** — или использовать `mvnw` / `mvnw.cmd` из папки `server`
 
 ---
 
@@ -80,36 +83,48 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO battleship_user;
 
 Схема создаётся при первом запуске приложения через **Flyway** (миграции в `src/main/resources/db/migration/`).
 
+По умолчанию в `application.yaml` указан порт PostgreSQL **5433**. Если у тебя БД на стандартном порту 5432, измени в `application.yaml` строку `spring.datasource.url` на `jdbc:postgresql://localhost:5432/battleship_db`.
+
 ---
 
-## Тестовый запуск (локально)
+## Запуск (локально)
 
-1. **Бэкенд** (из папки `server`):
+### 1. Бэкенд
 
-   ```bash
-   ./mvnw spring-boot:run
-   ```
-   Windows:
-   ```cmd
-   mvnw.cmd spring-boot:run
-   ```
-   Сервер: **http://localhost:8080**
+Из корня репозитория перейди в папку `server` и запусти приложение:
 
-2. **Фронт** (в другом терминале):
+**Windows (cmd или PowerShell):**
+```cmd
+cd server
+mvnw.cmd spring-boot:run
+```
 
-   ```bash
-   cd server/frontend
-   npm install
-   npm start
-   ```
-   Открой в браузере: **http://localhost:4200**
+**Linux / macOS:**
+```bash
+cd server
+./mvnw spring-boot:run
+```
 
-Запросы с фронта к API идут через прокси на `localhost:8080`. Для доступа с другого устройства в сети (по IP) используется `proxy.network.conf.json`; при необходимости поменяй в нём IP/порт бэкенда.
+После старта бэкенд доступен по адресу **http://localhost:8080**.
+
+### 2. Фронтенд
+
+В **другом** терминале:
+
+```bash
+cd server/frontend
+npm install
+npm start
+```
+
+В браузере открой **http://localhost:4200**.
+
+Запросы с фронта к API проксируются на `localhost:8080` (настройка в `proxy.network.conf.json`). Для доступа с другого устройства в сети при необходимости измени в этом файле IP/порт бэкенда.
 
 
 ## Запуск на хосте (production)
 
-На сервере нужны: Java 21, PostgreSQL, переменные окружения и (по желанию) reverse proxy (Nginx) и systemd.
+На сервере нужны: **Java 17**, PostgreSQL, переменные окружения и (по желанию) reverse proxy (Nginx) и systemd.
 
 ### 1. Переменные окружения
 
@@ -117,7 +132,7 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO battleship_user;
 
 | Переменная | Описание |
 |------------|----------|
-| `SPRING_DATASOURCE_URL` | JDBC URL, например `jdbc:postgresql://localhost:5432/battleship_db` |
+| `SPRING_DATASOURCE_URL` | JDBC URL, например `jdbc:postgresql://localhost:5432/battleship_db` (порт 5432 или 5433 — по твоей установке PostgreSQL) |
 | `SPRING_DATASOURCE_USERNAME` | Пользователь БД |
 | `SPRING_DATASOURCE_PASSWORD` | Пароль БД |
 | `JWT_SECRET` | Секрет для подписи JWT (длинная случайная строка) |
@@ -131,7 +146,7 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO battleship_user;
 
 ### 2. Сборка и запуск JAR
 
-На машине с установленными Java 21 и Maven (или только Java, если JAR собираешь локально):
+На машине с установленными **Java 17** и Maven (или только Java, если JAR собираешь локально):
 
 ```bash
 cd server
