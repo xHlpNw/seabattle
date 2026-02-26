@@ -30,7 +30,7 @@
 		<java.version>17</java.version>
 		<!-- Override: Flyway 11.x does not recognize PostgreSQL 17.8; 12.x uses plugin-based DB detection -->
 		<flyway.version>12.0.2</flyway.version>
-		<main.class.web>com.seabattle.SeaBattleServerApplication</main.class.web>
+		<main.class.web>com.seabattle.server.SeaBattleServerApplication</main.class.web>
 		<main.class.bot>com.seabattle.bot.BotApplication</main.class.bot>
 	</properties>
 	<dependencies>
@@ -130,6 +130,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<mainClass>${main.class.web}</mainClass>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
@@ -137,6 +138,13 @@
 						</exclude>
 					</excludes>
 				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
