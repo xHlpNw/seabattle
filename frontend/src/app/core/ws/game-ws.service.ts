@@ -4,8 +4,11 @@ import { AuthService } from '../auth/auth.service';
 import { getWsBaseUrl } from '../api/api-config';
 
 export interface GameUpdate {
-  type: 'gameStateUpdate' | 'attackResult' | 'gameFinished' | 'playerReady' | 'subscribed' | 'error';
+  type: 'gameStateUpdate' | 'attackResult' | 'gameFinished' | 'playerReady' | 'subscribed' | 'error'
+    | 'rematchRequested' | 'rematchAccepted' | 'rematchDeclined' | 'rematchRequestSent';
   gameId?: string;
+  newGameId?: string;
+  requestedByUsername?: string;
   playerBoard?: number[][];
   enemyBoard?: number[][];
   currentTurn?: string | null;
@@ -156,6 +159,24 @@ export class GameWebSocketService {
         type: 'surrender',
         gameId: gameId
       }));
+    }
+  }
+
+  sendRematchRequest(gameId: string): void {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify({ type: 'rematchRequest', gameId }));
+    }
+  }
+
+  sendRematchAccept(gameId: string): void {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify({ type: 'rematchAccept', gameId }));
+    }
+  }
+
+  sendRematchDecline(gameId: string): void {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify({ type: 'rematchDecline', gameId }));
     }
   }
 

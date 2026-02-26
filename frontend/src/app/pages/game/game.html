@@ -50,18 +50,32 @@
     <button class="surrender" (click)="surrender()">SURRENDER</button>
   </footer>
 
-  <!-- MODAL -->
+  <!-- MODAL: результат игры -->
   <div class="modal-backdrop" *ngIf="showResultModal">
     <div class="modal-window">
       <div class="game-result-status" [ngClass]="{'victory': gameResultStatus === 'VICTORY', 'defeat': gameResultStatus === 'DEFEAT'}">
         {{ gameResultStatus }}
       </div>
       <p class="game-result-text" *ngIf="resultText">{{ resultText }}</p>
+      <p class="game-result-error" *ngIf="createGameError">{{ createGameError }}</p>
+      <p class="rematch-waiting" *ngIf="!isBotGame && rematchRequestPending">Ожидание ответа противника…</p>
+      <p class="rematch-declined" *ngIf="!isBotGame && rematchDeclinedMessage">Противник отказался от реванша.</p>
       <div class="modal-actions">
-        <button (click)="isBotGame ? startNewBotGame() : goToHome()" [disabled]="startingNewGame">
-          {{ startingNewGame ? 'Создание игры…' : 'New Game' }}
+        <button (click)="isBotGame ? startNewBotGame() : requestRematch()" [disabled]="startingNewGame || (!isBotGame && rematchRequestPending)">
+          {{ isBotGame && startingNewGame ? 'Создание игры…' : (!isBotGame && rematchRequestPending ? 'Ожидание…' : 'New Game') }}
         </button>
         <button (click)="goToHome()">Back to Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: предложение реванша (только онлайн) -->
+  <div class="modal-backdrop" *ngIf="rematchRequestedBy">
+    <div class="modal-window rematch-proposal">
+      <p class="rematch-proposal-text">{{ rematchRequestedBy }} предлагает реванш</p>
+      <div class="modal-actions">
+        <button class="accept" (click)="acceptRematch()">Принять</button>
+        <button class="decline" (click)="declineRematch()">Отказаться</button>
       </div>
     </div>
   </div>

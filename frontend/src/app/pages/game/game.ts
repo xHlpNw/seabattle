@@ -39,6 +39,14 @@ export class GameComponent implements OnInit, OnDestroy {
   showResultModal: boolean = false;
   resultText: string = "";
   gameResultStatus: string = "";
+  startingNewGame: boolean = false;
+  createGameError: string | null = null;
+  /** Онлайн: мы нажали «New Game» и ждём ответа противника */
+  rematchRequestPending: boolean = false;
+  /** Онлайн: нам предложили реванш (имя инициатора для модалки) */
+  rematchRequestedBy: string | null = null;
+  /** Онлайн: показать «Противник отказался» в модалке результата */
+  rematchDeclinedMessage: boolean = false;
 
   currentTurn: string | null = null;
   isPlayerTurn: boolean = true;
@@ -150,8 +158,8 @@ export class GameComponent implements OnInit, OnDestroy {
         this.triggerBotMove();
       }
 
-      // For online games, connect to WebSocket and subscribe to updates
-      if (!this.isBotGame && this.gameId) {
+      // For online games, connect to WebSocket and subscribe to updates (один раз, не при каждом loadBoards)
+      if (!this.isBotGame && this.gameId && !this.webSocketConnected) {
         this.setupWebSocketConnection();
       }
 
@@ -195,6 +203,8 @@ export class GameComponent implements OnInit, OnDestroy {
 
     switch (update.type) {
       case 'gameStateUpdate':
+        // Игнорировать обновления от другой игры (важно после реванша — подписка на newGameId)
+        if (update.gameId && update.gameId !== this.gameId) return;
         if (update.playerBoard) {
           this.playerBoard = update.playerBoard;
         }
@@ -219,11 +229,48 @@ export class GameComponent implements OnInit, OnDestroy {
         this.handleGameFinished(update.winner);
         break;
 
+      case 'subscribed':
+        // После подписки на игру подтянуть актуальное состояние (на случай пропущенных обновлений, в т.ч. после реванша)
+        if (!this.isBotGame && update.gameId === this.gameId) {
+          this.loadBoards();
+        }
+        break;
+
       case 'playerReady':
         console.log('🎮 Player ready update:', update);
         if (update.gameStarted && !this.gameOver) {
           // Game started, might need to refresh boards
           this.loadBoards();
+        }
+        break;
+
+      case 'rematchRequested':
+        if (update.gameId === this.gameId && !this.isBotGame) {
+          this.rematchRequestedBy = update.requestedByUsername ?? 'Противник';
+        }
+        break;
+
+      case 'rematchRequestSent':
+        if (update.gameId === this.gameId) {
+          this.rematchRequestPending = true;
+          this.rematchDeclinedMessage = false;
+        }
+        break;
+
+      case 'rematchAccepted':
+        if (update.newGameId) {
+          this.showResultModal = false;
+          this.rematchRequestPending = false;
+          this.rematchRequestedBy = null;
+          this.rematchDeclinedMessage = false;
+          this.router.navigate(['/setup'], { queryParams: { gameId: update.newGameId } });
+        }
+        break;
+
+      case 'rematchDeclined':
+        if (update.gameId === this.gameId) {
+          this.rematchRequestPending = false;
+          this.rematchDeclinedMessage = true;
         }
         break;
 
@@ -240,6 +287,10 @@ export class GameComponent implements OnInit, OnDestroy {
   private handleGameFinished(winner?: string | null) {
     this.gameOver = true;
     this.showResultModal = true;
+    this.createGameError = null;
+    this.rematchRequestPending = false;
+    this.rematchRequestedBy = null;
+    this.rematchDeclinedMessage = false;
 
     if (winner === 'HOST_WIN') {
       this.gameResultStatus = this.isHost ? "VICTORY" : "DEFEAT";
@@ -258,15 +309,39 @@ export class GameComponent implements OnInit, OnDestroy {
     return Array.from({ length: 10 }, () => Array(10).fill(0));
   }
 
-  startingNewGame: boolean = false;
-
   goToHome() {
     this.showResultModal = false;
+    this.createGameError = null;
+    this.rematchRequestPending = false;
+    this.rematchRequestedBy = null;
+    this.rematchDeclinedMessage = false;
     this.router.navigate(['/']);
   }
 
+  /** Онлайн: запросить реванш (отправить предложение противнику) */
+  requestRematch() {
+    if (!this.gameId || this.isBotGame || this.rematchRequestPending) return;
+    this.gameWs.sendRematchRequest(this.gameId);
+  }
+
+  /** Онлайн: принять предложение реванша */
+  acceptRematch() {
+    if (!this.gameId || this.isBotGame) return;
+    this.gameWs.sendRematchAccept(this.gameId);
+    this.rematchRequestedBy = null;
+  }
+
+  /** Онлайн: отказаться от реванша */
+  declineRematch() {
+    if (!this.gameId || this.isBotGame) return;
+    this.gameWs.sendRematchDecline(this.gameId);
+    this.rematchRequestedBy = null;
+  }
+
+  /** Создать новую игру с ботом и перейти на расстановку кораблей. В онлайн-режиме не используется. */
   startNewBotGame() {
-    if (this.startingNewGame) return;
+    if (this.startingNewGame || !this.isBotGame) return;
+    this.createGameError = null;
     this.startingNewGame = true;
     this.gameApi.createBotGame().subscribe({
       next: (res) => {
@@ -275,7 +350,7 @@ export class GameComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.startingNewGame = false;
-        this.goToHome();
+        this.createGameError = 'Не удалось создать игру. Попробуйте с главной.';
       }
     });
   }
