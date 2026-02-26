@@ -6,7 +6,7 @@ spring:
     use-jackson2-defaults: true
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/battleship_db
+    url: jdbc:postgresql://localhost:5432/battleship_db
     username: battleship_user
     password: battleship_pass
     driver-class-name: org.postgresql.Driver
