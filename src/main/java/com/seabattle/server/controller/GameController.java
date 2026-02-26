@@ -139,7 +139,7 @@ public class GameController {
             }
         }
 
-        Board board = boardRepository.findByGameIdAndPlayerId(game.getId(), player.getId())
+        Board board = boardRepository.findFirstByGameIdAndPlayerIdOrderByIdAsc(game.getId(), player.getId())
                 .orElse(Board.builder().game(game).player(player).build());
 
         board.setCells(boardModel.toJson());
@@ -154,7 +154,7 @@ public class GameController {
         User player = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        Board board = boardRepository.findByGameIdAndPlayerId(gameId, player.getId())
+        Board board = boardRepository.findFirstByGameIdAndPlayerIdOrderByIdAsc(gameId, player.getId())
                 .orElse(Board.builder()
                         .game(gameRepository.findById(gameId).orElseThrow())
                         .player(player)
@@ -200,7 +200,7 @@ public class GameController {
                 .orElseThrow(() -> new EntityNotFoundException("Game not found"));
 
         // Доска игрока
-        Board playerBoard = boardRepository.findByGameIdAndPlayerId(gameId, player.getId())
+        Board playerBoard = boardRepository.findFirstByGameIdAndPlayerIdOrderByIdAsc(gameId, player.getId())
                 .orElseGet(() -> Board.builder()
                         .game(game)
                         .player(player)

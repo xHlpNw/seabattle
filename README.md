@@ -21,9 +21,9 @@
 
 | Технология | Назначение |
 |------------|------------|
-| **Java 21** | Язык |
-| **Spring Boot 3.5.7** | Каркас приложения |
-| **Spring Web** | REST API |
+| **Java 17** | Язык |
+| **Spring Boot 4.0.2** | Каркас приложения |
+| **Spring Web MVC** | REST API |
 | **Spring Security** | Аутентификация, CORS |
 | **Spring Data JPA** | Работа с БД |
 | **Spring WebSocket** | Игровые и комнатные события |
