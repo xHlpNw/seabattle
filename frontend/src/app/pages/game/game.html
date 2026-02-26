@@ -58,7 +58,9 @@
       </div>
       <p class="game-result-text" *ngIf="resultText">{{ resultText }}</p>
       <div class="modal-actions">
-        <button (click)="goToHome()">New Game</button>
+        <button (click)="isBotGame ? startNewBotGame() : goToHome()" [disabled]="startingNewGame">
+          {{ startingNewGame ? 'Создание игры…' : 'New Game' }}
+        </button>
         <button (click)="goToHome()">Back to Menu</button>
       </div>
     </div>

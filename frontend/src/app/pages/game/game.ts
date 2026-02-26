@@ -258,9 +258,26 @@ export class GameComponent implements OnInit, OnDestroy {
     return Array.from({ length: 10 }, () => Array(10).fill(0));
   }
 
+  startingNewGame: boolean = false;
+
   goToHome() {
     this.showResultModal = false;
-    this.router.navigate(['/']); // переход на главную страницу
+    this.router.navigate(['/']);
+  }
+
+  startNewBotGame() {
+    if (this.startingNewGame) return;
+    this.startingNewGame = true;
+    this.gameApi.createBotGame().subscribe({
+      next: (res) => {
+        this.showResultModal = false;
+        this.router.navigate(['/setup'], { queryParams: { gameId: res.gameId } });
+      },
+      error: () => {
+        this.startingNewGame = false;
+        this.goToHome();
+      }
+    });
   }
 
   attackEnemy(i: number, j: number) {
