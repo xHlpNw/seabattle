@@ -150,10 +150,10 @@ npm start
 
 ```bash
 cd server
-./mvnw clean package -DskipTests
+./mvnw clean package -DskipTests -Pwebapp,bot
 ```
 
-JAR: `target/server-0.0.1-SNAPSHOT.jar`.
+JAR: `target/server-bot-0.0.1-SNAPSHOT.jar`.
 
 **Запуск с профилем prod:**
 

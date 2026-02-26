@@ -15,13 +15,13 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
 
-public class SeaBot extends TelegramLongPollingBot {
+public class BotApplication extends TelegramLongPollingBot {
 
     private final static String WEB_APP_URL = "https://battle-ship-pro.ru/";
     private final static WebAppInfo WEB_APP_INFO = new WebAppInfo(WEB_APP_URL);
     private final Set<Long> awaitingLinkUsers = new HashSet<>();
 
-    public SeaBot() {
+    public BotApplication() {
     }
 
     @Override
@@ -136,7 +136,7 @@ public class SeaBot extends TelegramLongPollingBot {
 
     public static void main(String[] args) throws TelegramApiException {
         TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
-        SeaBot bot = new SeaBot();
+        BotApplication bot = new BotApplication();
         botsApi.registerBot(bot);
     }
 }
