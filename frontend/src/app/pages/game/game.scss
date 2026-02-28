@@ -42,6 +42,8 @@ html, body {
 .logo {
   color: #53c7f5;
   font-size: clamp(16px, 2vw, 24px);
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .turn-banner {

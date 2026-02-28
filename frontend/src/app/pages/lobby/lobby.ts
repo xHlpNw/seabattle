@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RoomApi, RoomStatus } from '../../core/api/room.api';
 
@@ -8,7 +8,7 @@ import { RoomApi, RoomStatus } from '../../core/api/room.api';
   templateUrl: './lobby.html',
   styleUrls: ['./lobby.scss'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule, RouterLink]
 })
 export class LobbyComponent implements OnInit, OnDestroy {
 
