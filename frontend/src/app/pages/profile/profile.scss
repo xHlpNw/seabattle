@@ -24,6 +24,8 @@ body {
 .logo {
   color: #53c7f5;
   font-size: 24px;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .page-title {
@@ -291,4 +293,131 @@ hr {
   border: 1px solid #53c7f5;
   color: #53c7f5;
   padding: 6px 14px;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  .topbar {
+    padding: 0 16px;
+    height: 56px;
+  }
+
+  .logo {
+    font-size: 18px;
+  }
+
+  .page-title {
+    display: none;
+  }
+
+  .home-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .main {
+    padding: 16px;
+    gap: 20px;
+  }
+
+  .profile-card {
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 16px;
+    align-items: stretch;
+  }
+
+  .profile-left {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .avatar {
+    width: 72px;
+    height: 72px;
+  }
+
+  .username {
+    font-size: 22px;
+  }
+
+  .logout-btn {
+    width: 100%;
+    padding: 12px 16px;
+  }
+
+  .statistics h3,
+  .leaderboard h3 {
+    font-size: 16px;
+  }
+
+  .statistics {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .stats .stat {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .stats span {
+    font-size: 24px;
+  }
+
+  .stats label {
+    font-size: 12px;
+  }
+
+  .rating .rating-num {
+    font-size: 32px;
+  }
+
+  .rating-sub {
+    font-size: 12px;
+  }
+
+  .leaderboard li {
+    padding: 10px 12px;
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+
+  .leaderboard .left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .leaderboard .nickname {
+    font-size: 16px;
+    word-break: break-word;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .leaderboard .elo {
+    font-size: 16px;
+  }
+
+  .leaderboard .position {
+    width: 28px;
+    padding-right: 8px;
+    font-size: 14px;
+  }
+
+  .loading-container p,
+  .error-container p {
+    font-size: 14px;
+  }
 }

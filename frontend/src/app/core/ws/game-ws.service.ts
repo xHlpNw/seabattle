@@ -4,8 +4,11 @@ import { AuthService } from '../auth/auth.service';
 import { getWsBaseUrl } from '../api/api-config';
 
 export interface GameUpdate {
-  type: 'gameStateUpdate' | 'attackResult' | 'gameFinished' | 'playerReady' | 'subscribed' | 'error';
+  type: 'gameStateUpdate' | 'attackResult' | 'gameFinished' | 'playerReady' | 'subscribed' | 'error'
+    | 'rematchRequested' | 'rematchAccepted' | 'rematchDeclined' | 'rematchRequestSent';
   gameId?: string;
+  newGameId?: string;
+  requestedByUsername?: string;
   playerBoard?: number[][];
   enemyBoard?: number[][];
   currentTurn?: string | null;
@@ -33,6 +36,10 @@ export class GameWebSocketService {
   private reconnectDelay = 2000;
   private currentGameId: string | null = null;
   private authService = inject(AuthService);
+  /** True when close was triggered by disconnect() (e.g. navigation away / rematch to setup) — skip reconnect and avoid emitting error */
+  private intentionalDisconnect = false;
+  /** Pending reconnect timeout — cleared in disconnect() to prevent reconnect after switching game */
+  private reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {}
 
@@ -57,6 +64,8 @@ export class GameWebSocketService {
         const wsUrl = `${wsBase}/api/ws/game${tokenParam}`;
         this.socket = new WebSocket(wsUrl);
         this.currentGameId = gameId;
+        // Очистить последнее значение, чтобы новый подписчик не получил старый rematchAccepted (replay BehaviorSubject)
+        this.gameUpdates$.next(null);
 
         this.socket.onopen = () => {
           this.reconnectAttempts = 0;
@@ -79,7 +88,10 @@ export class GameWebSocketService {
 
         this.socket.onclose = () => {
           this.currentGameId = null;
-          // Notify about disconnection
+          if (this.intentionalDisconnect) {
+            this.intentionalDisconnect = false;
+            return;
+          }
           this.gameUpdates$.next({
             type: 'error',
             message: 'WebSocket disconnected'
@@ -100,16 +112,22 @@ export class GameWebSocketService {
   }
 
   private attemptReconnect(gameId: string): void {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.reconnectAttempts++;
-      setTimeout(() => {
-        this.connect(gameId).subscribe();
-      }, this.reconnectDelay);
-    }
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) return;
+    this.reconnectAttempts++;
+    this.reconnectTimeoutId = setTimeout(() => {
+      this.reconnectTimeoutId = null;
+      this.connect(gameId).subscribe();
+    }, this.reconnectDelay);
   }
 
   disconnect(): void {
+    if (this.reconnectTimeoutId != null) {
+      clearTimeout(this.reconnectTimeoutId);
+      this.reconnectTimeoutId = null;
+    }
     if (this.socket) {
+      this.intentionalDisconnect = true;
+      this.reconnectAttempts = 0;
       this.socket.close();
       this.socket = null;
       this.currentGameId = null;
@@ -156,6 +174,24 @@ export class GameWebSocketService {
         type: 'surrender',
         gameId: gameId
       }));
+    }
+  }
+
+  sendRematchRequest(gameId: string): void {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify({ type: 'rematchRequest', gameId }));
+    }
+  }
+
+  sendRematchAccept(gameId: string): void {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify({ type: 'rematchAccept', gameId }));
+    }
+  }
+
+  sendRematchDecline(gameId: string): void {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(JSON.stringify({ type: 'rematchDecline', gameId }));
     }
   }
 

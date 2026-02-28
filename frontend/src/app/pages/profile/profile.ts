@@ -3,7 +3,7 @@ import { UserApi } from '../../core/api/user.api';
 import { getApiBaseUrl } from '../../core/api/api-config';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { AuthService } from '../../core/auth/auth.service';
 
@@ -12,7 +12,7 @@ import { AuthService } from '../../core/auth/auth.service';
   templateUrl: './profile.html',
   styleUrls: ['./profile.scss'],
   standalone: true,
-  imports: [FormsModule, CommonModule]
+  imports: [FormsModule, CommonModule, RouterLink]
 })
 export class ProfileComponent {
 

@@ -46,9 +46,13 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody UserDto userDto) {
-        User user = userRepository.findByUsername(userDto.getUsername())
-                .orElseThrow(() -> new EntityNotFoundException("Пользователь не найден"));
-        if (user == null || !passwordEncoder.matches(userDto.getPassword(), user.getPasswordHash())) {
+        String username = userDto.getUsername() != null ? userDto.getUsername().trim() : "";
+        String password = userDto.getPassword() != null ? userDto.getPassword().trim() : null;
+        if (username.isBlank() || password == null || password.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid credentials"));
+        }
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null || !passwordEncoder.matches(password, user.getPasswordHash())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid credentials"));
         }
 

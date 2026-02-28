@@ -50,28 +50,32 @@ public class GameController {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new EntityNotFoundException("Игра не найдена"));
 
-        // Проверяем, что игрок участвует в этой игре
-        if (!game.getHost().equals(player) && !game.getGuest().equals(player)) {
+        // Проверяем, что игрок участвует в этой игре (в игре с ботом guest может быть null)
+        boolean isHost = game.getHost().equals(player);
+        boolean isGuest = game.getGuest() != null && game.getGuest().equals(player);
+        if (!isHost && !isGuest) {
             return ResponseEntity.status(403).body(Map.of("message", "Вы не участвуете в этой игре"));
         }
 
         // Отмечаем игрока как готового
-        if (game.getHost().equals(player)) {
+        if (isHost) {
             game.setHostReady(true);
         } else {
             game.setGuestReady(true);
         }
 
-        // Если оба игрока готовы, начинаем игру
-        if (game.isHostReady() && game.isGuestReady()) {
+        // Если оба игрока готовы — начинаем игру; в игре с ботом достаточно готовности хоста
+        boolean bothReady = game.isHostReady() && game.isGuestReady();
+        boolean botGameReady = game.isBot() && isHost && game.isHostReady();
+        if (bothReady || botGameReady) {
             game.setStatus(Game.GameStatus.IN_PROGRESS);
             game.setStartedAt(OffsetDateTime.now());
-            game.setCurrentTurn(Game.Turn.HOST); // Хост начинает первым
+            game.setCurrentTurn(Game.Turn.HOST);
         }
 
         gameRepository.save(game);
 
-        // Broadcast player ready event for online games via WebSocket
+        // Broadcast player ready event for online games via WebSocket (не для бота)
         if (game.getType() == Game.GameType.ONLINE && !game.isBot()) {
             Map<String, Object> readyMessage = new HashMap<>();
             readyMessage.put("type", "playerReady");
@@ -87,9 +91,11 @@ public class GameController {
             gameWebSocketHandler.broadcastToGame(gameId, readyMessage);
         }
 
+        boolean responseBothReady = (game.isHostReady() && game.isGuestReady())
+                || (game.isBot() && game.getStatus() == Game.GameStatus.IN_PROGRESS);
         Map<String, Object> response = Map.of(
                 "message", "Готовность отмечена",
-                "bothReady", game.isHostReady() && game.isGuestReady(),
+                "bothReady", responseBothReady,
                 "gameStarted", game.getStatus() == Game.GameStatus.IN_PROGRESS
         );
 
@@ -139,7 +145,7 @@ public class GameController {
             }
         }
 
-        Board board = boardRepository.findByGameIdAndPlayerId(game.getId(), player.getId())
+        Board board = boardRepository.findFirstByGameIdAndPlayerIdOrderByIdAsc(game.getId(), player.getId())
                 .orElse(Board.builder().game(game).player(player).build());
 
         board.setCells(boardModel.toJson());
@@ -154,7 +160,7 @@ public class GameController {
         User player = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        Board board = boardRepository.findByGameIdAndPlayerId(gameId, player.getId())
+        Board board = boardRepository.findFirstByGameIdAndPlayerIdOrderByIdAsc(gameId, player.getId())
                 .orElse(Board.builder()
                         .game(gameRepository.findById(gameId).orElseThrow())
                         .player(player)
@@ -200,7 +206,7 @@ public class GameController {
                 .orElseThrow(() -> new EntityNotFoundException("Game not found"));
 
         // Доска игрока
-        Board playerBoard = boardRepository.findByGameIdAndPlayerId(gameId, player.getId())
+        Board playerBoard = boardRepository.findFirstByGameIdAndPlayerIdOrderByIdAsc(gameId, player.getId())
                 .orElseGet(() -> Board.builder()
                         .game(game)
                         .player(player)

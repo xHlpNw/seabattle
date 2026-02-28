@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RoomApi } from '../../core/api/room.api';
 
@@ -8,7 +8,7 @@ import { RoomApi } from '../../core/api/room.api';
   templateUrl: './lobby-join.html',
   styleUrls: ['./lobby.scss'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule, RouterLink]
 })
 export class LobbyJoinComponent implements OnInit {
 
