@@ -237,14 +237,16 @@ label {
 }
 
 .error {
-  min-height: 1.5em; /* высота блока под сообщение */
-  color: red;
+  min-height: 1.5em;
+  color: #ff6b6b;
   font-size: 0.9rem;
-  visibility: hidden; /* по умолчанию скрыто */
+  visibility: hidden;
   transition: visibility 0.2s;
   margin-top: 10px;
+  margin-bottom: 4px;
 }
 
 .error.visible {
-  visibility: visible; /* показываем при ошибке */
+  visibility: visible;
+  font-weight: 500;
 }

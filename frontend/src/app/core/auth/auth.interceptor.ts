@@ -30,13 +30,18 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(authReq).pipe(
       catchError((err: HttpErrorResponse) => {
-        if (err.status === 401) {
+        if (err.status === 401 && !this.isLoginOrRegisterRequest(req)) {
           this.auth.logout();
-          // Navigation is handled by logout() method
         }
         return throwError(() => err);
       })
     );
+  }
+
+  /** 401 на логине/регистрации — это "неверный пароль", не разлогинивать и не редиректить */
+  private isLoginOrRegisterRequest(req: HttpRequest<unknown>): boolean {
+    const url = req.url ?? '';
+    return url.includes('/api/users/login') || url.includes('/api/users/register');
   }
 
   // Вспомогательный метод должен быть **внутри класса**, но **вне метода intercept**
