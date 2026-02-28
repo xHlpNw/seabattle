@@ -51,13 +51,27 @@ public class GameService {
                 .build();
         gameRepo.save(g);
 
+        Board playerBoard = Board.builder()
+                .game(g)
+                .player(host)
+                .cells(new BoardModel().toJson())
+                .build();
+        boardRepo.save(playerBoard);
+
+        Board botBoard = Board.builder()
+                .game(g)
+                .player(null)
+                .cells(BoardModel.autoPlaceRandom().toJson())
+                .build();
+        boardRepo.save(botBoard);
+
         return g;
     }
 
     @Transactional
     public AutoPlaceResponse placeShipsAuto(UUID gameId, UUID playerId) throws Exception {
         Game g = gameRepo.findById(gameId).orElseThrow();
-        Board board = boardRepo.findByGameIdAndPlayerId(gameId, playerId)
+        Board board = boardRepo.findFirstByGameIdAndPlayerIdOrderByIdAsc(gameId, playerId)
                 .orElseGet(() -> {
                     Board newBoard = Board.builder()
                             .game(g)
@@ -95,7 +109,7 @@ public class GameService {
 
     @Transactional
     public void placeShipsManual(UUID gameId, UUID playerId, String cellsJson) throws Exception {
-        Board board = boardRepo.findByGameIdAndPlayerId(gameId, playerId).orElseThrow();
+        Board board = boardRepo.findFirstByGameIdAndPlayerIdOrderByIdAsc(gameId, playerId).orElseThrow();
         BoardModel bm = BoardModel.fromJson(cellsJson); // validate
         board.setCells(bm.toJson());
         boardRepo.save(board);
@@ -125,7 +139,7 @@ public class GameService {
             throw new IllegalStateException("Not your turn");
         }
 
-        Board playerBoard = boardRepo.findByGameIdAndPlayerId(gameId, playerId).orElseThrow();
+        Board playerBoard = boardRepo.findFirstByGameIdAndPlayerIdOrderByIdAsc(gameId, playerId).orElseThrow();
         Board botBoard = boardRepo.findByGameIdAndPlayerIsNull(gameId).orElseThrow();
 
         BoardModel botBm = BoardModel.fromJson(botBoard.getCells());
@@ -270,14 +284,14 @@ public class GameService {
         // Send final game state update to show current board state
         try {
             // Get both boards from DB - they should have correct final state
-            Board hostBoard = boardRepo.findByGameIdAndPlayerId(gameId, game.getHost().getId())
+            Board hostBoard = boardRepo.findFirstByGameIdAndPlayerIdOrderByIdAsc(gameId, game.getHost().getId())
                     .orElseThrow(() -> new EntityNotFoundException("Host board not found"));
             BoardModel hostModel = BoardModel.fromJson(hostBoard.getCells());
 
             Board guestBoard = null;
             BoardModel guestModel = null;
             if (game.getGuest() != null) {
-                guestBoard = boardRepo.findByGameIdAndPlayerId(gameId, game.getGuest().getId())
+                guestBoard = boardRepo.findFirstByGameIdAndPlayerIdOrderByIdAsc(gameId, game.getGuest().getId())
                         .orElse(null);
                 if (guestBoard != null) {
                     guestModel = BoardModel.fromJson(guestBoard.getCells());
@@ -352,7 +366,7 @@ public class GameService {
 
         if (playerOutcome.already) {
             AttackResult result = buildAttackResult(
-                    BoardModel.fromJson(boardRepo.findByGameIdAndPlayerId(gameId, player.getId()).get().getCells()),
+                    BoardModel.fromJson(boardRepo.findFirstByGameIdAndPlayerIdOrderByIdAsc(gameId, player.getId()).get().getCells()),
                     enemyModel,
                     playerOutcome,
                     null, game
@@ -389,7 +403,7 @@ public class GameService {
             }
 
             AttackResult result = buildAttackResult(
-                    BoardModel.fromJson(boardRepo.findByGameIdAndPlayerId(gameId, player.getId()).get().getCells()),
+                    BoardModel.fromJson(boardRepo.findFirstByGameIdAndPlayerIdOrderByIdAsc(gameId, player.getId()).get().getCells()),
                     enemyModel,
                     playerOutcome,
                     null, game
@@ -407,7 +421,7 @@ public class GameService {
 
         // Передача хода боту, если игра с ботом и игрок промахнулся или потопил корабль
         if (game.isBot() && (!playerOutcome.hit)) {
-            Board playerBoard = boardRepo.findByGameIdAndPlayerId(game.getId(), player.getId())
+            Board playerBoard = boardRepo.findFirstByGameIdAndPlayerIdOrderByIdAsc(game.getId(), player.getId())
                     .orElseThrow(() -> new EntityNotFoundException("Доска игрока не найдена"));
             BoardModel playerModel = BoardModel.fromJson(playerBoard.getCells());
 
@@ -444,7 +458,7 @@ public class GameService {
         gameRepo.save(game);
 
         // Возвращаем доску игрока
-        Board playerBoardEntity = boardRepo.findByGameIdAndPlayerId(gameId, player.getId())
+        Board playerBoardEntity = boardRepo.findFirstByGameIdAndPlayerIdOrderByIdAsc(gameId, player.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Доска игрока не найдена"));
         BoardModel playerModel = BoardModel.fromJson(playerBoardEntity.getCells());
 
@@ -639,14 +653,14 @@ public class GameService {
             baseMessage.put("already", result.isAlready());
 
             // Get current state of both boards from database after the attack
-            Board hostBoard = boardRepo.findByGameIdAndPlayerId(gameId, game.getHost().getId())
+            Board hostBoard = boardRepo.findFirstByGameIdAndPlayerIdOrderByIdAsc(gameId, game.getHost().getId())
                     .orElseThrow(() -> new EntityNotFoundException("Host board not found"));
             BoardModel hostModel = BoardModel.fromJson(hostBoard.getCells());
 
             Board guestBoard = null;
             BoardModel guestModel = null;
             if (game.getGuest() != null) {
-                guestBoard = boardRepo.findByGameIdAndPlayerId(gameId, game.getGuest().getId())
+                guestBoard = boardRepo.findFirstByGameIdAndPlayerIdOrderByIdAsc(gameId, game.getGuest().getId())
                         .orElse(null);
                 if (guestBoard != null) {
                     guestModel = BoardModel.fromJson(guestBoard.getCells());

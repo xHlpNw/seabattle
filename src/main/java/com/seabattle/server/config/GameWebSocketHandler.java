@@ -5,6 +5,7 @@ import com.seabattle.server.entity.Game;
 import com.seabattle.server.entity.User;
 import com.seabattle.server.repository.GameRepository;
 import com.seabattle.server.repository.UserRepository;
+import com.seabattle.server.service.RematchService;
 import com.seabattle.server.util.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,14 +31,16 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     private final UserRepository userRepository;
     private final GameRepository gameRepository;
     private final JwtUtil jwtUtil;
+    private final RematchService rematchService;
 
     // Store sessions by game ID
     private final Map<UUID, CopyOnWriteArraySet<WebSocketSession>> gameSessions = new ConcurrentHashMap<>();
 
-    public GameWebSocketHandler(UserRepository userRepository, GameRepository gameRepository, JwtUtil jwtUtil) {
+    public GameWebSocketHandler(UserRepository userRepository, GameRepository gameRepository, JwtUtil jwtUtil, RematchService rematchService) {
         this.userRepository = userRepository;
         this.gameRepository = gameRepository;
         this.jwtUtil = jwtUtil;
+        this.rematchService = rematchService;
     }
 
     @Override
@@ -87,6 +90,15 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
                     break;
                 case "surrender":
                     handleSurrender(session, payload);
+                    break;
+                case "rematchRequest":
+                    handleRematchRequest(session, payload);
+                    break;
+                case "rematchAccept":
+                    handleRematchAccept(session, payload);
+                    break;
+                case "rematchDecline":
+                    handleRematchDecline(session, payload);
                     break;
                 default:
                     log.warn("Unknown game message type: {}", type);
@@ -152,6 +164,80 @@ public class GameWebSocketHandler extends TextWebSocketHandler {
     private void handleSurrender(WebSocketSession session, Map<String, Object> payload) {
         // Surrender is handled by GameController via HTTP, WebSocket just forwards
         log.debug("Surrender message received via WebSocket (forwarding to HTTP)");
+    }
+
+    private void handleRematchRequest(WebSocketSession session, Map<String, Object> payload) {
+        String gameIdStr = (String) payload.get("gameId");
+        String username = (String) session.getAttributes().get("username");
+        if (gameIdStr == null || username == null) {
+            sendError(session, "Missing gameId or not authenticated");
+            return;
+        }
+        try {
+            UUID gameId = UUID.fromString(gameIdStr);
+            if (!isUserParticipant(session, gameId)) {
+                sendError(session, "You are not a participant in this game");
+                return;
+            }
+            String otherUsername = rematchService.requestRematch(gameId, username);
+            if (otherUsername == null) {
+                sendError(session, "Cannot request rematch for this game");
+                return;
+            }
+            sendToUser(gameId, otherUsername, Map.of(
+                "type", "rematchRequested",
+                "gameId", gameIdStr,
+                "requestedByUsername", username
+            ));
+            sendMessage(session, Map.of("type", "rematchRequestSent", "gameId", gameIdStr));
+        } catch (IllegalArgumentException e) {
+            sendError(session, "Invalid game ID format");
+        }
+    }
+
+    private void handleRematchAccept(WebSocketSession session, Map<String, Object> payload) {
+        String gameIdStr = (String) payload.get("gameId");
+        String username = (String) session.getAttributes().get("username");
+        if (gameIdStr == null || username == null) {
+            sendError(session, "Missing gameId or not authenticated");
+            return;
+        }
+        try {
+            UUID gameId = UUID.fromString(gameIdStr);
+            if (!isUserParticipant(session, gameId)) {
+                sendError(session, "You are not a participant in this game");
+                return;
+            }
+            UUID newGameId = rematchService.acceptRematch(gameId, username);
+            if (newGameId == null) {
+                sendError(session, "Cannot accept rematch");
+                return;
+            }
+            broadcastToGame(gameId, Map.of(
+                "type", "rematchAccepted",
+                "gameId", gameIdStr,
+                "newGameId", newGameId.toString()
+            ));
+        } catch (IllegalArgumentException e) {
+            sendError(session, "Invalid game ID format");
+        }
+    }
+
+    private void handleRematchDecline(WebSocketSession session, Map<String, Object> payload) {
+        String gameIdStr = (String) payload.get("gameId");
+        if (gameIdStr == null) {
+            sendError(session, "Missing gameId");
+            return;
+        }
+        try {
+            UUID gameId = UUID.fromString(gameIdStr);
+            String requestedBy = rematchService.declineRematch(gameId);
+            if (requestedBy != null) {
+                sendToUser(gameId, requestedBy, Map.of("type", "rematchDeclined", "gameId", gameIdStr));
+            }
+        } catch (IllegalArgumentException e) {
+            sendError(session, "Invalid game ID format");
+        }
     }
 
     private boolean isUserParticipant(WebSocketSession session, UUID gameId) {

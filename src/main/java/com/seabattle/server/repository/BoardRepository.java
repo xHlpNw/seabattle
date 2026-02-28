@@ -12,6 +12,9 @@ import java.util.UUID;
 public interface BoardRepository extends JpaRepository<Board, UUID> {
     Optional<Board> findByGameIdAndPlayerId(UUID gameId, UUID playerId);
 
+    /** Use when at most one board per (game, player) is expected; returns first if duplicates exist (e.g. legacy data). */
+    Optional<Board> findFirstByGameIdAndPlayerIdOrderByIdAsc(UUID gameId, UUID playerId);
+
     Optional<Board> findByGameIdAndPlayerIsNull(UUID gameId);
 
     Optional<Board> findByGameIdAndPlayerIdNotOrPlayerIsNull(UUID gameId, UUID playerId);

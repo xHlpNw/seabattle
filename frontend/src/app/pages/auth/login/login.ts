@@ -27,7 +27,7 @@ export class LoginComponent {
 
     try {
       const res = await this.userApi.login({
-        username: this.username,
+        username: this.username.trim(),
         password: this.password
       });
 
@@ -42,7 +42,13 @@ export class LoginComponent {
       this.router.navigate(['/']);
 
     } catch (e: any) {
-      this.errorMsg = 'Неверный логин или пароль';
+      const status = e?.status;
+      const msg = e?.error?.message;
+      if (status === 401 || (typeof msg === 'string' && msg.toLowerCase().includes('invalid credential'))) {
+        this.errorMsg = 'Неверный логин или пароль';
+      } else {
+        this.errorMsg = typeof msg === 'string' ? msg : 'Неверный логин или пароль';
+      }
       console.error('Ошибка входа:', e);
     }
   }
