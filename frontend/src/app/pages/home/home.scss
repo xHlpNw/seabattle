@@ -335,6 +335,7 @@ html, body {
   .center {
     width: 100%;
     max-width: 360px;
+    transform: translateY(-48px); /* сдвиг вверх: кнопки в центре, над ними заголовок и подзаголовок */
   }
 
   .center h1 {
