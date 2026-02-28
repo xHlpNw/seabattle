@@ -4,6 +4,7 @@
     <div class="logo">⚓ BATTLESHIP</div>
     <div class="enemy-tag">{{ opponentName }}</div>
   </header>
+  <p class="turn-hint" *ngIf="!gameOver">{{ isPlayerTurn ? 'Your turn — tap enemy grid' : "Opponent's turn" }}</p>
   <main class="boards-wrapper">
 
     <!-- PLAYER BOARD -->
