@@ -62,6 +62,12 @@ export class SetupComponent implements OnInit, OnDestroy {
   autoPlacedDone: boolean = false;
   isReady: boolean = false;
 
+  /** Long-press on mobile: remove ship. Prevents click from firing after. */
+  private longPressTimer: ReturnType<typeof setTimeout> | null = null;
+  private longPressCell: { i: number; j: number } | null = null;
+  private skipNextClick = false;
+  private readonly longPressMs = 600;
+
   ngOnInit() {
     this.route.queryParams.subscribe(params => {
       this.gameId = params['gameId'] || null;
@@ -179,8 +185,40 @@ export class SetupComponent implements OnInit, OnDestroy {
   }
 
   onCellClick(x: number, y: number, event: MouseEvent) {
+    if (this.skipNextClick) {
+      this.skipNextClick = false;
+      return;
+    }
     if (event.ctrlKey) this.removeShip(x, y);
     else this.placeShip(x, y);
+  }
+
+  /** Start long-press timer only on a cell that has a ship. */
+  onCellTouchStart(i: number, j: number, event: TouchEvent) {
+    if (this.grid[i][j] !== 1) return;
+    this.clearLongPress();
+    this.longPressCell = { i, j };
+    this.longPressTimer = setTimeout(() => {
+      this.removeShip(i, j);
+      this.skipNextClick = true;
+      this.clearLongPress();
+    }, this.longPressMs);
+  }
+
+  onCellTouchEnd() {
+    this.clearLongPress();
+  }
+
+  onCellTouchMove() {
+    this.clearLongPress();
+  }
+
+  private clearLongPress() {
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    }
+    this.longPressCell = null;
   }
 
   getCursor(): string {
@@ -276,6 +314,7 @@ export class SetupComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.clearLongPress();
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
     }

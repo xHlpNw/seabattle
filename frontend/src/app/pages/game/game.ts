@@ -5,6 +5,7 @@ import { UserApi } from '../../core/api/user.api';
 import { AuthService } from '../../core/auth/auth.service';
 import { GameWebSocketService, GameUpdate } from '../../core/ws/game-ws.service';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { firstValueFrom, Subscription } from 'rxjs';
 
 @Component({
@@ -12,7 +13,7 @@ import { firstValueFrom, Subscription } from 'rxjs';
   templateUrl: './game.html',
   styleUrls: ['./game.scss'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule, RouterLink]
 })
 export class GameComponent implements OnInit, OnDestroy {
 
@@ -176,7 +177,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!this.gameId) return;
 
     console.log('🎮 Setting up WebSocket connection for online game:', this.gameId);
-    
+
     // Connect to WebSocket
     this.gameWs.connect(this.gameId).subscribe({
       next: (connected) => {
@@ -258,7 +259,8 @@ export class GameComponent implements OnInit, OnDestroy {
         break;
 
       case 'rematchAccepted':
-        if (update.newGameId) {
+        // Переходить на setup только если мы ещё на странице СТАРОЙ игры (update.gameId). Игнорировать, если уже на новой (replay от BehaviorSubject при подписке).
+        if (update.newGameId && update.gameId === this.gameId) {
           this.showResultModal = false;
           this.rematchRequestPending = false;
           this.rematchRequestedBy = null;

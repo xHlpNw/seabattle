@@ -11,7 +11,7 @@
 
   <!-- TOP BAR -->
   <header class="topbar">
-    <div class="logo">⚓ BATTLESHIP</div>
+    <a routerLink="/" class="logo">⚓ BATTLESHIP</a>
     <div class="page-title">PROFILE</div>
     <button (click)="goHome()" class="home-btn">← HOME</button>
   </header>
@@ -43,10 +43,10 @@
         <h3>YOUR STATS</h3>
         <hr>
         <div class="stats">
-            <div class="stat glow-box"><label>Total Games</label><span>{{ user.totalGames }}</span></div>
-            <div class="stat glow-box"><label>Wins</label><span>{{ user.wins }}</span></div>
-            <div class="stat glow-box"><label>Losses</label><span>{{ user.losses }}</span></div>
-            <div class="stat glow-box"><label>Winrate</label><span>{{ user.winrate | number:'1.0-1' }}%</span></div>
+          <div class="stat glow-box"><label>Total Games</label><span>{{ user.totalGames }}</span></div>
+          <div class="stat glow-box"><label>Winrate</label><span>{{ user.winrate | number:'1.0-1' }}%</span></div>
+          <div class="stat glow-box"><label>Wins</label><span>{{ user.wins }}</span></div>
+          <div class="stat glow-box"><label>Losses</label><span>{{ user.losses }}</span></div>
         </div>
 
         <div class="rating glow-box">

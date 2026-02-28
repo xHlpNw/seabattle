@@ -1,9 +1,10 @@
 <!-- Battleship Game Page HTML -->
 <div class="game-page">
   <header class="topbar">
-    <div class="logo">⚓ BATTLESHIP</div>
+    <a routerLink="/" class="logo">⚓ BATTLESHIP</a>
     <div class="enemy-tag">{{ opponentName }}</div>
   </header>
+  <p class="turn-hint" *ngIf="!gameOver">{{ isPlayerTurn ? 'Your turn — tap enemy grid' : "Opponent's turn" }}</p>
   <main class="boards-wrapper">
 
     <!-- PLAYER BOARD -->
