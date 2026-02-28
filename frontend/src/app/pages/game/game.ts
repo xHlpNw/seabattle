@@ -176,7 +176,7 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!this.gameId) return;
 
     console.log('🎮 Setting up WebSocket connection for online game:', this.gameId);
-    
+
     // Connect to WebSocket
     this.gameWs.connect(this.gameId).subscribe({
       next: (connected) => {
@@ -351,6 +351,24 @@ export class GameComponent implements OnInit, OnDestroy {
       error: () => {
         this.startingNewGame = false;
         this.createGameError = 'Не удалось создать игру. Попробуйте с главной.';
+      }
+    });
+  }
+
+  /** Для игры с ботом: создать новую игру и перейти на страницу расстановки */
+  startNewBotGame() {
+    if (!this.isBotGame) {
+      this.goToHome();
+      return;
+    }
+    this.showResultModal = false;
+    this.gameApi.createBotGame().subscribe({
+      next: (res) => {
+        this.router.navigate(['/setup'], { queryParams: { gameId: res.gameId } });
+      },
+      error: (err) => {
+        console.error('Ошибка при создании новой игры:', err);
+        this.router.navigate(['/']);
       }
     });
   }
