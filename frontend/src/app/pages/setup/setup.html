@@ -1,13 +1,16 @@
 <div class="setup-page">
 
+  <!-- TOP BAR (for nav, especially on mobile) -->
+  <header class="setup-topbar">
+    <div class="logo">⚓ BATTLESHIP</div>
+    <a routerLink="/" class="back-btn">← BACK</a>
+  </header>
 
   <!-- MAIN SECTION -->
   <main class="setup-main">
 
     <div class="setup-content">
       <div class="main-left">
-        <h1 class="title">SETUP FLEET</h1>
-
         <!-- SHIP LIST -->
         <section class="ships-panel">
           <h3>SHIPS:</h3>
@@ -22,6 +25,11 @@
                 <span class="sq" *ngFor="let s of [].constructor(ship.size)"></span>
               </span>
             </button>
+          </div>
+          <!-- Orientation: reserve space so layout doesn't jump -->
+          <div class="rotate-hint">
+            <button *ngIf="selectedShip" type="button" class="rotate-btn" (click)="toggleOrientation()">{{ orientation === 'horizontal' ? '↔ HORIZONTAL' : '↕ VERTICAL' }}</button>
+            <span *ngIf="!selectedShip" class="rotate-placeholder">Select ship</span>
           </div>
         </section>
 
@@ -44,7 +52,10 @@
                    [style.cursor]="getCursor()"
                    (click)="onCellClick(i,j,$event)"
                    (mousemove)="onMouseMove($event,i,j)"
-                   (contextmenu)="onRightClick($event)">
+                   (contextmenu)="onRightClick($event)"
+                   (touchstart)="onCellTouchStart(i,j,$event)"
+                   (touchend)="onCellTouchEnd()"
+                   (touchmove)="onCellTouchMove()">
               </div>
             </div>
           </div>
