@@ -297,11 +297,12 @@ export class SetupComponent implements OnInit, OnDestroy {
     console.log('Начинаем polling готовности игроков...');
     this.pollingInterval = setInterval(async () => {
       try {
-        // Проверяем статус игры через getBoards (или можно добавить отдельный эндпоинт)
         const boards = await firstValueFrom(this.gameApi.getBoards(this.gameId!));
 
-        // Если игра начата, переходим к игре
-        if (!boards.gameFinished && boards.currentTurn) {
+        // Переходим к игре только когда оба нажали «Готов» и игра начата (currentTurn = HOST или GUEST, не NONE)
+        const gameStarted = !boards.gameFinished && boards.currentTurn &&
+          (boards.currentTurn === 'HOST' || boards.currentTurn === 'GUEST');
+        if (gameStarted) {
           console.log('Игра начата! Переходим к игре...');
           clearInterval(this.pollingInterval);
           this.router.navigate(['/game'], { queryParams: { gameId: this.gameId } });
@@ -309,7 +310,7 @@ export class SetupComponent implements OnInit, OnDestroy {
       } catch (err) {
         console.log('Ошибка при проверке статуса игры:', err);
       }
-    }, 2000); // Проверяем каждые 2 секунды
+    }, 2000);
   }
 
   ngOnDestroy() {

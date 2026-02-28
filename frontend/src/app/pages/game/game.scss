@@ -227,6 +227,46 @@ html, body {
   margin: 0 0 1.25rem 0;
 }
 
+.game-result-error {
+  color: #f44336;
+  font-size: clamp(12px, 1.5vw, 14px);
+  margin: 0 0 1rem 0;
+}
+
+.rematch-waiting,
+.rematch-declined {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: clamp(13px, 1.5vw, 16px);
+  margin: 0 0 1rem 0;
+}
+
+.rematch-declined {
+  color: #ff9800;
+}
+
+.rematch-proposal .rematch-proposal-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: clamp(16px, 2vw, 20px);
+  margin: 0 0 1.5rem 0;
+}
+
+.rematch-proposal button.accept {
+  border-color: #4caf50;
+  color: #4caf50;
+}
+.rematch-proposal button.accept:hover {
+  background: #4caf50;
+  color: #000;
+}
+.rematch-proposal button.decline {
+  border-color: #ff5722;
+  color: #ff5722;
+}
+.rematch-proposal button.decline:hover {
+  background: #ff5722;
+  color: #000;
+}
+
 .modal-window .modal-actions {
   display: flex;
   gap: 20px;
