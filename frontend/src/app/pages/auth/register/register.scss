@@ -147,10 +147,80 @@ label {
   }
 }
 
-@media (max-width: 480px) {
-  .login-box {
-    padding: 25px;
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+    justify-content: center;
+  }
+
+  .logo {
+    margin-bottom: 16px;
+    flex-shrink: 0;
+    transform: translateY(-36px);
+    .icon {
+      font-size: 48px;
+    }
+    h1 {
+      font-size: 20px;
+      letter-spacing: 2px;
+    }
+  }
+
+  .register-box {
+    transform: translateY(-36px);
+    width: 100%;
+    max-width: 100%;
+    padding: 24px 20px;
     box-shadow: 0 0 10px rgba(0, 234, 255, 0.3);
+
+    h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+  }
+
+  label {
+    font-size: 12px;
+    margin: 18px 0 6px;
+  }
+
+  .input-group input {
+    padding: 12px 14px;
+    font-size: 16px; /* избегаем зума на iOS */
+  }
+
+  .btn {
+    padding: 14px;
+    font-size: 16px;
+    margin-top: 16px;
+  }
+
+  .links {
+    margin-top: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .links a {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-box {
+    padding: 20px 16px;
+  }
+
+  .logo {
+    margin-bottom: 20px;
+    .icon {
+      font-size: 40px;
+    }
+    h1 {
+      font-size: 18px;
+    }
   }
 
   label {
@@ -158,20 +228,16 @@ label {
   }
 
   .input-group input {
-    padding: 10px;
-    font-size: 13px;
+    padding: 10px 12px;
+    font-size: 14px;
   }
 
   .btn {
-    padding: 10px;
+    padding: 12px;
     font-size: 14px;
   }
 
   .links a {
-    font-size: 11px;
-  }
-
-  .back-home {
     font-size: 12px;
   }
 }
