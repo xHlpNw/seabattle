@@ -36,7 +36,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
         this.inviteLink = `${window.location.origin}/lobby/join/${this.roomToken}`;
         this.loadRoomStatus();
       } else {
-        this.errorMessage = 'Invalid lobby token';
+        this.errorMessage = 'Неверный код лобби';
         this.isLoading = false;
       }
     });
@@ -66,7 +66,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        this.errorMessage = 'Failed to load lobby status';
+        this.errorMessage = 'Не удалось загрузить состояние лобби';
         this.isLoading = false;
         console.error('Failed to load room status:', error);
       }
@@ -145,7 +145,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
     } catch (err) {
       console.error('Fallback clipboard copy failed:', err);
       // Last resort: show the link and ask user to copy manually
-      alert(`Please copy this link manually:\n\n${this.inviteLink}`);
+      alert(`Скопируйте ссылку вручную:\n\n${this.inviteLink}`);
     }
   }
 
@@ -157,11 +157,11 @@ export class LobbyComponent implements OnInit, OnDestroy {
         if (response.gameId) {
           this.router.navigate(['/setup'], { queryParams: { gameId: response.gameId } });
         } else {
-          this.errorMessage = 'Failed to start game';
+          this.errorMessage = 'Не удалось начать игру';
         }
       },
       error: (error) => {
-        this.errorMessage = error.error?.message || 'Failed to start game';
+        this.errorMessage = error.error?.message || 'Не удалось начать игру';
       }
     });
   }

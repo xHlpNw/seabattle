@@ -1,15 +1,15 @@
-<!-- Battleship Game Page HTML -->
+<!-- Страница игры -->
 <div class="game-page">
   <header class="topbar">
-    <a routerLink="/" class="logo">⚓ BATTLESHIP</a>
+    <a routerLink="/" class="logo">⚓ МОРСКОЙ БОЙ</a>
     <div class="enemy-tag">{{ opponentName }}</div>
   </header>
-  <p class="turn-hint" *ngIf="!gameOver">{{ isPlayerTurn ? 'Your turn — tap enemy grid' : "Opponent's turn" }}</p>
+  <p class="turn-hint" *ngIf="!gameOver">{{ isPlayerTurn ? 'Ваш ход — нажмите на поле противника' : 'Ход соперника' }}</p>
   <main class="boards-wrapper">
 
     <!-- PLAYER BOARD -->
     <section class="board-container">
-      <h3 class="board-title">YOUR FLEET</h3>
+      <h3 class="board-title">ВАШ ФЛОТ</h3>
       <div class="grid player-grid">
         <div *ngFor="let row of playerBoard; let i = index" class="row">
           <div *ngFor="let cell of row; let j = index"
@@ -18,7 +18,8 @@
                  'empty': cell === 0,
                  'ship': cell === 1,
                  'hit': cell === 3,
-                 'miss': cell === 2
+                 'miss': cell === 2,
+                 'near-sunk': cell === 4
                }">
           </div>
         </div>
@@ -27,7 +28,7 @@
 
     <!-- ENEMY BOARD -->
     <section class="board-container">
-      <h3 class="board-title">ENEMY WATERS</h3>
+      <h3 class="board-title">ПОЛЕ ПРОТИВНИКА</h3>
       <div class="grid enemy-grid">
         <div *ngFor="let row of enemyBoard; let i = index" class="row">
           <div *ngFor="let cell of row; let j = index"
@@ -37,6 +38,7 @@
                  'ship': cell === 1,
                  'hit': cell === 3,
                  'miss': cell === 2,
+                 'near-sunk': cell === 4,
                  'disabled': !isPlayerTurn
                }"
                [style.cursor]="isPlayerTurn ? 'pointer' : 'not-allowed'"
@@ -48,13 +50,13 @@
   </main>
 
   <footer class="game-footer">
-    <button class="surrender" (click)="surrender()">SURRENDER</button>
+    <button class="surrender" (click)="surrender()">СДАТЬСЯ</button>
   </footer>
 
   <!-- MODAL: результат игры -->
   <div class="modal-backdrop" *ngIf="showResultModal">
     <div class="modal-window">
-      <div class="game-result-status" [ngClass]="{'victory': gameResultStatus === 'VICTORY', 'defeat': gameResultStatus === 'DEFEAT'}">
+      <div class="game-result-status" [ngClass]="{'victory': gameResultStatus === 'ПОБЕДА', 'defeat': gameResultStatus === 'ПОРАЖЕНИЕ'}">
         {{ gameResultStatus }}
       </div>
       <p class="game-result-text" *ngIf="resultText">{{ resultText }}</p>
@@ -63,9 +65,9 @@
       <p class="rematch-declined" *ngIf="!isBotGame && rematchDeclinedMessage">Противник отказался от реванша.</p>
       <div class="modal-actions">
         <button (click)="isBotGame ? startNewBotGame() : requestRematch()" [disabled]="startingNewGame || (!isBotGame && rematchRequestPending)">
-          {{ isBotGame && startingNewGame ? 'Создание игры…' : (!isBotGame && rematchRequestPending ? 'Ожидание…' : 'New Game') }}
+          {{ isBotGame && startingNewGame ? 'Создание игры…' : (!isBotGame && rematchRequestPending ? 'Ожидание…' : 'Новая игра') }}
         </button>
-        <button (click)="goToHome()">Back to Menu</button>
+        <button (click)="goToHome()">В меню</button>
       </div>
     </div>
   </div>

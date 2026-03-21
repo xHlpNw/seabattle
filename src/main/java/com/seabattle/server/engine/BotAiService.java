@@ -91,7 +91,7 @@ public class BotAiService {
             boolean validPlacement = true;
             for (int col = startCol; col < startCol + shipLength; col++) {
                 BoardModel.Cell cell = playerBoard.getCells()[hitX][col];
-                if (cell.getState() == BoardModel.CellState.MISS) {
+                if (BoardModel.isNoShipZone(cell.getState())) {
                     validPlacement = false;
                     break;
                 }
@@ -120,7 +120,7 @@ public class BotAiService {
             boolean validPlacement = true;
             for (int row = startRow; row < startRow + shipLength; row++) {
                 BoardModel.Cell cell = playerBoard.getCells()[row][hitY];
-                if (cell.getState() == BoardModel.CellState.MISS) {
+                if (BoardModel.isNoShipZone(cell.getState())) {
                     validPlacement = false;
                     break;
                 }
@@ -162,7 +162,7 @@ public class BotAiService {
 
             // Skip cells that have already been shot at
             BoardModel.Cell cell = playerBoard.getCells()[coord.getX()][coord.getY()];
-            if (cell.getState() == BoardModel.CellState.MISS || cell.getState() == BoardModel.CellState.HIT) {
+            if (BoardModel.isAlreadyRevealed(cell.getState())) {
                 continue;
             }
 
@@ -304,7 +304,7 @@ public class BotAiService {
         for (int i = 0; i < BoardModel.SIZE; i++) {
             for (int j = 0; j < BoardModel.SIZE; j++) {
                 BoardModel.Cell c = playerBoard.getCells()[i][j];
-                if (c.getState() != BoardModel.CellState.MISS && c.getState() != BoardModel.CellState.HIT) {
+                if (!BoardModel.isAlreadyRevealed(c.getState())) {
                     availableCells.add(new int[]{i, j});
                 }
             }

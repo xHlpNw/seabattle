@@ -28,7 +28,7 @@ export class LobbyJoinComponent implements OnInit {
       if (this.roomToken) {
         this.joinRoom();
       } else {
-        this.joinError = 'Invalid room link';
+        this.joinError = 'Неверная ссылка на комнату';
         this.isJoining = false;
       }
     });
@@ -50,7 +50,7 @@ export class LobbyJoinComponent implements OnInit {
       },
       error: (error) => {
         this.isJoining = false;
-        this.joinError = error.error?.message || 'Failed to join room';
+        this.joinError = error.error?.message || 'Не удалось присоединиться к комнате';
       }
     });
   }

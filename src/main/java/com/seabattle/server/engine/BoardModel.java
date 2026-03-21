@@ -18,7 +18,17 @@ public class BoardModel {
 
     public static final int SIZE = 10;
 
-    public enum CellState { EMPTY, SHIP, MISS, HIT }
+    public enum CellState { EMPTY, SHIP, MISS, HIT, ADJACENT_SUNK }
+
+    /** Промах по выстрелу или авто-отметка вокруг потопленного — корабля там быть не может. */
+    public static boolean isNoShipZone(CellState s) {
+        return s == CellState.MISS || s == CellState.ADJACENT_SUNK;
+    }
+
+    /** Уже «открытая» клетка: стрелять снова нельзя (как в промах/попадание/вокруг потопленного). */
+    public static boolean isAlreadyRevealed(CellState s) {
+        return s == CellState.MISS || s == CellState.HIT || s == CellState.ADJACENT_SUNK;
+    }
 
     @Data
     public static class Cell {
@@ -116,7 +126,7 @@ public class BoardModel {
 
     public ShotOutcome shoot(int x, int y) {
         Cell c = cells[x][y];
-        if (c.state == CellState.MISS || c.state == CellState.HIT) {
+        if (isAlreadyRevealed(c.state)) {
             return new ShotOutcome(false, false, true);
         }
         if (c.state == CellState.SHIP) {
@@ -201,6 +211,9 @@ public class BoardModel {
                     case MISS:
                         grid[i][j] = 2;
                         break;
+                    case ADJACENT_SUNK:
+                        grid[i][j] = 4;
+                        break;
                     case HIT:
                         grid[i][j] = 3;
                         break;
@@ -211,8 +224,7 @@ public class BoardModel {
     }
 
     /**
-     * Marks all adjacent cells around a sunk ship as misses.
-     * This prevents wasting shots on cells that cannot contain ships.
+     * Отмечает соседние клетки вокруг потопленного корабля (отдельно от промаха по выстрелу — для UI).
      */
     private void markMissesAroundShip(Ship ship) {
         for (Coord coord : ship.cells) {
@@ -230,9 +242,8 @@ public class BoardModel {
                         continue;
                     }
 
-                    // Mark as miss if it's empty (not ship, hit, or already miss)
                     if (cells[nx][ny].state == CellState.EMPTY) {
-                        cells[nx][ny].state = CellState.MISS;
+                        cells[nx][ny].state = CellState.ADJACENT_SUNK;
                     }
                 }
             }

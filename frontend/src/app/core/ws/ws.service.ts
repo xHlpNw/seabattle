@@ -45,7 +45,7 @@ export class WebSocketService {
             const data: RoomUpdate = JSON.parse(event.data);
             this.roomUpdates$.next(data);
           } catch {
-            this.roomUpdates$.next({ type: 'error', message: 'Invalid message' });
+            this.roomUpdates$.next({ type: 'error', message: 'Некорректное сообщение' });
           }
         };
 

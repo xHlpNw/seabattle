@@ -1,47 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="register.scss" />
-    <title>Create Account</title>
+    <title>Регистрация — Морской бой</title>
   </head>
   <body>
     <div class="container">
       <div class="logo">
       <div class="icon">⚓</div>
-      <h1>BATTLESHIP</h1>
+      <h1>МОРСКОЙ БОЙ</h1>
     </div>
 
     <div class="register-box">
-      <h2>CREATE ACCOUNT</h2>
+      <h2>СОЗДАТЬ АККАУНТ</h2>
       <form>
-        <label>USERNAME</label>
+        <label>ИМЯ ПОЛЬЗОВАТЕЛЯ</label>
         <div class="input-group">
-          <input type="text" [(ngModel)]="username" name="username" placeholder="username" >
+          <input type="text" [(ngModel)]="username" name="username" placeholder="логин" >
         </div>
 
 
-        <label>PASSWORD</label>
+        <label>ПАРОЛЬ</label>
         <div class="input-group">
-          <input type="password" [(ngModel)]="password" name="password" placeholder="Enter password" >
+          <input type="password" [(ngModel)]="password" name="password" placeholder="Введите пароль" >
         </div>
 
 
-        <label>Confirm Password</label>
+        <label>Подтверждение пароля</label>
         <div class="input-group">
-          <input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Confirm password" >
+          <input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Повторите пароль" >
         </div>
 
         <div class="error" [class.visible]="errorMsg">
           {{ errorMsg || ' ' }}
         </div>
 
-        <button type="button" class="btn" (click)="doRegister()">REGISTER</button>
+        <button type="button" class="btn" (click)="doRegister()">ЗАРЕГИСТРИРОВАТЬСЯ</button>
 
         <div class="links">
-          <a href="/login">Login</a>
-          <a href="#">← Back to Home</a>
+          <a href="/login">Вход</a>
+          <a href="#">← На главную</a>
         </div>
       </form>
     </div>

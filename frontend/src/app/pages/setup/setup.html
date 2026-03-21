@@ -2,8 +2,8 @@
 
   <!-- TOP BAR (for nav, especially on mobile) -->
   <header class="setup-topbar">
-    <a routerLink="/" class="logo">⚓ BATTLESHIP</a>
-    <a routerLink="/" class="back-btn">← BACK</a>
+    <a routerLink="/" class="logo">⚓ МОРСКОЙ БОЙ</a>
+    <a routerLink="/" class="back-btn">← НАЗАД</a>
   </header>
 
   <!-- MAIN SECTION -->
@@ -13,7 +13,7 @@
       <div class="main-left">
         <!-- SHIP LIST -->
         <section class="ships-panel">
-          <h3>SHIPS:</h3>
+          <h3>КОРАБЛИ:</h3>
 
           <div class="ship-buttons">
             <button *ngFor="let ship of ships"
@@ -28,8 +28,8 @@
           </div>
           <!-- Orientation: reserve space so layout doesn't jump -->
           <div class="rotate-hint">
-            <button *ngIf="selectedShip" type="button" class="rotate-btn" (click)="toggleOrientation()">{{ orientation === 'horizontal' ? '↔ HORIZONTAL' : '↕ VERTICAL' }}</button>
-            <span *ngIf="!selectedShip" class="rotate-placeholder">Select ship</span>
+            <button *ngIf="selectedShip" type="button" class="rotate-btn" (click)="toggleOrientation()">{{ orientation === 'horizontal' ? '↔ ГОРИЗОНТАЛЬНО' : '↕ ВЕРТИКАЛЬНО' }}</button>
+            <span *ngIf="!selectedShip" class="rotate-placeholder">Выберите корабль</span>
           </div>
         </section>
 
@@ -61,11 +61,11 @@
           </div>
 
           <div class="buttons-area">
-            <button class="auto-place" (click)="autoPlaceShips()">AUTO-PLACE FLEET</button>
+            <button class="auto-place" (click)="autoPlaceShips()">АВТОРАССТАНОВКА</button>
             <button class="start-game"
                     [disabled]="!allShipsPlaced || isReady"
                     (click)="ready()">
-              {{ isReady ? 'WAITING FOR OPPONENT' : 'READY' }}
+              {{ isReady ? 'ОЖИДАНИЕ СОПЕРНИКА' : 'ГОТОВ' }}
             </button>
           </div>
 
@@ -73,10 +73,10 @@
       </div>
 
       <section class="controls">
-        <h3>CONTROLS:</h3>
+        <h3>УПРАВЛЕНИЕ:</h3>
 
-        <p><span class="kbd">ПКМ</span> сменить ориентацию корабля</p>
-        <p><span class="kbd">Ctrl</span> + <span class="kbd">ЛКМ</span> удалить корабль</p>
+        <p><span class="kbd">ПКМ</span> — сменить ориентацию корабля</p>
+        <p><span class="kbd">Ctrl</span> + <span class="kbd">ЛКМ</span> — удалить корабль</p>
       </section>
     </div>
   </main>

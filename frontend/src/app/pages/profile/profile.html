@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Profile</title>
+  <title>Профиль</title>
   <link rel="stylesheet" href="profile.scss" />
 </head>
 
@@ -11,9 +11,9 @@
 
   <!-- TOP BAR -->
   <header class="topbar">
-    <a routerLink="/" class="logo">⚓ BATTLESHIP</a>
-    <div class="page-title">PROFILE</div>
-    <button (click)="goHome()" class="home-btn">← HOME</button>
+    <a routerLink="/" class="logo">⚓ МОРСКОЙ БОЙ</a>
+    <div class="page-title">ПРОФИЛЬ</div>
+    <button (click)="goHome()" class="home-btn">← ГЛАВНАЯ</button>
   </header>
 
   <!-- MAIN GRID -->
@@ -21,7 +21,7 @@
 
     <!-- LOADING STATE -->
     <div *ngIf="loading" class="loading-container">
-      <p>Loading profile...</p>
+      <p>Загрузка профиля…</p>
     </div>
 
     <!-- PROFILE CONTENT -->
@@ -31,7 +31,7 @@
       <section class="profile-card glow-box">
         <div class="profile-left">
           <img [src]="user.avatar ? getBackendUrl() + user.avatar : getBackendUrl() + '/default_avatar.png'"
-               alt="avatar" class="avatar" />
+               alt="аватар" class="avatar" />
           <h1 class="username">{{ user.username }}</h1>
         </div>
 
@@ -40,19 +40,19 @@
 
       <!-- STATS -->
       <section class="statistics">
-        <h3>YOUR STATS</h3>
+        <h3>ВАША СТАТИСТИКА</h3>
         <hr>
         <div class="stats">
-          <div class="stat glow-box"><label>Total Games</label><span>{{ user.totalGames }}</span></div>
-          <div class="stat glow-box"><label>Winrate</label><span>{{ user.winrate | number:'1.0-1' }}%</span></div>
-          <div class="stat glow-box"><label>Wins</label><span>{{ user.wins }}</span></div>
-          <div class="stat glow-box"><label>Losses</label><span>{{ user.losses }}</span></div>
+          <div class="stat glow-box"><label>Всего игр</label><span>{{ user.totalGames }}</span></div>
+          <div class="stat glow-box"><label>Винрейт</label><span>{{ user.winrate | number:'1.0-1' }}%</span></div>
+          <div class="stat glow-box"><label>Победы</label><span>{{ user.wins }}</span></div>
+          <div class="stat glow-box"><label>Поражения</label><span>{{ user.losses }}</span></div>
         </div>
 
         <div class="rating glow-box">
-          <div class="rating-sub">YOUR RATING</div>
+          <div class="rating-sub">ВАШ РЕЙТИНГ</div>
           <div class="rating-num">{{ user.rating }}</div>
-          <div class="rating-sub">Global position: <span>#{{ user.position }}</span></div>
+          <div class="rating-sub">Место в рейтинге: <span>#{{ user.position }}</span></div>
 
           <div class="spark"></div>
         </div>
@@ -61,14 +61,14 @@
 
     <!-- ERROR STATE -->
     <div *ngIf="!loading && !user && error" class="error-container">
-      <p>Error loading profile: {{ error }}</p>
+      <p>Ошибка загрузки профиля: {{ error }}</p>
     </div>
     <!-- RATING -->
 
 
     <!-- LEADERBOARD -->
     <section class="leaderboard">
-      <h3>LEADERBOARD</h3>
+      <h3>ТАБЛИЦА ЛИДЕРОВ</h3>
       <hr>
       <ul>
         <li class="glow-box" *ngFor="let p of topPlayers; let i = index">
