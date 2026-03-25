@@ -20,5 +20,5 @@ import { HomeComponent } from './pages/home/home';
   templateUrl: './app.component.html'
 })
 export class App {
-  title = signal('Seabattle Frontend');
+  title = signal('Морской бой');
 }

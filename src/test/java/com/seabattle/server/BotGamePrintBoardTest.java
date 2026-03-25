@@ -126,6 +126,7 @@ class BotGamePrintBoardTest {
                     case SHIP -> 'S';
                     case HIT -> 'X';
                     case MISS -> 'o';
+                    case ADJACENT_SUNK -> '#';
                 };
                 System.out.print(c + " ");
             }

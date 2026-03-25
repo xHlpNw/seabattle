@@ -81,11 +81,11 @@ export class SetupComponent implements OnInit, OnDestroy {
 
   getShipName(size: number): string {
     switch (size) {
-      case 4: return 'Battleship';
-      case 3: return 'Cruiser';
-      case 2: return 'Destroyer';
-      case 1: return 'Submarine';
-      default: return 'Unknown';
+      case 4: return 'Линкор';
+      case 3: return 'Крейсер';
+      case 2: return 'Эсминец';
+      case 1: return 'Подлодка';
+      default: return 'Неизвестно';
     }
   }
 

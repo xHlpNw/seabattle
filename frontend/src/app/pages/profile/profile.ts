@@ -34,7 +34,7 @@ export class ProfileComponent {
           this.user = await this.userApi.getProfile(username);
 
           // Обновляем заголовок страницы с именем пользователя
-          this.title.setTitle(`Profile — ${this.user.username}`);
+          this.title.setTitle(`Профиль — ${this.user.username}`);
 
           // Получаем топ 10 игроков для leaderboard
           this.topPlayers = await this.userApi.getTopPlayers(10);

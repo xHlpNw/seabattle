@@ -82,7 +82,7 @@ export class GameWebSocketService {
             const data: GameUpdate = JSON.parse(event.data);
             this.gameUpdates$.next(data);
           } catch (error) {
-            this.gameUpdates$.next({ type: 'error', message: 'Invalid message' });
+            this.gameUpdates$.next({ type: 'error', message: 'Некорректное сообщение' });
           }
         };
 
@@ -94,7 +94,7 @@ export class GameWebSocketService {
           }
           this.gameUpdates$.next({
             type: 'error',
-            message: 'WebSocket disconnected'
+            message: 'Соединение WebSocket разорвано'
           });
           if (this.reconnectAttempts < this.maxReconnectAttempts) {
             this.attemptReconnect(gameId);

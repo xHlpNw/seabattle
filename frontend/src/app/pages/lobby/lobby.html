@@ -1,68 +1,68 @@
 <!-- Lobby Page -->
 <div class="lobby-page">
   <header class="topbar">
-    <a routerLink="/" class="logo">⚓ BATTLESHIP</a>
-    <button class="back-btn" (click)="backToHome()">← BACK</button>
+    <a routerLink="/" class="logo">⚓ МОРСКОЙ БОЙ</a>
+    <button class="back-btn" (click)="backToHome()">← НАЗАД</button>
   </header>
 
   <main class="lobby-content">
     <div class="lobby-container">
-      <h1>ONLINE MULTIPLAYER</h1>
-      <p>Challenge another player to a naval battle</p>
+      <h1>ОНЛАЙН-ИГРА</h1>
+      <p>Сразитесь с другим игроком в морском бою</p>
 
       <!-- Loading indicator -->
       <div class="lobby-setup" *ngIf="isLoading">
         <div class="waiting-indicator">
           <div class="spinner"></div>
-          <p>Loading lobby...</p>
+          <p>Загрузка лобби…</p>
         </div>
       </div>
 
       <!-- Lobby content when loaded -->
       <div class="lobby-setup" *ngIf="!isLoading">
         <div class="lobby-code-section" *ngIf="isHost">
-          <h3>ROOM TOKEN</h3>
+          <h3>КОД КОМНАТЫ</h3>
           <div class="code-display">
             <span class="code">{{ roomToken }}</span>
           </div>
         </div>
 
         <div class="lobby-code-section" *ngIf="!isHost">
-          <h3>JOINED ROOM</h3>
+          <h3>ВЫ В КОМНАТЕ</h3>
           <div class="code-display">
             <span class="code">{{ roomToken }}</span>
-            <p class="host-info">Host: {{ hostUsername }}</p>
+            <p class="host-info">Хост: {{ hostUsername }}</p>
           </div>
         </div>
 
         <div class="invite-section">
-          <h3>INVITE A FRIEND</h3>
-          <p>Share this link with another player to join your lobby:</p>
+          <h3>ПРИГЛАСИТЬ ДРУГА</h3>
+          <p>Отправьте ссылку второму игроку, чтобы он присоединился к лобби:</p>
           <div class="invite-link-container">
             <input type="text" readonly [value]="inviteLink" class="invite-input">
-            <button class="copy-btn" (click)="copyInviteLink()">COPY</button>
+            <button class="copy-btn" (click)="copyInviteLink()">КОПИРОВАТЬ</button>
           </div>
         </div>
 
         <div class="status-section">
           <div class="waiting-indicator" *ngIf="isHost && !opponentJoined">
             <div class="spinner"></div>
-            <p>Waiting for opponent to join...</p>
+            <p>Ожидание соперника…</p>
           </div>
 
           <div class="waiting-indicator" *ngIf="!isHost">
             <div class="spinner"></div>
-            <p>Waiting for {{ hostUsername }} to start the game...</p>
+            <p>Ожидание: {{ hostUsername }} начнёт игру…</p>
           </div>
 
           <div class="success-indicator" *ngIf="isHost && opponentJoined">
-            <p>✅ Opponent joined! Ready to start the game.</p>
+            <p>✅ Соперник в лобби! Можно начинать игру.</p>
           </div>
         </div>
 
         <div class="actions" *ngIf="isHost && opponentJoined">
           <button class="create-game-btn" (click)="startGame()">
-            START GAME
+            НАЧАТЬ ИГРУ
           </button>
         </div>
 

@@ -52,7 +52,7 @@ export class GameComponent implements OnInit, OnDestroy {
   currentTurn: string | null = null;
   isPlayerTurn: boolean = true;
 
-  opponentName: string = "Commander Beta";
+  opponentName: string = 'Командир Бета';
   isBotGame: boolean = true;
   isHost: boolean = true;
 
@@ -140,16 +140,16 @@ export class GameComponent implements OnInit, OnDestroy {
         this.showResultModal = true;
 
         if (res.winner === 'HOST_WIN') {
-          this.gameResultStatus = "VICTORY";
+          this.gameResultStatus = 'ПОБЕДА';
           this.resultText = "🎉 Вы победили!";
         } else if (res.winner === 'GUEST_WIN') {
-          this.gameResultStatus = "DEFEAT";
+          this.gameResultStatus = 'ПОРАЖЕНИЕ';
           this.resultText = "💀 Вы проиграли!";
         } else if (res.winner === 'SURRENDER') {
-          this.gameResultStatus = "DEFEAT";
+          this.gameResultStatus = 'ПОРАЖЕНИЕ';
           this.resultText = "🏳️ Вы сдались!";
         } else {
-          this.gameResultStatus = "GAME OVER";
+          this.gameResultStatus = 'ИГРА ОКОНЧЕНА';
           this.resultText = "Игра завершена";
         }
       } else if (this.isBotGame && !this.isPlayerTurn) {
@@ -295,13 +295,13 @@ export class GameComponent implements OnInit, OnDestroy {
     this.rematchDeclinedMessage = false;
 
     if (winner === 'HOST_WIN') {
-      this.gameResultStatus = this.isHost ? "VICTORY" : "DEFEAT";
+      this.gameResultStatus = this.isHost ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ';
       this.resultText = this.isHost ? "🎉 Вы победили!" : "💀 Вы проиграли!";
     } else if (winner === 'GUEST_WIN') {
-      this.gameResultStatus = !this.isHost ? "VICTORY" : "DEFEAT";
+      this.gameResultStatus = !this.isHost ? 'ПОБЕДА' : 'ПОРАЖЕНИЕ';
       this.resultText = !this.isHost ? "🎉 Вы победили!" : "💀 Вы проиграли!";
     } else {
-      this.gameResultStatus = "GAME OVER";
+      this.gameResultStatus = 'ИГРА ОКОНЧЕНА';
       this.resultText = "Игра завершена";
     }
   }
@@ -437,16 +437,16 @@ export class GameComponent implements OnInit, OnDestroy {
           this.gameOver = true;
 
           if (res.winner === 'HOST_WIN') {
-            this.gameResultStatus = "VICTORY";
+            this.gameResultStatus = 'ПОБЕДА';
             this.resultText = "🎉 Вы победили!";
           } else if (res.winner === 'GUEST_WIN') {
-            this.gameResultStatus = "DEFEAT";
+            this.gameResultStatus = 'ПОРАЖЕНИЕ';
             this.resultText = "💀 Вы проиграли!";
           } else if (res.winner === 'SURRENDER') {
-            this.gameResultStatus = "DEFEAT";
+            this.gameResultStatus = 'ПОРАЖЕНИЕ';
             this.resultText = "🏳️ Вы сдались!";
           } else {
-            this.gameResultStatus = "GAME OVER";
+            this.gameResultStatus = 'ИГРА ОКОНЧЕНА';
             this.resultText = "Игра завершена";
           }
 
@@ -472,7 +472,7 @@ export class GameComponent implements OnInit, OnDestroy {
             // Сразу показываем результат сдачи в игре с ботом
             this.gameOver = true;
             this.showResultModal = true;
-            this.gameResultStatus = 'DEFEAT';
+            this.gameResultStatus = 'ПОРАЖЕНИЕ';
             this.resultText = '🏳️ Вы сдались!';
             // Обновляем доски с сервера (опционально, для актуального состояния)
             setTimeout(() => this.loadBoards(), 300);

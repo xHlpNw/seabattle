@@ -1,42 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Battleship Login</title>
+  <title>Вход — Морской бой</title>
   <link rel="stylesheet" href="login.scss" />
 </head>
 <body>
   <div class="container">
     <div class="logo">
     <div class="icon">⚓</div>
-    <h1>BATTLESHIP</h1>
+    <h1>МОРСКОЙ БОЙ</h1>
   </div>
 
 
   <div class="login-box">
-    <h2>LOGIN</h2>
+    <h2>ВХОД</h2>
     <form>
-      <label>USERNAME</label>
+      <label>ИМЯ ПОЛЬЗОВАТЕЛЯ</label>
       <div class="input-group">
-        <input type="text" [(ngModel)]="username" name="username" placeholder="username" >
+        <input type="text" [(ngModel)]="username" name="username" placeholder="логин" >
       </div>
 
 
-      <label>PASSWORD</label>
+      <label>ПАРОЛЬ</label>
       <div class="input-group">
-        <input type="password" [(ngModel)]="password" name="password" placeholder="password" >
+        <input type="password" [(ngModel)]="password" name="password" placeholder="пароль" >
       </div>
 
       <div class="error" [class.visible]="errorMsg" role="alert">
         {{ errorMsg || ' ' }}
       </div>
 
-      <button type="button" class="btn" (click)="doLogin()">SIGN IN</button>
+      <button type="button" class="btn" (click)="doLogin()">ВОЙТИ</button>
 
       <div class="links">
-        <a href="/register">Register</a>
-        <a href="#">← Back to Home</a>
+        <a href="/register">Регистрация</a>
+        <a href="#">← На главную</a>
       </div>
     </form>
   </div>
