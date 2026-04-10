@@ -5,7 +5,6 @@ import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
 import { GameApi } from '../../core/api/game.api';
-import { RoomApi } from '../../core/api/room.api';
 
 export interface Player {
   username: string;
@@ -24,7 +23,6 @@ export class HomeComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
   private gameApi = inject(GameApi);
-  private roomApi = inject(RoomApi);
 
   isLoggedIn = false;
   topPlayers: Player[] = [];
@@ -88,25 +86,6 @@ export class HomeComponent {
       },
       error: (err) => {
         console.error('❌ Ошибка при создании игры с ботом:', err);
-      }
-    });
-  }
-
-  playOnline() {
-    if (!this.isLoggedIn) {
-      this.router.navigate(['/login']);
-      return;
-    }
-
-    // Create a new lobby with a token and navigate to lobby page
-    this.roomApi.createRoom().subscribe({
-      next: (response) => {
-        console.log('✅ Lobby created:', response);
-        this.router.navigate(['/lobby'], { queryParams: { token: response.roomToken } });
-      },
-      error: (err) => {
-        console.error('❌ Error creating lobby:', err);
-        // Show error message or handle error
       }
     });
   }
