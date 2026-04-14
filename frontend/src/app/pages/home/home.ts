@@ -4,13 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../core/auth/auth.service';
-import { GameApi } from '../../core/api/game.api';
+import { GameApi, Player } from '../../core/api/game.api';
 import { RoomApi } from '../../core/api/room.api';
-
-export interface Player {
-  username: string;
-  rating: number;
-}
 
 @Component({
   selector: 'page-home',

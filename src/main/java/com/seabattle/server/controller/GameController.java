@@ -2,7 +2,6 @@ package com.seabattle.server.controller;
 
 import com.seabattle.server.config.GameWebSocketHandler;
 import com.seabattle.server.dto.AttackResult;
-import com.seabattle.server.dto.BoardResponseDTO;
 import com.seabattle.server.dto.PlaceShipsRequest;
 import com.seabattle.server.dto.ShipDTO;
 import com.seabattle.server.engine.BoardModel;
@@ -24,10 +23,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.AccessDeniedException;
 import java.time.OffsetDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/games")
@@ -178,23 +175,6 @@ public class GameController {
         return ResponseEntity.ok(Map.of("grid", grid));
     }
 
-    // DTO для запроса
-    @Getter
-    @Setter
-    public static class GridRequest {
-        private int[][] grid;
-
-        public String getGridAsString() {
-            // Преобразуем массив в JSON строку
-            // Можно использовать Jackson ObjectMapper, если подключен
-            try {
-                return new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(grid);
-            } catch (Exception e) {
-                throw new RuntimeException("Ошибка сериализации сетки", e);
-            }
-        }
-    }
-
     @GetMapping("/{gameId}/boards")
     public ResponseEntity<?> getBoards(@PathVariable UUID gameId,
                                        @AuthenticationPrincipal UserDetails userDetails) {
@@ -230,15 +210,20 @@ public class GameController {
 
         // Определяем информацию о противнике
         String opponentName;
+        String opponentAvatar;
         boolean isBotGame = game.isBot();
         boolean isHost = game.getHost().equals(player);
 
         if (isBotGame) {
             opponentName = "Bot";
+            opponentAvatar = "/default_avatar.png";
         } else {
-            // Для онлайн игр получаем имя противника
+            // Для онлайн игр получаем имя и аватар противника
             User opponent = isHost ? game.getGuest() : game.getHost();
             opponentName = opponent != null ? opponent.getUsername() : "Waiting for opponent...";
+            opponentAvatar = (opponent != null && opponent.getAvatar() != null)
+                    ? opponent.getAvatar()
+                    : "/default_avatar.png";
         }
 
         Map<String, Object> response = Map.ofEntries(
@@ -252,6 +237,7 @@ public class GameController {
                 Map.entry("winner", game.getResult() != null ? game.getResult().name() : "NONE"),
                 Map.entry("currentTurn", game.getStatus() == Game.GameStatus.IN_PROGRESS && game.getCurrentTurn() != null ? game.getCurrentTurn().name() : "NONE"),
                 Map.entry("opponentName", opponentName),
+                Map.entry("opponentAvatar", opponentAvatar),
                 Map.entry("isBotGame", isBotGame),
                 Map.entry("isHost", isHost)
         );

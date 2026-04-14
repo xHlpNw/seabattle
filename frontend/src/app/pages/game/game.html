@@ -2,8 +2,24 @@
 <div class="game-page">
   <header class="topbar">
     <a routerLink="/" class="logo">⚓ МОРСКОЙ БОЙ</a>
-    <div class="enemy-tag">{{ opponentName }}</div>
   </header>
+
+  <!-- PLAYERS BAR -->
+  <div class="players-bar">
+    <div class="player-info">
+      <img class="player-avatar"
+           [src]="profile?.avatar ? getBackendUrl() + profile.avatar : getBackendUrl() + '/default_avatar.png'"
+           alt="аватар" />
+      <span class="player-nick">Вы</span>
+    </div>
+    <div class="player-info">
+      <span class="player-nick">{{ isBotGame ? 'Бот' : opponentName }}</span>
+      <img class="player-avatar"
+           [src]="opponentAvatar ? getBackendUrl() + opponentAvatar : getBackendUrl() + '/default_avatar.png'"
+           alt="аватар противника" />
+    </div>
+  </div>
+
   <p class="turn-hint" *ngIf="!gameOver">{{ isPlayerTurn ? 'Ваш ход — нажмите на поле противника' : 'Ход соперника' }}</p>
   <main class="boards-wrapper">
 

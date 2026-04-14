@@ -43,9 +43,4 @@ export class RoomApi {
     return this.http.post<{ message: string; gameId?: string }>(`${this.baseUrl}/api/rooms/start/${token}`, {});
   }
 
-  /** Delete a room (host only) */
-  deleteRoom(token: string): Observable<{ message: string }> {
-    return this.http.delete<{ message: string }>(`${this.baseUrl}/api/rooms/${token}`);
-  }
-
 }

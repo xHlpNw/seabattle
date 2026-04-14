@@ -44,3 +44,4 @@ server:
 app:
   cors:
     allowed-origins: "*"
+  upload-dir: uploads

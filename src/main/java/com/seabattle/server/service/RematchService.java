@@ -142,7 +142,4 @@ public class RematchService {
         return request != null ? request.getRequestedByUsername() : null;
     }
 
-    public RematchRequest getRequest(UUID gameId) {
-        return pendingByGameId.get(gameId);
-    }
 }

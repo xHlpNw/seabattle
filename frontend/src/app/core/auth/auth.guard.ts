@@ -1,8 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { CanActivate, Router, ActivatedRouteSnapshot } from '@angular/router';
+import { CanActivate, Router } from '@angular/router';
 import { AuthService } from './auth.service';
-import { map } from 'rxjs/operators';
-import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +10,7 @@ export class AuthGuard implements CanActivate {
   private authService = inject(AuthService);
   private router = inject(Router);
 
-  canActivate(route: ActivatedRouteSnapshot): boolean {
+  canActivate(): boolean {
     console.log('AuthGuard: Checking authentication...');
     const token = this.authService.getToken();
     const hasToken = !!token;

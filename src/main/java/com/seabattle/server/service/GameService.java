@@ -23,7 +23,6 @@ import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -509,22 +508,6 @@ public class GameService {
 
     private void switchTurn(Game game) {
         game.setCurrentTurn(game.getCurrentTurn() == Game.Turn.HOST ? Game.Turn.GUEST : Game.Turn.HOST);
-    }
-
-    // Переписанный метод makeBotMove для поддержки повторных ходов
-    private BotMove makeBotMove(BoardModel playerModel, Board playerBoard) {
-        Random rnd = new Random();
-        BoardModel.ShotOutcome botOutcome;
-        int botX, botY;
-
-        do {
-            botX = rnd.nextInt(BoardModel.SIZE);
-            botY = rnd.nextInt(BoardModel.SIZE);
-            botOutcome = playerModel.shoot(botX, botY);
-        } while (botOutcome.already);
-
-        playerBoard.setCells(playerModel.toJson());
-        return new BotMove(botX, botY, botOutcome.hit, botOutcome.sunk);
     }
 
     public AttackResult botMove(UUID gameId) {

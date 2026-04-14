@@ -4,6 +4,7 @@ import { GameApi } from '../../core/api/game.api';
 import { UserApi } from '../../core/api/user.api';
 import { AuthService } from '../../core/auth/auth.service';
 import { GameWebSocketService, GameUpdate } from '../../core/ws/game-ws.service';
+import { getApiBaseUrl } from '../../core/api/api-config';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom, Subscription } from 'rxjs';
@@ -53,6 +54,7 @@ export class GameComponent implements OnInit, OnDestroy {
   isPlayerTurn: boolean = true;
 
   opponentName: string = 'Командир Бета';
+  opponentAvatar: string = '/default_avatar.png';
   isBotGame: boolean = true;
   isHost: boolean = true;
 
@@ -120,6 +122,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.enemyBoard = res.enemyBoard;
       this.currentTurn = res.currentTurn;
       this.opponentName = res.opponentName;
+      this.opponentAvatar = res.opponentAvatar || '/default_avatar.png';
       this.isBotGame = res.isBotGame;
       this.isHost = res.isHost;
 
@@ -485,6 +488,10 @@ export class GameComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  getBackendUrl(): string {
+    return getApiBaseUrl() || '';
   }
 
   ngOnDestroy() {

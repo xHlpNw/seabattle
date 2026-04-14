@@ -107,8 +107,6 @@ public class BoardModel {
         }
     }
 
-    public static final int[] STANDARD_SHIPS = {4,3,3,2,2,1,1,1,1};
-
     public boolean allShipsSunk() {
         for (Ship s : ships) if (!s.sunk) return false;
         return true;
@@ -249,17 +247,5 @@ public class BoardModel {
             }
         }
     }
-
-    public static void fixShipIds(BoardModel bm) {
-        for (Ship s : bm.getShips()) {
-            for (Coord c : s.getCells()) {
-                Cell cell = bm.getCells()[c.getX()][c.getY()];
-                if (cell.getShipId() == null) {
-                    cell.setShipId(s.getId());
-                }
-            }
-        }
-    }
-
 
 }
