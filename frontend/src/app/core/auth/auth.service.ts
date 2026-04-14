@@ -16,14 +16,9 @@ export class AuthService {
   isLoggedIn$ = this._isLoggedIn$.asObservable();
 
   constructor() {
-    // Изначально считаем не авторизованным; после validateToken() при загрузке приложения обновим состояние
     this._isLoggedIn$.next(false);
   }
 
-  /**
-   * Проверка токена на бэкенде. Вызывается при старте приложения (APP_INITIALIZER).
-   * Если токена нет или он невалиден — остаётся Login; если валиден — показываем Profile.
-   */
   validateToken(): Promise<void> {
     const token = this.tokenStorage.getToken();
     if (!token || this.isTokenExpired(token)) {
@@ -50,12 +45,9 @@ export class AuthService {
   }
 
   logout() {
-    // Clear token first
     this.tokenStorage.clearToken();
     localStorage.removeItem('username');
     this._isLoggedIn$.next(false);
-
-    // Force navigation to home page, bypassing any guards
     this.router.navigateByUrl('/', { replaceUrl: true });
   }
 

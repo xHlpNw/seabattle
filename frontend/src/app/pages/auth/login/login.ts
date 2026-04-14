@@ -31,14 +31,7 @@ export class LoginComponent {
         password: this.password
       });
 
-      console.log('Before login', res);
-
-      // Также уведомляем AuthService о логине (AuthService handles token and username storage)
       this.auth.login(res.token, res.username);
-
-      console.log('After login', res);
-
-      // Переход на главную или нужную страницу
       this.router.navigate(['/']);
 
     } catch (e: any) {
@@ -49,7 +42,6 @@ export class LoginComponent {
       } else {
         this.errorMsg = typeof msg === 'string' ? msg : 'Неверный логин или пароль';
       }
-      console.error('Ошибка входа:', e);
     }
   }
 }

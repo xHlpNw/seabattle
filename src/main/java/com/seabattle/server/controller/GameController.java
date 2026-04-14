@@ -7,11 +7,9 @@ import com.seabattle.server.dto.ShipDTO;
 import com.seabattle.server.engine.BoardModel;
 import com.seabattle.server.entity.Board;
 import com.seabattle.server.entity.Game;
-import com.seabattle.server.entity.Room;
 import com.seabattle.server.entity.User;
 import com.seabattle.server.repository.BoardRepository;
 import com.seabattle.server.repository.GameRepository;
-import com.seabattle.server.repository.RoomRepository;
 import com.seabattle.server.repository.UserRepository;
 import com.seabattle.server.service.GameService;
 import jakarta.persistence.EntityNotFoundException;
@@ -33,7 +31,6 @@ public class GameController {
 
     private final BoardRepository boardRepository;
     private final GameRepository gameRepository;
-    private final RoomRepository roomRepository;
     private final UserRepository userRepository;
     private final GameService gameService;
     private final GameWebSocketHandler gameWebSocketHandler;
@@ -47,21 +44,19 @@ public class GameController {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new EntityNotFoundException("Игра не найдена"));
 
-        // Проверяем, что игрок участвует в этой игре (в игре с ботом guest может быть null)
         boolean isHost = game.getHost().equals(player);
         boolean isGuest = game.getGuest() != null && game.getGuest().equals(player);
         if (!isHost && !isGuest) {
             return ResponseEntity.status(403).body(Map.of("message", "Вы не участвуете в этой игре"));
         }
 
-        // Отмечаем игрока как готового
         if (isHost) {
             game.setHostReady(true);
         } else {
             game.setGuestReady(true);
         }
 
-        // Если оба игрока готовы — начинаем игру; в игре с ботом достаточно готовности хоста
+        // В игре с ботом достаточно готовности хоста
         boolean bothReady = game.isHostReady() && game.isGuestReady();
         boolean botGameReady = game.isBot() && isHost && game.isHostReady();
         if (bothReady || botGameReady) {
@@ -72,7 +67,6 @@ public class GameController {
 
         gameRepository.save(game);
 
-        // Broadcast player ready event for online games via WebSocket (не для бота)
         if (game.getType() == Game.GameType.ONLINE && !game.isBot()) {
             Map<String, Object> readyMessage = new HashMap<>();
             readyMessage.put("type", "playerReady");
@@ -133,7 +127,6 @@ public class GameController {
                 s.setCells(ship.getCells());
                 boardModel.getShips().add(s);
 
-                // ставим shipId в клетки
                 for (BoardModel.Coord c : ship.getCells()) {
                     BoardModel.Cell cell = boardModel.getCells()[c.getX()][c.getY()];
                     cell.setState(BoardModel.CellState.SHIP);
@@ -161,7 +154,7 @@ public class GameController {
                 .orElse(Board.builder()
                         .game(gameRepository.findById(gameId).orElseThrow())
                         .player(player)
-                        .cells(new BoardModel().toJson()) // пустая доска
+                        .cells(new BoardModel().toJson())
                         .build());
 
         boardRepository.save(board);
@@ -185,7 +178,6 @@ public class GameController {
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new EntityNotFoundException("Game not found"));
 
-        // Доска игрока
         Board playerBoard = boardRepository.findFirstByGameIdAndPlayerIdOrderByIdAsc(gameId, player.getId())
                 .orElseGet(() -> Board.builder()
                         .game(game)
@@ -193,7 +185,6 @@ public class GameController {
                         .cells(new BoardModel().toJson())
                         .build());
 
-        // Доска противника
         Board enemyBoard;
         if (game.isBot()) {
             enemyBoard = boardRepository.findByGameIdAndPlayerIsNull(gameId)
@@ -208,17 +199,15 @@ public class GameController {
         BoardModel playerModel = BoardModel.fromJson(playerBoard.getCells());
         BoardModel enemyModel = BoardModel.fromJson(enemyBoard.getCells());
 
-        // Определяем информацию о противнике
-        String opponentName;
-        String opponentAvatar;
         boolean isBotGame = game.isBot();
         boolean isHost = game.getHost().equals(player);
 
+        String opponentName;
+        String opponentAvatar;
         if (isBotGame) {
             opponentName = "Bot";
             opponentAvatar = "/default_avatar.png";
         } else {
-            // Для онлайн игр получаем имя и аватар противника
             User opponent = isHost ? game.getGuest() : game.getHost();
             opponentName = opponent != null ? opponent.getUsername() : "Waiting for opponent...";
             opponentAvatar = (opponent != null && opponent.getAvatar() != null)
@@ -244,7 +233,6 @@ public class GameController {
 
         return ResponseEntity.ok(response);
     }
-
 
     @PostMapping("/{gameId}/attack")
     public ResponseEntity<?> attack(
@@ -286,64 +274,10 @@ public class GameController {
         }
     }
 
-    @PostMapping("/online/create")
-    public ResponseEntity<?> createOnlineGame(@RequestParam UUID roomToken,
-                                             @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            User user = userRepository.findByUsername(userDetails.getUsername())
-                    .orElseThrow(() -> new EntityNotFoundException("User not found"));
-
-            // Check if room exists and user is part of it
-            Room room = roomRepository.findByToken(roomToken);
-            if (room == null) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Room not found"));
-            }
-
-            if (!room.getHost().equals(user)) {
-                return ResponseEntity.status(403).body(Map.of("message", "Only room host can create the game"));
-            }
-
-            if ("EXPIRED".equals(room.getStatus()) || room.getExpiresAt().isBefore(OffsetDateTime.now())) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Room has expired"));
-            }
-
-            // Create online game
-            Game game = Game.builder()
-                    .type(Game.GameType.ONLINE)
-                    .host(user)
-                    .status(Game.GameStatus.WAITING)
-                    .roomToken(roomToken)
-                    .build();
-
-            gameRepository.save(game);
-
-            // Create empty board for host
-            Board hostBoard = Board.builder()
-                    .game(game)
-                    .player(user)
-                    .cells(new BoardModel().toJson())
-                    .build();
-
-            boardRepository.save(hostBoard);
-
-            return ResponseEntity.ok(Map.of(
-                    "gameId", game.getId(),
-                    "message", "Online game created successfully"
-            ));
-
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of("message", "Failed to create online game: " + e.getMessage()));
-        }
-    }
-
-    // DTO для запроса атаки
     @Getter
     @Setter
     public static class AttackRequest {
         private int x;
         private int y;
     }
-
-
-
 }

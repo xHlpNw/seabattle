@@ -37,7 +37,6 @@ export class ProfileComponent {
       this.title.setTitle(`Профиль — ${this.user.username}`);
       this.topPlayers = await this.userApi.getTopPlayers(10);
     } catch (err) {
-      console.error(err);
       this.router.navigate(['login']);
     } finally {
       this.loading = false;

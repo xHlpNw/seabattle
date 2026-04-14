@@ -86,7 +86,6 @@ public class UserController {
     public UserProfileDTO getProfile(@RequestParam String username) {
         User user = userRepository.findByUsername(username).orElseThrow(() -> new EntityNotFoundException("Cannot find user by username"));
 
-        // Вычисляем позицию
         List<User> sorted = userRepository.findAll(Sort.by("rating").descending());
         int position = 1;
         for (User u : sorted) {

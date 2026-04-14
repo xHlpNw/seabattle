@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { Router, RouterModule, RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
@@ -34,9 +34,7 @@ export class HomeComponent {
       next: (players) => {
         this.topPlayers = players;
       },
-      error: (err) => {
-        console.error('Ошибка при получении топ игроков:', err);
-      }
+      error: () => {}
     });
   }
 
@@ -49,27 +47,21 @@ export class HomeComponent {
   }
 
   playBot() {
-    console.log('Токен:', this.auth.getToken());
     if (!this.isLoggedIn) {
       this.router.navigate(['/login']);
       return;
     }
 
-    // First check for unfinished bot games
     this.gameApi.getUnfinishedBotGames().subscribe({
       next: (unfinishedGames) => {
         if (unfinishedGames.length > 0) {
-          // Show modal to choose what to do with unfinished games
           this.unfinishedGames = unfinishedGames;
           this.showUnfinishedGamesModal = true;
         } else {
-          // No unfinished games, create new one
           this.createNewBotGame();
         }
       },
-      error: (err) => {
-        console.error('❌ Ошибка при проверке незавершенных игр:', err);
-        // If we can't check, proceed with creating new game
+      error: () => {
         this.createNewBotGame();
       }
     });
@@ -78,12 +70,9 @@ export class HomeComponent {
   private createNewBotGame() {
     this.gameApi.createBotGame().subscribe({
       next: (res) => {
-        console.log('✅ Игра с ботом создана:', res);
         this.router.navigate(['/setup'], { queryParams: { gameId: res.gameId } });
       },
-      error: (err) => {
-        console.error('❌ Ошибка при создании игры с ботом:', err);
-      }
+      error: () => {}
     });
   }
 
@@ -93,27 +82,20 @@ export class HomeComponent {
       return;
     }
 
-    // Create a new lobby with a token and navigate to lobby page
     this.roomApi.createRoom().subscribe({
       next: (response) => {
-        console.log('✅ Lobby created:', response);
         this.router.navigate(['/lobby'], { queryParams: { token: response.roomToken } });
       },
-      error: (err) => {
-        console.error('❌ Error creating lobby:', err);
-        // Show error message or handle error
-      }
+      error: () => {}
     });
   }
 
   continueUnfinishedGame(gameId: string) {
     this.showUnfinishedGamesModal = false;
-    // Navigate to the game page to continue
     this.router.navigate(['/game'], { queryParams: { gameId: gameId } });
   }
 
   surrenderAndStartNew() {
-    // Surrender all unfinished games and start a new one
     const surrenderPromises = this.unfinishedGames.map(game =>
       firstValueFrom(this.gameApi.surrender(game.gameId, true))
     );
@@ -121,9 +103,7 @@ export class HomeComponent {
     Promise.all(surrenderPromises).then(() => {
       this.showUnfinishedGamesModal = false;
       this.createNewBotGame();
-    }).catch(err => {
-      console.error('❌ Ошибка при сдаче игр:', err);
-      // Still try to create new game
+    }).catch(() => {
       this.showUnfinishedGamesModal = false;
       this.createNewBotGame();
     });

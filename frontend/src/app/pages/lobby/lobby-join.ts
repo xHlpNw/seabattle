@@ -22,7 +22,6 @@ export class LobbyJoinComponent implements OnInit {
   hostUsername: string = '';
 
   ngOnInit() {
-    // Get the room token from the URL
     this.route.params.subscribe(params => {
       this.roomToken = params['token'];
       if (this.roomToken) {
@@ -40,11 +39,9 @@ export class LobbyJoinComponent implements OnInit {
         this.isJoining = false;
         this.hostUsername = response.hostUsername;
 
-        // If game already exists, redirect to game
         if (response.gameId) {
           this.router.navigate(['/setup'], { queryParams: { gameId: response.gameId } });
         } else {
-          // Successfully joined, redirect to lobby with the room token
           this.router.navigate(['/lobby'], { queryParams: { token: this.roomToken } });
         }
       },

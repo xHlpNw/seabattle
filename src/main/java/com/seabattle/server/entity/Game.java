@@ -15,7 +15,7 @@ import java.util.UUID;
 public class Game {
     public enum GameType { BOT, ONLINE }
     public enum GameStatus { WAITING, IN_PROGRESS, FINISHED }
-    public enum GameResult { HOST_WIN, GUEST_WIN, DRAW, SURRENDER }
+    public enum GameResult { HOST_WIN, GUEST_WIN, SURRENDER }
     public enum Turn { HOST, GUEST }
 
     @Id

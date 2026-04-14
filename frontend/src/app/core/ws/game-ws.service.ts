@@ -41,8 +41,6 @@ export class GameWebSocketService {
   /** Pending reconnect timeout — cleared in disconnect() to prevent reconnect after switching game */
   private reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
-  constructor() {}
-
   connect(gameId: string): Observable<boolean> {
     return new Observable(observer => {
       // If already connected to the same game, return success

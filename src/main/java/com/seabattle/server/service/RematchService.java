@@ -106,7 +106,7 @@ public class RematchService {
             return null;
         }
 
-        // Как в RoomController.startGame: currentTurn не задаём — выставится в markReady() когда оба нажмут «Готов»
+            // currentTurn не задаём — выставится в markReady() когда оба нажмут «Готов»
         Game newGame = Game.builder()
                 .type(Game.GameType.ONLINE)
                 .host(oldGame.getHost())

@@ -28,7 +28,6 @@ export class LobbyComponent implements OnInit, OnDestroy {
   private pollingInterval: any;
 
   ngOnInit() {
-    // Get room token from query params (passed from home page)
     this.route.queryParams.subscribe(params => {
       const token = params['token'];
       if (token) {
@@ -52,29 +51,24 @@ export class LobbyComponent implements OnInit, OnDestroy {
         this.hostUsername = status.hostUsername;
         this.isLoading = false;
 
-        // Check if opponent has joined
         if (status.guestUsername && status.guestUsername !== status.hostUsername) {
           this.opponentJoined = true;
         }
 
-        // If game already started, redirect to game
         if (status.status === 'IN_GAME') {
           this.router.navigate(['/game'], { queryParams: { roomToken: this.roomToken } });
         } else {
-          // Start polling for updates
           this.startPolling();
         }
       },
-      error: (error) => {
+      error: () => {
         this.errorMessage = 'Не удалось загрузить состояние лобби';
         this.isLoading = false;
-        console.error('Failed to load room status:', error);
       }
     });
   }
 
   startPolling() {
-    // Start polling every 5 seconds to check for opponent joining
     this.pollingInterval = setInterval(() => {
       this.refreshRoomStatus();
     }, 5000);
@@ -86,65 +80,48 @@ export class LobbyComponent implements OnInit, OnDestroy {
     this.roomApi.getRoomStatus(this.roomToken).subscribe({
       next: (status) => {
         this.roomStatus = status;
-        // Update opponent joined status
         if (status.guestUsername && status.guestUsername !== status.hostUsername) {
           this.opponentJoined = true;
           this.errorMessage = '';
         }
 
-        // If game started, redirect to setup
         if (status.status === 'IN_GAME' && status.gameId) {
           clearInterval(this.pollingInterval);
-          console.log('Game started, redirecting to setup with gameId:', status.gameId);
           this.router.navigate(['/setup'], { queryParams: { gameId: status.gameId } });
         }
       },
-      error: (error) => {
-        console.log('Error refreshing room status:', error);
-      }
+      error: () => {}
     });
   }
 
   copyInviteLink() {
-    // Try modern clipboard API first
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(this.inviteLink).then(() => {
-        // Link copied successfully
-      }).catch(err => {
-        console.error('Modern clipboard API failed:', err);
+      navigator.clipboard.writeText(this.inviteLink).catch(() => {
         this.fallbackCopyToClipboard();
       });
     } else {
-      // Fallback for browsers without clipboard API
       this.fallbackCopyToClipboard();
     }
   }
 
   private fallbackCopyToClipboard() {
     try {
-      // Create a temporary textarea element
       const textArea = document.createElement('textarea');
       textArea.value = this.inviteLink;
       textArea.style.position = 'fixed';
       textArea.style.left = '-999999px';
       textArea.style.top = '-999999px';
       document.body.appendChild(textArea);
-
-      // Select and copy the text
       textArea.focus();
       textArea.select();
 
       const successful = document.execCommand('copy');
       document.body.removeChild(textArea);
 
-      if (successful) {
-        // Link copied successfully
-      } else {
+      if (!successful) {
         throw new Error('execCommand copy failed');
       }
     } catch (err) {
-      console.error('Fallback clipboard copy failed:', err);
-      // Last resort: show the link and ask user to copy manually
       alert(`Скопируйте ссылку вручную:\n\n${this.inviteLink}`);
     }
   }
@@ -167,7 +144,6 @@ export class LobbyComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    // Clean up polling interval
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
     }

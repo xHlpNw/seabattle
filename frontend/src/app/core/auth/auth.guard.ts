@@ -11,19 +11,12 @@ export class AuthGuard implements CanActivate {
   private router = inject(Router);
 
   canActivate(): boolean {
-    console.log('AuthGuard: Checking authentication...');
     const token = this.authService.getToken();
-    const hasToken = !!token;
-    const isTokenValid = hasToken && !this.isTokenExpired(token);
+    const isValid = !!token && !this.isTokenExpired(token);
 
-    console.log('AuthGuard: token exists =', hasToken);
-    console.log('AuthGuard: token is valid =', isTokenValid);
-
-    if (isTokenValid) {
-      console.log('AuthGuard: Allowing access to protected route');
+    if (isValid) {
       return true;
     } else {
-      console.log('AuthGuard: Blocking access, redirecting to login');
       this.router.navigate(['/login']);
       return false;
     }
