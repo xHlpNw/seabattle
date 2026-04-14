@@ -1,10 +1,11 @@
 package com.seabattle.server.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 @Setter
-@Builder
 @AllArgsConstructor
 public class UserRatingDto {
     String username;

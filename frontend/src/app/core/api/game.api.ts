@@ -34,11 +34,6 @@ export class GameApi {
     return this.http.post<{ gameId: string; message: string }>(`${this.baseUrl}/api/bot/create`, {});
   }
 
-  /** Создание онлайн игры */
-  createOnlineGame(roomToken: string): Observable<{ gameId: string; message: string }> {
-    return this.http.post<{ gameId: string; message: string }>(`${this.baseUrl}/api/games/online/create?roomToken=${roomToken}`, {});
-  }
-
   /** Проверка незавершенных игр с ботом */
   getUnfinishedBotGames(): Observable<{ gameId: string; createdAt: string }[]> {
     return this.http.get<{ gameId: string; createdAt: string }[]>(`${this.baseUrl}/api/bot/unfinished`);
@@ -60,12 +55,8 @@ export class GameApi {
     return this.http.post<{ message: string; bothReady: boolean; gameStarted: boolean }>(`${this.baseUrl}/api/games/${gameId}/ready`, {});
   }
 
-  getBoard(gameId: string) {
-    return this.http.get<{grid: number[][]}>(`${this.baseUrl}/api/games/${gameId}/board`);
-  }
-
-  getBoards(gameId: string): Observable<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string | null; gameFinished: boolean; winner: string; opponentName: string; isBotGame: boolean; isHost: boolean }> {
-    return this.http.get<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string; gameFinished: boolean; winner: string; opponentName: string; isBotGame: boolean; isHost: boolean }>(`${this.baseUrl}/api/games/${gameId}/boards`);
+  getBoards(gameId: string): Observable<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string | null; gameFinished: boolean; winner: string; opponentName: string; opponentAvatar: string; isBotGame: boolean; isHost: boolean }> {
+    return this.http.get<{ playerBoard: number[][]; enemyBoard: number[][]; currentTurn?: string; gameFinished: boolean; winner: string; opponentName: string; opponentAvatar: string; isBotGame: boolean; isHost: boolean }>(`${this.baseUrl}/api/games/${gameId}/boards`);
   }
 
   attackEnemy(gameId: string, x: number, y: number) {

@@ -13,7 +13,6 @@ import java.util.*;
 @AllArgsConstructor
 @Builder
 public class User {
-    public enum Role { PLAYER, ADMIN }
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -21,9 +20,6 @@ public class User {
 
     @Column(nullable = false, unique = true, length = 50)
     private String username;
-
-    @Column(unique = true, length = 100)
-    private String email;
 
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
@@ -46,9 +42,6 @@ public class User {
 
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
-
-    @Enumerated(EnumType.STRING)
-    private Role role;
 
     @PrePersist
     void prePersist() {

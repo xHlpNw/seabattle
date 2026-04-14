@@ -66,10 +66,23 @@ export class UserApi {
     }).then(r => r.json());
   }
 
-  async getUserRank(username: string): Promise<any> {
+  async uploadAvatar(file: File): Promise<{ avatar: string }> {
     const backendUrl = this.base.replace('/api/users', '');
-    return fetch(`${backendUrl}/api/users/rating/position?username=${username}`)
-      .then(r => r.json());
+    const token = localStorage.getItem('auth_token');
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${backendUrl}/api/users/avatar`, {
+      method: 'POST',
+      headers: {
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
+      body: formData
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: 'Upload failed' }));
+      throw new Error(err.message || 'Upload failed');
+    }
+    return res.json();
   }
 
 }
