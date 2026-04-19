@@ -1,75 +1,319 @@
-.admin-page {
-  max-width: 1000px;
+$accent: #53c7f5;
+$text: #d6e8f0;
+$panel-bg: rgba(255, 255, 255, 0.04);
+$deep: #061621;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background:
+    linear-gradient(rgba(6, 22, 33, 0.93), rgba(6, 22, 33, 0.93)),
+    url('../../../assets/background1.jpg') center / cover no-repeat;
+  color: $text;
+  font-family: Arial, sans-serif;
+}
+
+.admin-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5vh 4vw;
+  flex-shrink: 0;
+}
+
+.logo {
+  color: $accent;
+  font-size: clamp(16px, 2vw, 24px);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.back-btn {
+  background: transparent;
+  border: 1px solid $accent;
+  color: $accent;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.back-btn:hover {
+  background: $accent;
+  color: #000;
+}
+
+.admin-main {
+  flex: 1;
+  padding: 1vh 4vw 3rem;
+  max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
-  padding: 24px;
+  box-sizing: border-box;
+}
+
+.admin-page {
+  margin-bottom: 1.25rem;
+}
+
+.hero-panel,
+.data-panel {
+  background: $panel-bg;
+  border: 1px solid $accent;
+  border-radius: 8px;
+  padding: clamp(16px, 2.5vw, 28px);
+  box-shadow:
+    0 0 20px rgba(83, 199, 245, 0.12),
+    0 0 40px rgba(83, 199, 245, 0.08),
+    inset 0 0 25px rgba(83, 199, 245, 0.06);
+}
+
+.hero-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 1rem;
+}
+
+h1 {
+  margin: 0;
+  color: $accent;
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 700;
+  text-shadow:
+    0 0 20px rgba(83, 199, 245, 0.35),
+    0 0 40px rgba(83, 199, 245, 0.2);
+}
+
+.data-panel h2 {
+  margin: 0 0 1rem;
+  color: $accent;
+  font-size: clamp(18px, 2.2vw, 24px);
+  font-weight: 600;
+}
+
+.btn-primary {
+  border: 2px solid $accent;
+  background: rgba(83, 199, 245, 0.15);
+  color: $accent;
+  padding: 10px 22px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: 8px;
+  box-shadow: 0 0 12px rgba(83, 199, 245, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: $accent;
+  color: #000;
+  box-shadow: 0 0 20px rgba(83, 199, 245, 0.45);
+}
+
+.loading-line {
+  color: rgba(214, 232, 240, 0.85);
+  margin: 0.5rem 0;
+  font-size: 15px;
+}
+
+.error {
+  color: #e57373;
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.35);
+  padding: 12px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin: 0.75rem 0 0;
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 
 .card {
-  border: 1px solid #d9d9d9;
-  border-radius: 12px;
-  padding: 16px;
-  background: #fff;
+  background: rgba(83, 199, 245, 0.06);
+  border: 1px solid rgba(83, 199, 245, 0.35);
+  border-radius: 6px;
+  padding: 16px 18px;
 }
 
-.error {
-  color: #c62828;
+.card h3 {
+  margin: 0 0 12px;
+  font-weight: 600;
+  font-size: 16px;
+  color: $accent;
+}
+
+.card p {
+  margin: 6px 0;
+  color: rgba(214, 232, 240, 0.88);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .tabs {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .tabs button {
-  border: 1px solid #d9d9d9;
-  background: #fff;
-  border-radius: 8px;
-  padding: 8px 12px;
+  border: 1px solid rgba(83, 199, 245, 0.45);
+  background: rgba(255, 255, 255, 0.03);
+  color: $text;
+  border-radius: 6px;
+  padding: 10px 16px;
   cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.tabs button:hover {
+  border-color: $accent;
+  color: $accent;
+  background: rgba(83, 199, 245, 0.08);
 }
 
 .tabs button.active {
-  background: #1976d2;
-  color: #fff;
-  border-color: #1976d2;
+  background: rgba(83, 199, 245, 0.22);
+  color: $accent;
+  border-color: $accent;
+  box-shadow: 0 0 14px rgba(83, 199, 245, 0.25);
+}
+
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 6px;
 }
 
 .admin-table {
   width: 100%;
+  min-width: 720px;
   border-collapse: collapse;
+  font-size: 14px;
 }
 
 .admin-table th,
 .admin-table td {
-  border: 1px solid #d9d9d9;
-  padding: 8px;
+  border: 1px solid rgba(83, 199, 245, 0.28);
+  padding: 10px 12px;
   text-align: left;
   vertical-align: middle;
+}
+
+.admin-table thead th {
+  background: rgba(83, 199, 245, 0.12);
+  color: $accent;
+  font-weight: 600;
+}
+
+.admin-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.admin-table tbody tr:hover {
+  background: rgba(83, 199, 245, 0.06);
 }
 
 .admin-table input,
 .admin-table select {
   width: 100%;
   box-sizing: border-box;
+  padding: 8px 10px;
+  background: rgba(6, 22, 33, 0.65);
+  border: 1px solid rgba(83, 199, 245, 0.35);
+  border-radius: 4px;
+  color: $text;
+  font-size: 13px;
+  outline: none;
+}
+
+.admin-table input:focus,
+.admin-table select:focus {
+  border-color: $accent;
+  box-shadow: 0 0 0 1px rgba(83, 199, 245, 0.35);
+}
+
+.admin-table select {
+  cursor: pointer;
+}
+
+.admin-table option {
+  background: $deep;
+  color: $text;
 }
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+  white-space: nowrap;
 }
 
+.btn-small {
+  border: 1px solid $accent;
+  background: rgba(83, 199, 245, 0.15);
+  color: $accent;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-small:hover {
+  background: $accent;
+  color: #000;
+}
+
+.btn-small.danger,
 .danger {
+  border-color: #e57373;
+  color: #ffcdd2;
+  background: rgba(244, 67, 54, 0.12);
+}
+
+.btn-small.danger:hover,
+.danger:hover {
   background: #c62828;
   color: #fff;
-  border: none;
-  padding: 6px 10px;
-  border-radius: 6px;
-  cursor: pointer;
+  border-color: #c62828;
+}
+
+@media (max-width: 768px) {
+  .admin-main {
+    padding: 1vh 16px 2rem;
+  }
+
+  .hero-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-primary {
+    width: 100%;
+  }
+
+  .admin-table {
+    min-width: 640px;
+  }
 }

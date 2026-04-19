@@ -1,135 +1,151 @@
-<section class="admin-page">
-  <h1>Админ-панель</h1>
+<div class="admin-layout">
+  <header class="topbar">
+    <a routerLink="/" class="logo">⚓ МОРСКОЙ БОЙ</a>
+    <button type="button" class="back-btn" routerLink="/">← НАЗАД</button>
+  </header>
 
-  <button type="button" (click)="loadStats()">Обновить</button>
+  <main class="admin-main">
+    <section class="admin-page hero-panel">
+      <div class="hero-head">
+        <h1>Админ-панель</h1>
+        <button type="button" class="btn-primary" (click)="loadStats()">Обновить</button>
+      </div>
 
-  <p *ngIf="loading">Загрузка...</p>
-  <p *ngIf="error" class="error">{{ error }}</p>
+      <p *ngIf="loading" class="loading-line">Загрузка…</p>
+      <p *ngIf="error" class="error">{{ error }}</p>
 
-  <div *ngIf="stats" class="stats-grid">
-    <article class="card">
-      <h3>Пользователи</h3>
-      <p>Всего: {{ stats.totalUsers }}</p>
-      <p>Активных: {{ stats.activeUsers }}</p>
-      <p>Заблокированных: {{ stats.blockedUsers }}</p>
-    </article>
+      <div *ngIf="stats" class="stats-grid">
+        <article class="card">
+          <h3>Пользователи</h3>
+          <p>Всего: {{ stats.totalUsers }}</p>
+          <p>Активных: {{ stats.activeUsers }}</p>
+          <p>Заблокированных: {{ stats.blockedUsers }}</p>
+        </article>
 
-    <article class="card">
-      <h3>Игры</h3>
-      <p>В процессе: {{ stats.inProgressGames }}</p>
-      <p>Завершено: {{ stats.finishedGames }}</p>
-    </article>
+        <article class="card">
+          <h3>Игры</h3>
+          <p>В процессе: {{ stats.inProgressGames }}</p>
+          <p>Завершено: {{ stats.finishedGames }}</p>
+        </article>
 
-    <article class="card">
-      <h3>Комнаты</h3>
-      <p>Ожидают игрока: {{ stats.waitingRooms }}</p>
-    </article>
-  </div>
-</section>
+        <article class="card">
+          <h3>Комнаты</h3>
+          <p>Ожидают игрока: {{ stats.waitingRooms }}</p>
+        </article>
+      </div>
+    </section>
 
-<section class="admin-page tabs">
-  <button type="button" [class.active]="activeTab === 'users'" (click)="setTab('users')">Игроки ({{ users.length }})</button>
-  <button type="button" [class.active]="activeTab === 'games'" (click)="setTab('games')">Игры ({{ games.length }})</button>
-  <button type="button" [class.active]="activeTab === 'rooms'" (click)="setTab('rooms')">Комнаты ({{ rooms.length }})</button>
-</section>
+    <section class="admin-page tabs">
+      <button type="button" [class.active]="activeTab === 'users'" (click)="setTab('users')">Игроки ({{ users.length }})</button>
+      <button type="button" [class.active]="activeTab === 'games'" (click)="setTab('games')">Игры ({{ games.length }})</button>
+      <button type="button" [class.active]="activeTab === 'rooms'" (click)="setTab('rooms')">Комнаты ({{ rooms.length }})</button>
+    </section>
 
-<section class="admin-page" *ngIf="activeTab === 'users'">
-  <h2>Пользователи</h2>
-  <table class="admin-table">
-    <thead>
-      <tr>
-        <th>Username</th>
-        <th>Rating</th>
-        <th>Wins</th>
-        <th>Losses</th>
-        <th>Role</th>
-        <th>Status</th>
-        <th>Действия</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let user of users">
-        <td>{{ user.username }}</td>
-        <td><input type="number" [(ngModel)]="user.rating" /></td>
-        <td><input type="number" [(ngModel)]="user.wins" /></td>
-        <td><input type="number" [(ngModel)]="user.losses" /></td>
-        <td>
-          <select [(ngModel)]="user.role">
-            <option value="USER">USER</option>
-            <option value="ADMIN">ADMIN</option>
-          </select>
-        </td>
-        <td>
-          <select [(ngModel)]="user.status">
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="BLOCKED">BLOCKED</option>
-          </select>
-        </td>
-        <td class="actions">
-          <button type="button" (click)="saveUser(user)">Сохранить</button>
-          <button type="button" class="danger" (click)="deleteUser(user)">Удалить</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</section>
+    <section class="admin-page data-panel" *ngIf="activeTab === 'users'">
+      <h2>Пользователи</h2>
+      <div class="table-scroll">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Rating</th>
+              <th>Wins</th>
+              <th>Losses</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of users">
+              <td>{{ user.username }}</td>
+              <td><input type="number" [(ngModel)]="user.rating" /></td>
+              <td><input type="number" [(ngModel)]="user.wins" /></td>
+              <td><input type="number" [(ngModel)]="user.losses" /></td>
+              <td>
+                <select [(ngModel)]="user.role">
+                  <option value="USER">USER</option>
+                  <option value="ADMIN">ADMIN</option>
+                </select>
+              </td>
+              <td>
+                <select [(ngModel)]="user.status">
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="BLOCKED">BLOCKED</option>
+                </select>
+              </td>
+              <td class="actions">
+                <button type="button" class="btn-small" (click)="saveUser(user)">Сохранить</button>
+                <button type="button" class="btn-small danger" (click)="deleteUser(user)">Удалить</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-<section class="admin-page" *ngIf="activeTab === 'games'">
-  <h2>Игры</h2>
-  <table class="admin-table">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Host</th>
-        <th>Guest</th>
-        <th>Status</th>
-        <th>Действия</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let game of games">
-        <td>{{ game.id }}</td>
-        <td>{{ game.hostUsername || '-' }}</td>
-        <td>{{ game.guestUsername || '-' }}</td>
-        <td>
-          <select [(ngModel)]="game.status">
-            <option value="WAITING">WAITING</option>
-            <option value="IN_PROGRESS">IN_PROGRESS</option>
-            <option value="FINISHED">FINISHED</option>
-          </select>
-        </td>
-        <td class="actions">
-          <button type="button" (click)="saveGame(game)">Сохранить</button>
-          <button type="button" class="danger" (click)="deleteGame(game)">Удалить</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</section>
+    <section class="admin-page data-panel" *ngIf="activeTab === 'games'">
+      <h2>Игры</h2>
+      <div class="table-scroll">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Host</th>
+              <th>Guest</th>
+              <th>Status</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let game of games">
+              <td>{{ game.id }}</td>
+              <td>{{ game.hostUsername || '-' }}</td>
+              <td>{{ game.guestUsername || '-' }}</td>
+              <td>
+                <select [(ngModel)]="game.status">
+                  <option value="WAITING">WAITING</option>
+                  <option value="IN_PROGRESS">IN_PROGRESS</option>
+                  <option value="FINISHED">FINISHED</option>
+                </select>
+              </td>
+              <td class="actions">
+                <button type="button" class="btn-small" (click)="saveGame(game)">Сохранить</button>
+                <button type="button" class="btn-small danger" (click)="deleteGame(game)">Удалить</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-<section class="admin-page" *ngIf="activeTab === 'rooms'">
-  <h2>Комнаты</h2>
-  <table class="admin-table">
-    <thead>
-      <tr>
-        <th>Token</th>
-        <th>Host</th>
-        <th>Guest</th>
-        <th>Status</th>
-        <th>Действия</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let room of rooms">
-        <td>{{ room.token }}</td>
-        <td>{{ room.hostUsername || '-' }}</td>
-        <td>{{ room.guestUsername || '-' }}</td>
-        <td><input type="text" [(ngModel)]="room.status" /></td>
-        <td class="actions">
-          <button type="button" (click)="saveRoom(room)">Сохранить</button>
-          <button type="button" class="danger" (click)="deleteRoom(room)">Удалить</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</section>
+    <section class="admin-page data-panel" *ngIf="activeTab === 'rooms'">
+      <h2>Комнаты</h2>
+      <div class="table-scroll">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Host</th>
+              <th>Guest</th>
+              <th>Status</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let room of rooms">
+              <td>{{ room.token }}</td>
+              <td>{{ room.hostUsername || '-' }}</td>
+              <td>{{ room.guestUsername || '-' }}</td>
+              <td><input type="text" [(ngModel)]="room.status" /></td>
+              <td class="actions">
+                <button type="button" class="btn-small" (click)="saveRoom(room)">Сохранить</button>
+                <button type="button" class="btn-small danger" (click)="deleteRoom(room)">Удалить</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>

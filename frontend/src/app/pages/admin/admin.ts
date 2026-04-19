@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { getApiBaseUrl } from '../../core/api/api-config';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 type AdminStats = {
@@ -51,7 +52,7 @@ type AdminRoom = {
 @Component({
   selector: 'page-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './admin.html',
   styleUrls: ['./admin.scss']
 })
