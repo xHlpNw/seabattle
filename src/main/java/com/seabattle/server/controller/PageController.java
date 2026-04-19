@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class PageController {
 
-    @GetMapping({ "/", "/login", "/register", "/lobby", "/profile", "/setup", "/game" })
+    @GetMapping({ "/", "/login", "/register", "/lobby", "/profile", "/setup", "/game", "/admin" })
     public String index() {
         return "forward:/index.html";
     }
 
-    @GetMapping({ "/lobby/join/**", "/game/**" })
+    @GetMapping({ "/lobby/join/**", "/game/**", "/admin/**" })
     public String indexSub() {
         return "forward:/index.html";
     }

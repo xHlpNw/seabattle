@@ -31,7 +31,7 @@ export class LoginComponent {
         password: this.password
       });
 
-      this.auth.login(res.token, res.username);
+      this.auth.login(res.token, res.username, res.role);
       this.router.navigate(['/']);
 
     } catch (e: any) {

@@ -13,6 +13,7 @@ interface LoginResponse {
   avatar: string;
   rating: number;
   token: string;
+  role: string;
 }
 
 interface RegisterRequest {

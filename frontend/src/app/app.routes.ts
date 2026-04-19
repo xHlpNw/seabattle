@@ -8,6 +8,8 @@ import { GameComponent } from './pages/game/game';
 import { LobbyComponent } from './pages/lobby/lobby';
 import { LobbyJoinComponent } from './pages/lobby/lobby-join';
 import { AuthGuard } from './core/auth/auth.guard';
+import { AdminGuard } from './core/auth/admin.guard';
+import { AdminComponent } from './pages/admin/admin';
 
 export const routes: Routes = [
   {
@@ -56,5 +58,10 @@ export const routes: Routes = [
     path: 'game/:gameId/play',
     component: GameComponent,
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'admin',
+    component: AdminComponent,
+    canActivate: [AuthGuard, AdminGuard]
   }
 ];

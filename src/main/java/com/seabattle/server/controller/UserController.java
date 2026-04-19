@@ -53,6 +53,8 @@ public class UserController {
                 .passwordHash(passwordEncoder.encode(userDto.getPassword()))
                 .avatar(userDto.getAvatar() != null ? userDto.getAvatar() : "/default_avatar.png")
                 .rating(0)
+                .role(User.Role.USER)
+                .status(User.Status.ACTIVE)
                 .build();
         userRepository.save(user);
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
@@ -70,13 +72,18 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid credentials"));
         }
 
-        String token = jwtUtil.generateToken(user.getUsername());
+        if (user.getStatus() == User.Status.BLOCKED) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "User is blocked"));
+        }
+
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
 
         Map<String, Object> response = new HashMap<>();
         response.put("token", token);
         response.put("username", user.getUsername());
         response.put("avatar", user.getAvatar()); // null допустим
         response.put("rating", user.getRating() != null ? user.getRating() : 0);
+        response.put("role", user.getRole().name());
 
         return ResponseEntity.ok(response);
 

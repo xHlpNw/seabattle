@@ -21,7 +21,8 @@ public class MyUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         return User.withUsername(user.getUsername())
                 .password(user.getPasswordHash())
-                .authorities("USER")
+                .authorities("ROLE_" + user.getRole().name())
+                .accountLocked(user.getStatus() == com.seabattle.server.entity.User.Status.BLOCKED)
                 .build();
     }
 }
