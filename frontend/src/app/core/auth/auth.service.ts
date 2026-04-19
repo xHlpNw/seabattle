@@ -24,6 +24,7 @@ export class AuthService {
     if (!token || this.isTokenExpired(token)) {
       this.tokenStorage.clearToken();
       localStorage.removeItem('username');
+      localStorage.removeItem('role');
       this._isLoggedIn$.next(false);
       return Promise.resolve();
     }
@@ -32,14 +33,18 @@ export class AuthService {
       .catch(() => {
         this.tokenStorage.clearToken();
         localStorage.removeItem('username');
+        localStorage.removeItem('role');
         this._isLoggedIn$.next(false);
       });
   }
 
-  login(token: string, username?: string) {
+  login(token: string, username?: string, role?: string) {
     this.tokenStorage.setToken(token);
     if (username) {
       localStorage.setItem('username', username);
+    }
+    if (role) {
+      localStorage.setItem('role', role);
     }
     this._isLoggedIn$.next(true);
   }
@@ -47,12 +52,24 @@ export class AuthService {
   logout() {
     this.tokenStorage.clearToken();
     localStorage.removeItem('username');
+    localStorage.removeItem('role');
     this._isLoggedIn$.next(false);
     this.router.navigateByUrl('/', { replaceUrl: true });
   }
 
   getToken(): string | null {
     return this.tokenStorage.getToken();
+  }
+
+  getRole(): string | null {
+    const token = this.tokenStorage.getToken();
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.role ?? localStorage.getItem('role');
+    } catch {
+      return localStorage.getItem('role');
+    }
   }
 
   private isTokenExpired(token: string): boolean {

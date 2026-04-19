@@ -25,7 +25,7 @@ public class WebConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 CorsRegistration registration = registry.addMapping("/**")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                         .allowedHeaders("*");
                 if ("*".equals(allowedOrigins.trim())) {
                     registration.allowedOrigins("*").allowCredentials(false);
