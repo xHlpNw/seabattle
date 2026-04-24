@@ -1,8 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { CanActivate, Router, ActivatedRouteSnapshot } from '@angular/router';
+import { CanActivate, Router } from '@angular/router';
 import { AuthService } from './auth.service';
-import { map } from 'rxjs/operators';
-import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -12,20 +10,13 @@ export class AuthGuard implements CanActivate {
   private authService = inject(AuthService);
   private router = inject(Router);
 
-  canActivate(route: ActivatedRouteSnapshot): boolean {
-    console.log('AuthGuard: Checking authentication...');
+  canActivate(): boolean {
     const token = this.authService.getToken();
-    const hasToken = !!token;
-    const isTokenValid = hasToken && !this.isTokenExpired(token);
+    const isValid = !!token && !this.isTokenExpired(token);
 
-    console.log('AuthGuard: token exists =', hasToken);
-    console.log('AuthGuard: token is valid =', isTokenValid);
-
-    if (isTokenValid) {
-      console.log('AuthGuard: Allowing access to protected route');
+    if (isValid) {
       return true;
     } else {
-      console.log('AuthGuard: Blocking access, redirecting to login');
       this.router.navigate(['/login']);
       return false;
     }

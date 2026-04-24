@@ -41,8 +41,6 @@ export class GameWebSocketService {
   /** Pending reconnect timeout — cleared in disconnect() to prevent reconnect after switching game */
   private reconnectTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
-  constructor() {}
-
   connect(gameId: string): Observable<boolean> {
     return new Observable(observer => {
       // If already connected to the same game, return success
@@ -148,35 +146,6 @@ export class GameWebSocketService {
     return this.gameUpdates$.asObservable();
   }
 
-  sendAttack(gameId: string, x: number, y: number): void {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({
-        type: 'attack',
-        gameId: gameId,
-        x: x,
-        y: y
-      }));
-    }
-  }
-
-  sendReady(gameId: string): void {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({
-        type: 'ready',
-        gameId: gameId
-      }));
-    }
-  }
-
-  sendSurrender(gameId: string): void {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({
-        type: 'surrender',
-        gameId: gameId
-      }));
-    }
-  }
-
   sendRematchRequest(gameId: string): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify({ type: 'rematchRequest', gameId }));
@@ -192,15 +161,6 @@ export class GameWebSocketService {
   sendRematchDecline(gameId: string): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(JSON.stringify({ type: 'rematchDecline', gameId }));
-    }
-  }
-
-  sendMessage(type: string, data: any): void {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({
-        type: type,
-        ...data
-      }));
     }
   }
 }

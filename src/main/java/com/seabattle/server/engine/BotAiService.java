@@ -2,7 +2,11 @@ package com.seabattle.server.engine;
 
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 @Component
 public class BotAiService {
@@ -174,125 +178,6 @@ public class BotAiService {
         }
 
         return bestCoord != null ? new BotMove(bestCoord.getX(), bestCoord.getY()) : null;
-    }
-
-    /**
-     * Direction targeting: if we have 2+ hits in a line, shoot along that line to find ship ends
-     */
-    private BotMove findDirectionTarget(BoardModel playerBoard, List<BoardModel.Coord> hits) {
-        if (hits.size() < 2) return null;
-
-        // Group hits by row and column to find potential ship lines
-        Map<Integer, List<Integer>> hitsByRow = new HashMap<>();
-        Map<Integer, List<Integer>> hitsByCol = new HashMap<>();
-
-        for (BoardModel.Coord hit : hits) {
-            hitsByRow.computeIfAbsent(hit.getX(), k -> new ArrayList<>()).add(hit.getY());
-            hitsByCol.computeIfAbsent(hit.getY(), k -> new ArrayList<>()).add(hit.getX());
-        }
-
-        // Check horizontal ships (same row, multiple columns)
-        for (Map.Entry<Integer, List<Integer>> entry : hitsByRow.entrySet()) {
-            int row = entry.getKey();
-            List<Integer> cols = entry.getValue();
-            if (cols.size() >= 2) {
-                Collections.sort(cols);
-                int minCol = cols.get(0);
-                int maxCol = cols.get(cols.size() - 1);
-                // Try shooting left of the leftmost hit
-                if (minCol > 0 && playerBoard.getCells()[row][minCol - 1].getState() == BoardModel.CellState.EMPTY) {
-                    return new BotMove(row, minCol - 1);
-                }
-                // Try shooting right of the rightmost hit
-                if (maxCol < BoardModel.SIZE - 1 && playerBoard.getCells()[row][maxCol + 1].getState() == BoardModel.CellState.EMPTY) {
-                    return new BotMove(row, maxCol + 1);
-                }
-            }
-        }
-
-        // Check vertical ships (same column, multiple rows)
-        for (Map.Entry<Integer, List<Integer>> entry : hitsByCol.entrySet()) {
-            int col = entry.getKey();
-            List<Integer> rows = entry.getValue();
-            if (rows.size() >= 2) {
-                Collections.sort(rows);
-                int minRow = rows.get(0);
-                int maxRow = rows.get(rows.size() - 1);
-
-                // Try shooting above the topmost hit
-                if (minRow > 0 && playerBoard.getCells()[minRow - 1][col].getState() == BoardModel.CellState.EMPTY) {
-                    return new BotMove(minRow - 1, col);
-                }
-                // Try shooting below the bottommost hit
-                if (maxRow < BoardModel.SIZE - 1 && playerBoard.getCells()[maxRow + 1][col].getState() == BoardModel.CellState.EMPTY) {
-                    return new BotMove(maxRow + 1, col);
-                }
-            }
-        }
-
-        return null; // No direction target found
-    }
-
-    /**
-     * Oriented hunt targeting: when we have multiple hits, focus hunting along likely ship axes
-     */
-    private BotMove findOrientedHuntTarget(BoardModel playerBoard, List<BoardModel.Coord> hits) {
-        // Group hits by row and column
-        Map<Integer, List<Integer>> hitsByRow = new HashMap<>();
-        Map<Integer, List<Integer>> hitsByCol = new HashMap<>();
-
-        for (BoardModel.Coord hit : hits) {
-            hitsByRow.computeIfAbsent(hit.getX(), k -> new ArrayList<>()).add(hit.getY());
-            hitsByCol.computeIfAbsent(hit.getY(), k -> new ArrayList<>()).add(hit.getX());
-        }
-
-        // Check if we have multiple hits in the same row (potential horizontal ship)
-        for (Map.Entry<Integer, List<Integer>> entry : hitsByRow.entrySet()) {
-            int row = entry.getKey();
-            List<Integer> cols = entry.getValue();
-            if (cols.size() >= 2) {
-                // We have multiple hits in this row - focus on horizontal hunting
-                Collections.sort(cols);
-
-                // Try horizontal directions from all hits in this row
-                for (int col : cols) {
-                    // Left
-                    if (col > 0 && playerBoard.getCells()[row][col - 1].getState() == BoardModel.CellState.EMPTY) {
-                        return new BotMove(row, col - 1);
-                    }
-                    // Right
-                    if (col < BoardModel.SIZE - 1 && playerBoard.getCells()[row][col + 1].getState() == BoardModel.CellState.EMPTY) {
-                        return new BotMove(row, col + 1);
-                    }
-                }
-            }
-        }
-
-        // Check if we have multiple hits in the same column (potential vertical ship)
-        for (Map.Entry<Integer, List<Integer>> entry : hitsByCol.entrySet()) {
-            int col = entry.getKey();
-            List<Integer> rows = entry.getValue();
-            if (rows.size() >= 2) {
-                // We have multiple hits in this column - focus on vertical hunting
-                Collections.sort(rows);
-                int minRow = rows.get(0);
-                int maxRow = rows.get(rows.size() - 1);
-
-                // Try vertical directions from all hits in this column
-                for (int row : rows) {
-                    // Up
-                    if (row > 0 && playerBoard.getCells()[row - 1][col].getState() == BoardModel.CellState.EMPTY) {
-                        return new BotMove(row - 1, col);
-                    }
-                    // Down
-                    if (row < BoardModel.SIZE - 1 && playerBoard.getCells()[row + 1][col].getState() == BoardModel.CellState.EMPTY) {
-                        return new BotMove(row + 1, col);
-                    }
-                }
-            }
-        }
-
-        return null; // No oriented hunt target found
     }
 
     /**

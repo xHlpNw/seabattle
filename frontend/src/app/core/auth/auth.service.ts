@@ -16,19 +16,15 @@ export class AuthService {
   isLoggedIn$ = this._isLoggedIn$.asObservable();
 
   constructor() {
-    // Изначально считаем не авторизованным; после validateToken() при загрузке приложения обновим состояние
     this._isLoggedIn$.next(false);
   }
 
-  /**
-   * Проверка токена на бэкенде. Вызывается при старте приложения (APP_INITIALIZER).
-   * Если токена нет или он невалиден — остаётся Login; если валиден — показываем Profile.
-   */
   validateToken(): Promise<void> {
     const token = this.tokenStorage.getToken();
     if (!token || this.isTokenExpired(token)) {
       this.tokenStorage.clearToken();
       localStorage.removeItem('username');
+      localStorage.removeItem('role');
       this._isLoggedIn$.next(false);
       return Promise.resolve();
     }
@@ -37,30 +33,43 @@ export class AuthService {
       .catch(() => {
         this.tokenStorage.clearToken();
         localStorage.removeItem('username');
+        localStorage.removeItem('role');
         this._isLoggedIn$.next(false);
       });
   }
 
-  login(token: string, username?: string) {
+  login(token: string, username?: string, role?: string) {
     this.tokenStorage.setToken(token);
     if (username) {
       localStorage.setItem('username', username);
+    }
+    if (role) {
+      localStorage.setItem('role', role);
     }
     this._isLoggedIn$.next(true);
   }
 
   logout() {
-    // Clear token first
     this.tokenStorage.clearToken();
     localStorage.removeItem('username');
+    localStorage.removeItem('role');
     this._isLoggedIn$.next(false);
-
-    // Force navigation to home page, bypassing any guards
     this.router.navigateByUrl('/', { replaceUrl: true });
   }
 
   getToken(): string | null {
     return this.tokenStorage.getToken();
+  }
+
+  getRole(): string | null {
+    const token = this.tokenStorage.getToken();
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.role ?? localStorage.getItem('role');
+    } catch {
+      return localStorage.getItem('role');
+    }
   }
 
   private isTokenExpired(token: string): boolean {

@@ -32,11 +32,17 @@ public class SeaBattleServerApplication {
 
             userRepository.findByUsername("admin").ifPresentOrElse(
                     admin -> {
+                        if (admin.getRole() != User.Role.ADMIN) {
+                            admin.setRole(User.Role.ADMIN);
+                        }
+                        if (admin.getStatus() == null) {
+                            admin.setStatus(User.Status.ACTIVE);
+                        }
                         if (resetAdminPassword) {
                             admin.setPasswordHash(passwordEncoder.encode("password"));
-                            userRepository.save(admin);
                             log.info("Reset password for user 'admin' to 'password'");
                         }
+                        userRepository.save(admin);
                     },
                     () -> {
                         User admin = User.builder()
@@ -46,6 +52,8 @@ public class SeaBattleServerApplication {
                                 .rating(0)
                                 .wins(0)
                                 .losses(0)
+                                .role(User.Role.ADMIN)
+                                .status(User.Status.ACTIVE)
                                 .build();
                         userRepository.save(admin);
                         log.info("Created default user: admin / password");

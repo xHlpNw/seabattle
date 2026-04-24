@@ -7,5 +7,6 @@ public record UserProfileDTO(
         int losses,
         double winrate,
         int rating,
-        int position
+        int position,
+        String avatar
 ) {}

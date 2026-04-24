@@ -13,7 +13,8 @@ import java.util.*;
 @AllArgsConstructor
 @Builder
 public class User {
-    public enum Role { PLAYER, ADMIN }
+    public enum Role { USER, ADMIN }
+    public enum Status { ACTIVE, BLOCKED }
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -21,9 +22,6 @@ public class User {
 
     @Column(nullable = false, unique = true, length = 50)
     private String username;
-
-    @Column(unique = true, length = 100)
-    private String email;
 
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
@@ -41,14 +39,21 @@ public class User {
     @Column(name = "avatar", length = 255, columnDefinition = "varchar(255) default '/default_avatar.png'")
     private String avatar = "/default_avatar.png";
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, length = 20)
+    @Builder.Default
+    private Role role = Role.USER;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    @Builder.Default
+    private Status status = Status.ACTIVE;
+
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
-
-    @Enumerated(EnumType.STRING)
-    private Role role;
 
     @PrePersist
     void prePersist() {

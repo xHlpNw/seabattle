@@ -30,9 +30,19 @@
       <!-- PROFILE CARD -->
       <section class="profile-card glow-box">
         <div class="profile-left">
-          <img [src]="user.avatar ? getBackendUrl() + user.avatar : getBackendUrl() + '/default_avatar.png'"
-               alt="аватар" class="avatar" />
-          <h1 class="username">{{ user.username }}</h1>
+          <div class="avatar-wrapper" (click)="openAvatarPicker()" [class.uploading]="avatarUploading" title="Нажмите, чтобы изменить аватар">
+            <img [src]="user.avatar ? getBackendUrl() + user.avatar : getBackendUrl() + '/default_avatar.png'"
+                 alt="аватар" class="avatar" />
+            <div class="avatar-overlay">
+              <span *ngIf="!avatarUploading">✎</span>
+              <span *ngIf="avatarUploading" class="avatar-spinner"></span>
+            </div>
+          </div>
+          <input #avatarInput type="file" accept="image/*" style="display:none" (change)="onAvatarSelected($event)" />
+          <div class="avatar-info">
+            <h1 class="username">{{ user.username }}</h1>
+            <p *ngIf="avatarError" class="avatar-error">{{ avatarError }}</p>
+          </div>
         </div>
 
         <button (click)="logout()" class="logout-btn">ВЫЙТИ</button>

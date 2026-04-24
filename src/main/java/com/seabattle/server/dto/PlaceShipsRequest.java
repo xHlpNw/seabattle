@@ -10,7 +10,6 @@ import java.util.List;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PlaceShipsRequest {
-    private Integer size;            // опционально: размер сетки (фронт присылает 10)
-    private int[][] cells;           // сетка
-    private List<ShipDTO> ships;     // список кораблей
+    private int[][] cells;
+    private List<ShipDTO> ships;
 }

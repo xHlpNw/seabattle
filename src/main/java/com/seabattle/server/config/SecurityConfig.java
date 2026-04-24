@@ -5,11 +5,7 @@ import com.seabattle.server.util.JwtAuthenticationFilter;
 import com.seabattle.server.util.JwtUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,15 +33,16 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/",  // SPA root
+                                "/",
                                 "/index.html",
                                 "/favicon.ico",
                                 "/assets/**",
-                                "/*.js", "/*.css", "/*.ico",  // Angular production build (hashed files at root)
-                                "/login", "/register", "/lobby", "/lobby/**", "/profile", "/setup", "/game", "/game/**",  // SPA routes (serve index.html)
+                                "/*.js", "/*.css", "/*.ico",
+                                "/login", "/register", "/lobby", "/lobby/**", "/profile", "/setup", "/game", "/game/**",
                                 "/api/users/register",
                                 "/api/users/login",
                                 "/default_avatar.png",
+                                "/avatars/**",
                                 "/images/**",
                                 "/css/**",
                                 "/js/**",
@@ -53,6 +50,7 @@ public class SecurityConfig {
                                 "/api/users/profile",
                                 "/api/ws/**"
                         ).permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -65,9 +63,4 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // Нужен для AuthenticationManager (например при ручной аутентификации username/password)
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
-    }
 }

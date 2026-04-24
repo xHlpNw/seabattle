@@ -42,7 +42,6 @@ export class SetupComponent implements OnInit, OnDestroy {
 
   cols = ['A','B','C','D','E','F','G','H','I','J'];
 
-
   ships: Ship[] = [
     { size: 4, placed: false },
     { size: 3, placed: false },
@@ -64,7 +63,6 @@ export class SetupComponent implements OnInit, OnDestroy {
 
   /** Long-press on mobile: remove ship. Prevents click from firing after. */
   private longPressTimer: ReturnType<typeof setTimeout> | null = null;
-  private longPressCell: { i: number; j: number } | null = null;
   private skipNextClick = false;
   private readonly longPressMs = 600;
 
@@ -141,8 +139,6 @@ export class SetupComponent implements OnInit, OnDestroy {
 
   placeShip(x: number, y: number) {
     if (!this.selectedShip || this.autoPlacedDone) return;
-
-    // проверяем все клетки
     if (this.hoverCells.some(c => !c.valid)) return;
 
     const cells: { x: number, y: number }[] = [];
@@ -193,11 +189,9 @@ export class SetupComponent implements OnInit, OnDestroy {
     else this.placeShip(x, y);
   }
 
-  /** Start long-press timer only on a cell that has a ship. */
   onCellTouchStart(i: number, j: number, event: TouchEvent) {
     if (this.grid[i][j] !== 1) return;
     this.clearLongPress();
-    this.longPressCell = { i, j };
     this.longPressTimer = setTimeout(() => {
       this.removeShip(i, j);
       this.skipNextClick = true;
@@ -218,7 +212,6 @@ export class SetupComponent implements OnInit, OnDestroy {
       clearTimeout(this.longPressTimer);
       this.longPressTimer = null;
     }
-    this.longPressCell = null;
   }
 
   getCursor(): string {
@@ -242,11 +235,7 @@ export class SetupComponent implements OnInit, OnDestroy {
         });
         this.autoPlacedDone = true;
       }
-
-      if (response.message) console.log(response.message);
-    } catch (err) {
-      console.error('Ошибка авторасстановки:', err);
-    }
+    } catch (err) {}
   }
 
   private pollingInterval: any;
@@ -266,50 +255,34 @@ export class SetupComponent implements OnInit, OnDestroy {
     };
 
     try {
-      // Отправляем доску на сервер
       await firstValueFrom(this.gameApi.placeShips(this.gameId, payload));
-      console.log('Доска с кораблями отправлена');
 
-      // Отмечаем игрока как готового
       const readyResponse = await firstValueFrom(this.gameApi.markReady(this.gameId));
-      console.log('Игрок отмечен как готовый:', readyResponse);
-
-      // Отмечаем локально, что игрок готов
       this.isReady = true;
 
-      // Если оба игрока уже готовы, сразу переходим к игре
       if ((readyResponse as any).bothReady && (readyResponse as any).gameStarted) {
         this.router.navigate(['/game'], { queryParams: { gameId: this.gameId } });
         return;
       }
 
-      // Начинаем polling для проверки готовности обоих игроков
       this.startReadyPolling();
-
-    } catch (err) {
-      console.error('Ошибка:', err);
-    }
+    } catch (err) {}
   }
 
   private startReadyPolling() {
     if (!this.gameId) return;
 
-    console.log('Начинаем polling готовности игроков...');
     this.pollingInterval = setInterval(async () => {
       try {
         const boards = await firstValueFrom(this.gameApi.getBoards(this.gameId!));
 
-        // Переходим к игре только когда оба нажали «Готов» и игра начата (currentTurn = HOST или GUEST, не NONE)
         const gameStarted = !boards.gameFinished && boards.currentTurn &&
           (boards.currentTurn === 'HOST' || boards.currentTurn === 'GUEST');
         if (gameStarted) {
-          console.log('Игра начата! Переходим к игре...');
           clearInterval(this.pollingInterval);
           this.router.navigate(['/game'], { queryParams: { gameId: this.gameId } });
         }
-      } catch (err) {
-        console.log('Ошибка при проверке статуса игры:', err);
-      }
+      } catch (err) {}
     }, 2000);
   }
 

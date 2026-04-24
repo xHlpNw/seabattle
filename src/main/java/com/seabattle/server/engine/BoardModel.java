@@ -78,7 +78,7 @@ public class BoardModel {
         }
     }
 
-    // simple ship placer (no adjacency checks). Returns true if placed
+    /** Расставляет корабль без проверки соседства. Возвращает true при успехе. */
     public boolean placeShip(int shipId, int x, int y, boolean horizontal, int length) {
         if (horizontal) {
             if (y + length > SIZE) return false;
@@ -106,8 +106,6 @@ public class BoardModel {
             return true;
         }
     }
-
-    public static final int[] STANDARD_SHIPS = {4,3,3,2,2,1,1,1,1};
 
     public boolean allShipsSunk() {
         for (Ship s : ships) if (!s.sunk) return false;
@@ -140,12 +138,11 @@ public class BoardModel {
                 for (Coord coord : target.cells) {
                     if (cells[coord.x][coord.y].state != CellState.HIT) { allHit = false; break; }
                 }
-                if (allHit) {
-                    target.sunk = true;
-                    sunk = true;
-                    // Mark misses around the sunk ship
-                    markMissesAroundShip(target);
-                }
+                    if (allHit) {
+                        target.sunk = true;
+                        sunk = true;
+                        markMissesAroundShip(target);
+                    }
             }
             return new ShotOutcome(true, sunk, false);
         } else {
@@ -189,7 +186,6 @@ public class BoardModel {
             }
         }
 
-        // Проверка выхода за границы
         if (horiz && y + length > SIZE) return false;
         if (!horiz && x + length > SIZE) return false;
 
@@ -206,7 +202,7 @@ public class BoardModel {
                         grid[i][j] = 0;
                         break;
                     case SHIP:
-                        grid[i][j] = revealShips ? 1 : 0; // для своей доски показываем корабли, для вражеской нет
+                        grid[i][j] = revealShips ? 1 : 0;
                         break;
                     case MISS:
                         grid[i][j] = 2;
@@ -237,7 +233,6 @@ public class BoardModel {
                     int nx = x + dx;
                     int ny = y + dy;
 
-                    // Skip the cell itself and check bounds
                     if ((dx == 0 && dy == 0) || nx < 0 || nx >= SIZE || ny < 0 || ny >= SIZE) {
                         continue;
                     }
@@ -249,17 +244,5 @@ public class BoardModel {
             }
         }
     }
-
-    public static void fixShipIds(BoardModel bm) {
-        for (Ship s : bm.getShips()) {
-            for (Coord c : s.getCells()) {
-                Cell cell = bm.getCells()[c.getX()][c.getY()];
-                if (cell.getShipId() == null) {
-                    cell.setShipId(s.getId());
-                }
-            }
-        }
-    }
-
 
 }

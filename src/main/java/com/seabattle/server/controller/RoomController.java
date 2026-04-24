@@ -43,14 +43,12 @@ public class RoomController {
         ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
         HttpServletRequest request = attrs.getRequest();
 
-        String scheme = request.getScheme(); // http or https
+        String scheme = request.getScheme();
         String serverName = request.getServerName();
         int serverPort = request.getServerPort();
 
-        // For development, assume frontend is on port 4200, but use the same host
+        // В dev-окружении фронтенд на 4200, в остальных случаях используем текущий порт
         String frontendPort = (serverPort == 8080) ? "4200" : String.valueOf(serverPort);
-
-        // If running on standard ports, don't include port in URL
         String portPart = "";
         if ((scheme.equals("http") && serverPort != 80) || (scheme.equals("https") && serverPort != 443)) {
             portPart = ":" + frontendPort;
@@ -66,13 +64,12 @@ public class RoomController {
 
         log.debug("createRoom called by user: {}", user.getUsername());
 
-        // Always create new room (no checking for existing active rooms)
         Room room = new Room();
         room.setHost(user);
         room.setToken(UUID.randomUUID());
         room.setStatus("WAITING");
         room.setCreatedAt(OffsetDateTime.now());
-        room.setExpiresAt(OffsetDateTime.now().plusDays(1)); // 24 hours for testing
+        room.setExpiresAt(OffsetDateTime.now().plusDays(1));
 
         roomRepository.save(room);
 
@@ -104,7 +101,6 @@ public class RoomController {
             return ResponseEntity.badRequest().body(Map.of("message", "You cannot join your own room"));
         }
 
-        // Check if a game already exists for this room
         Game existingGame = gameRepository.findByRoomToken(token).stream().findFirst().orElse(null);
         if (existingGame != null) {
             return ResponseEntity.ok(Map.of(
@@ -115,7 +111,6 @@ public class RoomController {
             ));
         }
 
-        // Set guest on room (don't create game yet)
         room.setGuest(user);
         roomRepository.save(room);
 
@@ -148,7 +143,6 @@ public class RoomController {
             return ResponseEntity.badRequest().body(Map.of("message", "Cannot start game without opponent"));
         }
 
-        // Check if a game already exists for this room
         Game existingGame = gameRepository.findByRoomToken(token).stream().findFirst().orElse(null);
         if (existingGame != null) {
             return ResponseEntity.ok(Map.of(
@@ -157,7 +151,6 @@ public class RoomController {
             ));
         }
 
-        // Create online game with both players
         Game game = Game.builder()
                 .type(Game.GameType.ONLINE)
                 .host(room.getHost())
@@ -169,7 +162,6 @@ public class RoomController {
 
         gameRepository.save(game);
 
-        // Create empty boards for both players
         Board hostBoard = Board.builder()
                 .game(game)
                 .player(room.getHost())
@@ -185,7 +177,6 @@ public class RoomController {
         boardRepository.save(hostBoard);
         boardRepository.save(guestBoard);
 
-        // Update room status to indicate game has started
         room.setStatus("IN_GAME");
         roomRepository.save(room);
 
@@ -212,7 +203,6 @@ public class RoomController {
         log.debug("Room found: host={}, guest={}", room.getHost().getUsername(),
                 room.getGuest() != null ? room.getGuest().getUsername() : null);
 
-        // Check if user is a participant in this room
         boolean isHost = room.getHost().equals(user);
         boolean isGuest = room.getGuest() != null && room.getGuest().equals(user);
         if (!isHost && !isGuest) {
@@ -223,7 +213,6 @@ public class RoomController {
         boolean isExpired = room.getExpiresAt().isBefore(OffsetDateTime.now());
         String guestUsername = room.getGuest() != null ? room.getGuest().getUsername() : null;
 
-        // Get game ID if game exists for this room
         Game game = gameRepository.findByRoomToken(token).stream().findFirst().orElse(null);
         UUID gameId = game != null ? game.getId() : null;
 

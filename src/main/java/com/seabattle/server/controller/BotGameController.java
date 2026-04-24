@@ -33,7 +33,7 @@ public class BotGameController {
     @PostMapping("/create")
     public ResponseEntity<CreateBotGameResponse> create(@AuthenticationPrincipal UserDetails userDetails) throws Exception {
         User user = userRepo.findByUsername(userDetails.getUsername()).orElseThrow();
-        Game g = gameService.createBotGame(user); // creates game + player board + bot board
+        Game g = gameService.createBotGame(user);
         return ResponseEntity.ok(new CreateBotGameResponse(g.getId(),
                 "Created bot game. Place ships with /place/auto or /place"));
     }
@@ -92,11 +92,5 @@ public class BotGameController {
         return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/{gameId}/rematch")
-    public ResponseEntity<CreateBotGameResponse> rematch(@PathVariable UUID gameId, @AuthenticationPrincipal UserDetails userDetails) throws Exception {
-        User user = userRepo.findByUsername(userDetails.getUsername()).orElseThrow();
-        Game g = gameService.rematch(gameId, user.getId());
-        return ResponseEntity.ok(new CreateBotGameResponse(g.getId(), "Rematch created."));
-    }
-
 }
+

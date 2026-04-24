@@ -95,6 +95,48 @@ html, body {
   font-size: clamp(14px, 1.4vw, 18px);
 }
 
+/* ===== PLAYERS BAR ===== */
+.players-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6vh 4vw 0.8vh;
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.player-avatar {
+  width: clamp(36px, 3.5vw, 52px);
+  height: clamp(36px, 3.5vw, 52px);
+  border-radius: 50%;
+  border: 2px solid #53c7f5;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(83, 199, 245, 0.4);
+}
+
+.player-nick {
+  color: #d6e8f0;
+  font-size: clamp(13px, 1.2vw, 17px);
+  font-weight: bold;
+  white-space: nowrap;
+  max-width: 18vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vs-label {
+  color: rgba(83, 199, 245, 0.5);
+  font-size: clamp(12px, 1.1vw, 16px);
+  font-weight: bold;
+  letter-spacing: 0.15em;
+  flex-shrink: 0;
+}
+
 /* ===== GRID (РЕЗИНОВАЯ) ===== */
 
 .grid {
