@@ -206,13 +206,11 @@ public class GameController {
         String opponentAvatar;
         if (isBotGame) {
             opponentName = "Bot";
-            opponentAvatar = "/default_avatar.png";
+            opponentAvatar = null; // frontend falls back to bundled assets/default_avatar.png
         } else {
             User opponent = isHost ? game.getGuest() : game.getHost();
             opponentName = opponent != null ? opponent.getUsername() : "Waiting for opponent...";
-            opponentAvatar = (opponent != null && opponent.getAvatar() != null)
-                    ? opponent.getAvatar()
-                    : "/default_avatar.png";
+            opponentAvatar = (opponent != null) ? opponent.getAvatar() : null;
         }
 
         Map<String, Object> response = Map.ofEntries(

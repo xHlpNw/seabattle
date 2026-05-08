@@ -51,7 +51,7 @@ public class UserController {
         User user = User.builder()
                 .username(userDto.getUsername())
                 .passwordHash(passwordEncoder.encode(userDto.getPassword()))
-                .avatar(userDto.getAvatar() != null ? userDto.getAvatar() : "/default_avatar.png")
+                .avatar(userDto.getAvatar())
                 .rating(0)
                 .role(User.Role.USER)
                 .status(User.Status.ACTIVE)
@@ -174,7 +174,7 @@ public class UserController {
             Path filePath = uploadPath.resolve(filename);
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-            String avatarUrl = "/avatars/" + filename;
+            String avatarUrl = "/api/avatars/" + filename;
 
             User user = userRepository.findByUsername(userDetails.getUsername())
                     .orElseThrow(() -> new EntityNotFoundException("User not found"));

@@ -8,14 +8,14 @@
   <div class="players-bar">
     <div class="player-info">
       <img class="player-avatar"
-           [src]="profile?.avatar ? getBackendUrl() + profile.avatar : getBackendUrl() + '/default_avatar.png'"
+           [src]="profile?.avatar ? getBackendUrl() + profile.avatar : 'assets/default_avatar.png'"
            alt="аватар" />
       <span class="player-nick">Вы</span>
     </div>
     <div class="player-info">
       <span class="player-nick">{{ isBotGame ? 'Бот' : opponentName }}</span>
       <img class="player-avatar"
-           [src]="opponentAvatar ? getBackendUrl() + opponentAvatar : getBackendUrl() + '/default_avatar.png'"
+           [src]="opponentAvatar ? getBackendUrl() + opponentAvatar : 'assets/default_avatar.png'"
            alt="аватар противника" />
     </div>
   </div>

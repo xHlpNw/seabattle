@@ -48,7 +48,6 @@ public class SeaBattleServerApplication {
                         User admin = User.builder()
                                 .username("admin")
                                 .passwordHash(passwordEncoder.encode("password"))
-                                .avatar("/default_avatar.png")
                                 .rating(0)
                                 .wins(0)
                                 .losses(0)

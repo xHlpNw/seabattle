@@ -35,9 +35,8 @@ public class User {
     @Builder.Default
     private Integer losses = 0;
 
-    @Builder.Default
-    @Column(name = "avatar", length = 255, columnDefinition = "varchar(255) default '/default_avatar.png'")
-    private String avatar = "/default_avatar.png";
+    @Column(name = "avatar", length = 255)
+    private String avatar;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)
