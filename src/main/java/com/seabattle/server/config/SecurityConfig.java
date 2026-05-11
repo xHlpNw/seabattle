@@ -42,7 +42,7 @@ public class SecurityConfig {
                                 "/api/users/register",
                                 "/api/users/login",
                                 "/default_avatar.png",
-                                "/avatars/**",
+                                "/api/avatars/**",
                                 "/images/**",
                                 "/css/**",
                                 "/js/**",

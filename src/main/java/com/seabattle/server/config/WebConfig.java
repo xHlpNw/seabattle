@@ -37,7 +37,7 @@ public class WebConfig {
             @Override
             public void addResourceHandlers(ResourceHandlerRegistry registry) {
                 String avatarPath = Paths.get(uploadDir, "avatars").toAbsolutePath().toUri().toString();
-                registry.addResourceHandler("/avatars/**")
+                registry.addResourceHandler("/api/avatars/**")
                         .addResourceLocations(avatarPath);
             }
         };

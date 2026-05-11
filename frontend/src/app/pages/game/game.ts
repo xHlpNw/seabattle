@@ -51,7 +51,7 @@ export class GameComponent implements OnInit, OnDestroy {
   isPlayerTurn: boolean = true;
 
   opponentName: string = 'Командир Бета';
-  opponentAvatar: string = '/default_avatar.png';
+  opponentAvatar: string = '';
   isBotGame: boolean = true;
   isHost: boolean = true;
 
@@ -113,7 +113,7 @@ export class GameComponent implements OnInit, OnDestroy {
       this.enemyBoard = res.enemyBoard;
       this.currentTurn = res.currentTurn;
       this.opponentName = res.opponentName;
-      this.opponentAvatar = res.opponentAvatar || '/default_avatar.png';
+      this.opponentAvatar = res.opponentAvatar || '';
       this.isBotGame = res.isBotGame;
       this.isHost = res.isHost;
 
