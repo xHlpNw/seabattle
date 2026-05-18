@@ -38,14 +38,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
+        String authFailReason = null;
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        if (authHeader == null) {
+            authFailReason = "no Authorization header";
+        } else if (!authHeader.startsWith("Bearer ")) {
+            authFailReason = "Authorization header without 'Bearer ' prefix";
+        } else {
             token = authHeader.substring(7);
             if (jwtUtil.validateToken(token)) {
                 username = jwtUtil.extractUsername(token);
+            } else {
+                authFailReason = "token rejected by validateToken (expired / bad signature / malformed)";
             }
         }
-        log.trace("JWT auth: present={}, username={}", authHeader != null, username);
+
+        // Log only for protected endpoints (skip noisy public ones).
+        String path = request.getRequestURI();
+        boolean isPublicPath = path.startsWith("/api/users/login")
+                || path.startsWith("/api/users/register")
+                || path.startsWith("/api/users/top")
+                || path.startsWith("/api/users/profile")
+                || path.startsWith("/api/avatars/")
+                || path.startsWith("/api/ws/");
+        if (username != null) {
+            log.debug("JWT auth OK for {} on {}", username, path);
+        } else if (!isPublicPath) {
+            log.warn("JWT auth failed on {} ({} {}): {}",
+                    path, request.getMethod(), request.getRemoteAddr(), authFailReason);
+        }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);

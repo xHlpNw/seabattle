@@ -70,18 +70,30 @@ export class UserApi {
   async uploadAvatar(file: File): Promise<{ avatar: string }> {
     const backendUrl = this.base.replace('/api/users', '');
     const token = localStorage.getItem('auth_token');
+
+    if (!token) {
+      throw new Error('Сессия истекла. Войдите в аккаунт заново и повторите загрузку.');
+    }
+
     const formData = new FormData();
     formData.append('file', file);
     const res = await fetch(`${backendUrl}/api/users/avatar`, {
       method: 'POST',
       headers: {
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        'Authorization': `Bearer ${token}`
       },
       body: formData
     });
+
+    if (res.status === 401 || res.status === 403) {
+      // Token missing/invalid/expired on backend. Clear it so user re-logs in.
+      localStorage.removeItem('auth_token');
+      throw new Error('Сессия истекла или недействительна. Войдите в аккаунт заново.');
+    }
+
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: 'Upload failed' }));
-      throw new Error(err.message || 'Upload failed');
+      const err = await res.json().catch(() => ({ message: `Ошибка загрузки (HTTP ${res.status})` }));
+      throw new Error(err.message || `Ошибка загрузки (HTTP ${res.status})`);
     }
     return res.json();
   }
